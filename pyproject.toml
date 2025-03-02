@@ -1,0 +1,19 @@
+[build-system]
+requires = [
+    "setuptools",
+    "mongoengine",
+    "seaborn",
+    "pandas",
+    "rich",
+    "click"
+]
+
+[project]
+name = "dexter"
+version = "0.0.1"
+description = "Double-entry expense tracker for personal finances"
+readme = "README.md"
+requires-python = ">=3.13"
+
+[project.scripts]
+dex = "dexter.main:main"
