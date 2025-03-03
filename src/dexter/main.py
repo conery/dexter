@@ -7,6 +7,7 @@ import logging
 import sys
 
 from .util import setup_logging
+from .DB import DB
 
 # Functions for commands (will be moved to modules)
 
@@ -41,6 +42,7 @@ def init_cli():
     """
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--dbname', metavar='X', help='database name', default='dexter')
     parser.add_argument('--log', metavar='X', choices=['quiet','info','debug'], default='info')
     
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
@@ -86,7 +88,7 @@ def main():
     args = init_cli()
     setup_logging(args.log)
     try:
-        # DB.open(args.db)
+        DB.open(args.dbname)
         args.dispatch(args)
     except Exception as err:
         logging.error(err)
