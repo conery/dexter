@@ -3,14 +3,18 @@
 # Top level application for dexter (Double-entry Expense Tracker)
 
 import argparse
+import logging
 import sys
+
+from .util import setup_logging
 
 # Functions for commands (will be moved to modules)
 
 def initialize_database(args):
-    print('initialize_database')
+    logging.info('initialize_database')
 
 def backup_database(args):
+    raise RuntimeError("nope")
     print('backup_database')
 
 def import_transactions(args):
@@ -37,6 +41,8 @@ def init_cli():
     """
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--log', metavar='X', choices=['quiet','info','debug'], default='info')
+    
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
     init_parser = subparsers.add_parser('init', help='initialize a database')
@@ -78,6 +84,9 @@ def main():
     Top level entry point
     """
     args = init_cli()
-    # setup_logging(args.log)
-    # DB.open(args.db)
-    args.dispatch(args)
+    setup_logging(args.log)
+    try:
+        # DB.open(args.db)
+        args.dispatch(args)
+    except Exception as err:
+        logging.error(err)

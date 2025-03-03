@@ -1,5 +1,6 @@
 [build-system]
 requires = [
+    "hatchling",
     "setuptools",
     "mongoengine",
     "seaborn",
@@ -7,13 +8,20 @@ requires = [
     "rich",
     "click"
 ]
+build-backend = "hatchling.build"
 
 [project]
 name = "dexter"
-version = "0.0.1"
+dynamic = ["version"]
 description = "Double-entry expense tracker for personal finances"
 readme = "README.md"
 requires-python = ">=3.13"
+authors = [
+  { name = "John Conery", email = "jconery@icloud.com" },
+]
 
 [project.scripts]
 dex = "dexter.main:main"
+
+[tool.hatch.version]
+path = "src/dexter/__about__.py"
