@@ -22,7 +22,11 @@ class DB:
     the database.
     '''
 
+    client = None
+    database = None
+
     @staticmethod
     def open(dbname):
         logging.info(f'DB: open {dbname}')
-        connect(dbname)
+        DB.client = connect(dbname)
+        DB.database = DB.client[dbname]
