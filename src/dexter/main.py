@@ -4,6 +4,7 @@
 
 import argparse
 import logging
+from pathlib import Path
 import sys
 
 from .util import setup_logging
@@ -12,7 +13,16 @@ from .DB import DB
 # Functions for commands (will be moved to modules)
 
 def initialize_database(args):
-    logging.info('initialize_database')
+    '''
+    Top level function for the `init` command.
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    p = Path(args.file)
+    match p.suffix:
+        case '.journal': DB.import_journal(p)
+        case _: logging.error(f'init: unknown file extension:{p.suffix}')
 
 def backup_database(args):
     raise RuntimeError("nope")
@@ -47,7 +57,13 @@ def init_cli():
     
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
-    init_parser = subparsers.add_parser('init', help='initialize a database')
+    init_parser = subparsers.add_parser('init', help='load documents into a database')
+    init_parser.add_argument(
+        '--file', 
+        metavar='F', 
+        help='name of file with records to import',
+        default='dexter.json'
+    )
     init_parser.set_defaults(dispatch=initialize_database)
 
     backup_parser = subparsers.add_parser('backup', help='export a database to a text file')
