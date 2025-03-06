@@ -5,10 +5,22 @@ import re
 
 from .schema import *
 
+def parse_amount(s):
+    '''
+    Convert a string with dollar signs, commas, and periods into a
+    dollar amount.
+    '''
+    s = re.sub(r'[,$]','',s)
+    return float(s)
+
 class JournalParser:
     '''
     Translate statements in a .journal file (the format used by
-    hldeger and other "plain text accounting") apps
+    hldeger and other "plain text accounting") apps.
+
+    The algorithm creates one DB document (an Account, a Transaction,
+    or an Entry) for each line in the file.  It assumes that when it
+    sees a line for an Entry it can append it to the current Transaction.
     '''
 
     def __init__(self):
@@ -17,29 +29,73 @@ class JournalParser:
         to insert.
         '''
         self.accounts = []
-        self.posts = []
+        self.entries = []
         self.transactions = []
 
         self.account_types = [x.value for x in AccountType.__members__.values()]
+        self.transaction_date = None
 
-    def new_account(self, line):
-        try:
-            _, spec = line.split()
-            grp = re.match(r'(\w+):', spec).group(1)
-            assert grp in self.account_types, f'  (unknown group: {grp})'
-            acct = Account(name=spec, group=grp)
-            self.accounts.append(acct)
-            acct.save()
-            logging.debug(f'JournalParser.new_account {spec}')
-        except Exception as err:
-            logging.error(f'JournalParser.new_account: error in {line}')
-            logging.error(err)
+    def validate_account(self, acct):
+        parts = acct.split(':')
+        if parts[0] not in self.account_types:
+            raise ValueError(f'unknown account type: {parts[0]}')
 
-    def new_transaction(self, line):
-        logging.debug(f'JournalParser.new_transaction {line}')
+    def new_account(self, cmnd, comment):
+        '''
+        Helper function to create an Account document from the current line.
 
-    def new_post(self, line):
-        logging.debug(f'JournalParser.new_post {line}')
+        Raises an exception if the account group (first part of the name,
+        before the colon) is not one of the recognized groups.
+        '''
+        logging.debug(f'JournalParser.new_account "{cmnd}"')
+        _, spec = cmnd.split()
+        grp = re.match(r'(\w+):', spec).group(1)
+        assert grp in self.account_types, f'  (unknown group: {grp})'
+        acct = Account(
+            name=spec, 
+            group=grp,
+        )
+        if len(comment) > 0:
+            acct.note = comment[0].strip()
+        self.accounts.append(acct)
+
+    def new_transaction(self, cmnd, comment):
+        '''
+        Helper function to create a Transaction object from the current line.
+        '''
+        logging.debug(f'JournalParser.new_transaction "{cmnd}"')
+        m = re.match(r'(\d{4}-\d{2}-\d{2})(.*)', cmnd)
+        self.transaction_date = m.group(1)
+        trans = Transaction(
+            description = m.group(2).strip(),
+        )
+        if len(comment) > 0:
+            trans.comment = comment[0].strip()
+        self.transactions.append(trans)
+
+    def new_entry(self, cmnd, comment):
+        '''
+        Helper function to create a new Entry object.  Appends the
+        new object to the entries list of the most recent Transaction
+        (which means it raises an exception if there is no Transaction).
+        '''
+        logging.debug(f'JournalParser.new_entry {cmnd}')
+        acct, amt = cmnd.split()
+        self.validate_account(acct)
+        amount = parse_amount(amt)
+        desc = comment[0].strip() if comment else ''
+        etype = 'credit' if amount < 0 else 'debit'
+        trans = self.transactions[-1]
+        entry = Entry(
+            uid = '',               # UIDs not needed in .journal files
+            date = self.transaction_date,
+            description = desc,
+            account = acct,
+            etype = etype,
+            amount = abs(amount),
+        )
+        trans.entries.append(entry)
+        self.entries.append(entry)
 
     def parse_file(self, fn):
         '''
@@ -52,20 +108,24 @@ class JournalParser:
         patterns = [
             (r'account', self.new_account),
             (r'\d{4}-\d{2}-\d{2}', self.new_transaction),
-            (r'\s+\w+', self.new_post),
+            (r'\s+\w+', self.new_entry),
         ]
         with open(fn) as f:
             while line := f.readline():
-                if len(line) == 1 or line[0] in '#;':
+                cmnd, *comment = re.split(r'[;#]', line.rstrip())
+                if len(cmnd) == 0:
                     continue
-                for pat, func in patterns:
-                    if re.match(pat,line):
-                        func(line.strip())
-                        break
-                else:
-                    logging.error(f'error parsing "{line.strip()}"')
-        return {
-            'accounts': self.accounts,
-            'posts':  self.posts,
-            'transactions': self.transactions,
-        }
+                try:
+                    for pat, func in patterns:
+                        if re.match(pat,cmnd):
+                            func(cmnd,comment)
+                            break
+                    else:
+                        raise ValueError('unknown statement')
+                except Exception as err:
+                    logging.error(f'JournalParser: error in {cmnd}')
+                    logging.error(err)
+
+        # return objects in the order we want them saved
+        return self.accounts + self.entries + self.transactions
+

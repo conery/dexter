@@ -6,7 +6,10 @@ requires = [
     "seaborn",
     "pandas",
     "rich",
-    "click"
+    "click",
+    "jupyter",
+    "panel",
+    "pytest",
 ]
 build-backend = "hatchling.build"
 

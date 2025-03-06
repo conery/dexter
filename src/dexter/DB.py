@@ -7,18 +7,6 @@ import logging
 from .io import JournalParser
 from .schema import *
 
-# class AccountType(Enum):
-#     EQUITY = 'equity'
-#     INCOME = 'income'
-#     ASSET = 'asset'
-#     EXPENSE = 'expense'
-#     LIABILITY = 'liability'
-#     UNKNOWN = 'unknown'
-
-# class Account(Document):
-#     name = StringField(required=True)
-#     group = EnumField(AccountType)     
-
 class DB:
     '''
     A collection of static methods that implement the API to
@@ -41,6 +29,7 @@ class DB:
         logging.info(f'DB: open {dbname}')
         DB.client = connect(dbname)
         DB.database = DB.client[dbname]
+        DB.dbname = dbname
 
     @staticmethod
     def import_journal(fn: str):
@@ -52,5 +41,7 @@ class DB:
             fn: path to the input file
         '''
         logging.info(f'DB:importing journal file:{fn}')
-        p = JournalParser()
-        p.parse_file(fn)
+        DB.client.drop_database(DB.dbname)
+        for obj in JournalParser().parse_file(fn):
+            obj.save()
+
