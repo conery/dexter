@@ -1,0 +1,93 @@
+;
+; transactions exported from finances.db
+;
+
+account equity
+account unknown
+account income:yoyodyne
+account assets:checking
+account liabilities:visa
+account expenses:groceries
+account expenses:mortgage
+account expenses:car
+account expenses:travel
+
+# Monthly paychecks and bucket fills
+
+2024-01-02 paycheck ; 
+    assets:checking     $5,000.00
+    income:yoyodyne    $-5,000.00
+
+2024-01-02 fill buckets ; 2024 budget
+    income:yoyodyne      $5,000.00
+    expenses:groceries    $-300.00
+    expenses:mortgage   $-1,800.00
+    expenses:car          $-900.00
+    expenses:travel     $-2,000.00
+
+2024-02-02 paycheck ; 
+    assets:checking     $5,000.00
+    income:yoyodyne    $-5,000.00
+
+2024-02-02 fill buckets ; 2024 budget
+    income:yoyodyne      $5,000.00
+    expenses:groceries    $-300.00
+    expenses:mortgage   $-1,800.00
+    expenses:car          $-900.00
+    expenses:travel     $-2,000.00
+
+# Car expenses
+
+2024-01-05 car payment ; 
+    expenses:car        $500.00
+    assets:checking    $-500.00
+
+2024-02-05 car payment ; 
+    expenses:car        $500.00
+    assets:checking    $-500.00
+
+2024-01-10 Shell Oil ; 
+    expenses:car    $50.00
+    liabilities:visa    $-50.00
+
+2024-02-26 Shell Oil ; 
+    expenses:car    $60.00
+    liabilities:visa    $-60.00
+
+# Mortgage payments
+
+2024-01-04 Rocket Mortgage ; 
+    expenses:mortgage    $1,800.00
+    assets:checking    $-1,800.00
+
+2024-02-04 Rocket Mortgage ; 
+    expenses:mortgage    $1,800.00
+    assets:checking    $-1,800.00
+
+# Groceries
+
+2024-01-07  Safeway ; weekly groceries
+    expenses:groceries  $75.00
+    assets:checking    $-75.00
+
+2024-01-21  Safeway 
+    expenses:groceries  $175.00  ; big party this weekend
+    liabilities:visa    $-175.00
+
+2024-02-07  Safeway ;
+    expenses:groceries  $75.00
+    assets:checking    $-75.00
+
+2024-02-21  Safeway ;
+    expenses:groceries  $75.00
+    liabilities:visa    $-75.00
+
+; Buy something for the house using a card, return part of it
+
+2024-03-10 Home Depot ; 
+    expenses:household    $50.00
+    liabilities:amex    $-50.00
+
+2024-03-12 Home Depot ; 
+    expenses:household    $-25.00
+    liabilities:amex    $25.00

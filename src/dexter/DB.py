@@ -1,8 +1,7 @@
 # Database schema and API
 
-# from enum import Enum
 import logging
-# from mongoengine import *
+from bson.binary import UuidRepresentation
 
 from .io import JournalParser
 from .schema import *
@@ -27,7 +26,7 @@ class DB:
             dbname:  name of the databaae to use
         '''
         logging.info(f'DB: open {dbname}')
-        DB.client = connect(dbname)
+        DB.client = connect(dbname, UuidRepresentation='standard')
         DB.database = DB.client[dbname]
         DB.dbname = dbname
 
