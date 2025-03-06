@@ -26,5 +26,7 @@ authors = [
 [project.scripts]
 dex = "dexter.main:main"
 
+[tool.pytest.ini_options]
+
 [tool.hatch.version]
 path = "src/dexter/__about__.py"

@@ -49,8 +49,11 @@ class JournalParser:
         '''
         logging.debug(f'JournalParser.new_account "{cmnd}"')
         _, spec = cmnd.split()
-        grp = re.match(r'(\w+):', spec).group(1)
-        assert grp in self.account_types, f'  (unknown group: {grp})'
+        if spec in ['equity','unknown']:
+            grp = spec
+        else:
+            grp = re.match(r'(\w+):', spec).group(1)
+            assert grp in self.account_types, f'  (unknown group: {grp})'
         acct = Account(
             name=spec, 
             group=grp,
