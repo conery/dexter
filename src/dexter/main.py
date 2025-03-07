@@ -9,6 +9,7 @@ import sys
 
 from .util import setup_logging
 from .DB import DB
+from .select import select_transactions
 
 # Functions for commands (will be moved to modules)
 
@@ -83,6 +84,9 @@ def init_cli():
 
     reports_parser = subparsers.add_parser('report', help='generate a report')
     reports_parser.set_defaults(dispatch=generate_report)
+
+    select_parser = subparsers.add_parser('select', help='select transactions')
+    select_parser.set_defaults(dispatch=select_transactions)
 
     if len(sys.argv) == 1:
         parser.print_usage()

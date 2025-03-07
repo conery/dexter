@@ -2,7 +2,9 @@
 
 import pytest
 
+from datetime import date
 from dexter.DB import DB
+from dexter.schema import *
 
 @pytest.fixture
 def db():
@@ -42,3 +44,15 @@ class TestDB:
         assert db.command('count','account')['n'] == 9
         assert db.command('count','entry')['n'] == 38
         assert db.command('count','transaction')['n'] == 16
+
+    def test_transaction_attributes(self, db):
+        '''
+        Test the computed attributes of the Transaction class
+        '''
+        lst = Transaction.objects(description='Safeway')
+        p0 = lst[0]
+        assert p0.date == date(2024,1,7)
+        assert p0.amount == 75.00
+        assert p0.accounts == {'expenses:groceries','assets:checking'}
+        assert p0.originals == '/'
+    
