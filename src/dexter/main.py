@@ -3,6 +3,7 @@
 # Top level application for dexter (Double-entry Expense Tracker)
 
 import argparse
+import calendar
 import logging
 from pathlib import Path
 import sys
@@ -43,6 +44,10 @@ def reconcile_statements(args):
 
 def generate_report(args):
     print('generate_report')
+
+# Lists used to define choices in command line options, and also later in the program
+
+months = [ m[:3].lower() for m in calendar.month_name[1:] ]
 
 def init_cli():
     """
@@ -86,6 +91,24 @@ def init_cli():
     reports_parser.set_defaults(dispatch=generate_report)
 
     select_parser = subparsers.add_parser('select', help='select transactions')
+    select_parser.add_argument('--entry', action='store_true', help='seach individual debit or credit entries')
+    select_parser.add_argument('--date', metavar='D', help='transaction date')
+    select_parser.add_argument('--start_date', metavar='D', help='starting date')
+    select_parser.add_argument('--end_date', metavar='D', help='ending date')
+    select_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
+    select_parser.add_argument('--credit', metavar='A', help='credit account name')
+    select_parser.add_argument('--debit', metavar='A', help='debit account name')
+    select_parser.add_argument('--account', metavar='A', help='source or destination account name')
+    select_parser.add_argument('--description', metavar='X', help='descriptions pattern')
+    select_parser.add_argument('--original', metavar='X', help='original description pattern')
+    select_parser.add_argument('--comment', metavar='X', help='comment pattern')
+    select_parser.add_argument('--tags', metavar='X', help='tag pattern')
+    select_parser.add_argument('--amount', metavar='N', type=float, help='transaction amount')
+    select_parser.add_argument('--min_amount', metavar='N', type=float, help='minimum transaction amount')
+    select_parser.add_argument('--max_amount', metavar='N', type=float, help='maximum transaction amount')
+    select_parser.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
+    select_parser.add_argument('--total', action='store_true', help='print total amount of selected transactions')
+    select_parser.add_argument('--update', metavar='F V', nargs=2, help='update fields')
     select_parser.set_defaults(dispatch=select_transactions)
 
     if len(sys.argv) == 1:
