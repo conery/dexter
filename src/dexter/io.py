@@ -32,28 +32,27 @@ class JournalParser:
         self.entries = []
         self.transactions = []
 
-        self.account_types = [x.value for x in AccountType.__members__.values()]
+        self.account_types = list(AccountType.__members__.keys())
+        self.account_names = set()
         self.transaction_date = None
 
-    def validate_account(self, acct):
-        parts = acct.split(':')
-        if parts[0] not in self.account_types:
-            raise ValueError(f'unknown account type: {parts[0]}')
+    # def validate_account(self, acct):
+    #     parts = acct.split(':')
+    #     if parts[0] not in self.account_types:
+    #         raise ValueError(f'unknown account type: {parts[0]}')
 
     def new_account(self, cmnd, comment):
         '''
         Helper function to create an Account document from the current line.
 
-        Raises an exception if the account group (first part of the name,
-        before the colon) is not one of the recognized groups.
+        Expected format:
+           account G N
+        where G is a single-letter account type and N is the account name.
         '''
         logging.debug(f'JournalParser.new_account "{cmnd}"')
-        _, spec = cmnd.split()
-        if spec in ['equity','unknown']:
-            grp = spec
-        else:
-            grp = re.match(r'(\w+):', spec).group(1)
-            assert grp in self.account_types, f'  (unknown group: {grp})'
+        _, grp, spec = cmnd.split()
+        assert grp in self.account_types, f'  (unknown group: {grp})'
+        assert spec not in self.account_names, f'  (duplicate account name: {spec})'
         acct = Account(
             name=spec, 
             group=grp,
@@ -61,6 +60,7 @@ class JournalParser:
         if len(comment) > 0:
             acct.note = comment[0].strip()
         self.accounts.append(acct)
+        self.account_names.add(spec)
 
     def new_transaction(self, cmnd, comment):
         '''
@@ -84,7 +84,9 @@ class JournalParser:
         '''
         logging.debug(f'JournalParser.new_entry {cmnd}')
         acct, amt = cmnd.split()
-        self.validate_account(acct)
+        # self.validate_account(acct)
+        if acct not in self.account_names:
+            raise ValueError(f'unknown account: {acct}')
         amount = parse_amount(amt)
         desc = comment[0].strip() if comment else ''
         etype = 'credit' if amount < 0 else 'debit'
@@ -128,6 +130,7 @@ class JournalParser:
                 except Exception as err:
                     logging.error(f'JournalParser: error in {cmnd}')
                     logging.error(err)
+            logging.debug(f'End of file')
 
         # return objects in the order we want them saved
         return self.accounts + self.entries + self.transactions

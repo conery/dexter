@@ -4,12 +4,12 @@ from enum import Enum
 from mongoengine import *
 
 class AccountType(Enum):
-    Q = 'equity'
-    I = 'income'
-    A = 'assets'
-    E = 'expenses'
-    L = 'liabilities'
-    X = 'unknown'
+    Q = 'Q'         # equity
+    I = 'I'         # income
+    A = 'A'         # assets
+    E = 'E'         # expenses
+    L = 'L'         # liabilities
+    X = 'X'         # unknown
 
 class EntryType(Enum):
     cr = 'credit'
@@ -38,25 +38,35 @@ class Entry(Document):
     account = StringField(required=True)
     etype = EnumField(EntryType, required=True) 
     amount = FloatField(required=True)
-    
+
 class Transaction(Document):
     description = StringField(required=True)
     comment = StringField()
     tags = ListField(StringField())
     entries = ListField(ReferenceField('Entry'))
+    pdate = DateField()
+    pdebit = StringField()
+    pcredit = StringField()
+    pamount = FloatField()
 
     @property
     def accounts(self):
         return { e.account for e in self.entries }
 
     @property
-    def amount(self):
-        return sum(e.amount for e in self.entries if e.etype == EntryType.cr)
+    def credits(self):
+        return [ e for e in self.entries if e.etype == EntryType.cr ]
     
     @property
-    def date(self):
-        return min(e.date for e in self.entries)
+    def debits(self):
+        return [ e for e in self.entries if e.etype == EntryType.dr ]
 
     @property
     def originals(self):
         return '/'.join(e.description for e in self.entries)
+
+    def clean(self):
+        self.pdate = min(e.date for e in self.entries)
+        self.pamount = sum(e.amount for e in self.entries if e.etype == EntryType.cr)
+        self.pcredit = '/'.join(a.account for a in self.credits)
+        self.pdebit = '/'.join(a.account for a in self.debits)

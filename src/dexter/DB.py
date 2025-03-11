@@ -1,7 +1,7 @@
 # Database schema and API
 
 import logging
-from bson.binary import UuidRepresentation
+from mongoengine import *
 
 from .io import JournalParser
 from .schema import *
@@ -14,6 +14,7 @@ class DB:
 
     client = None
     database = None
+    dbname = None
 
     @staticmethod
     def open(dbname: str):
@@ -44,3 +45,15 @@ class DB:
         for obj in JournalParser().parse_file(fn):
             obj.save()
 
+    @staticmethod
+    def select(**constraints):
+        '''
+        Fetch transactions that match constraints.
+        '''
+        q = Q()
+        if s := constraints.get('description'):
+            q = q & Q(description__regex=s)
+        if n := constraints.get('amount'):
+            q = q & Q(pamount=n)
+        return Transaction.objects(q)
+    
