@@ -45,15 +45,36 @@ class DB:
         for obj in JournalParser().parse_file(fn):
             obj.save()
 
+    entry_constraints = {
+        'description': 'description__regex',
+        'date':  'date',
+        'start_date': 'date__gte',
+        'end_date': 'date__lte',
+    }
+
+    transaction_constraints = {
+        'description': 'description__regex',
+        'comment': 'comment__regex',
+        'date':  'pdate',
+        'start_date': 'pdate__gte',
+        'end_date': 'pdate__lte',
+    }
+
     @staticmethod
-    def select(**constraints):
+    def select(cls, **constraints):
         '''
         Fetch transactions that match constraints.
+
+        Arguments:
+            cls:  the collection to search (Entry or Transaction)
+            constraints:  a dictionary of field names and values
         '''
-        q = Q()
-        if s := constraints.get('description'):
-            q = q & Q(description__regex=s)
-        if n := constraints.get('amount'):
-            q = q & Q(pamount=n)
-        return Transaction.objects(q)
-    
+        if cls not in [Entry, Transaction]:
+            raise ValueError('select: collection must be Entry or Transaction')
+        mapping = DB.transaction_constraints if cls == Transaction else DB.entry_constraints
+        dct = {}
+        for field, value in constraints.items():
+            if field not in mapping:
+                raise ValueError(f'select: unknown constraint: {field}')
+            dct[mapping[field]] = value
+        return cls.objects(Q(**dct))
