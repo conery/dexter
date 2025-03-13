@@ -46,35 +46,46 @@ class DB:
             obj.save()
 
     entry_constraints = {
-        'description': 'description__regex',
+        'description': 'description__iregex',
         'date':  'date',
         'start_date': 'date__gte',
         'end_date': 'date__lte',
+        'amount':  'amount',
+        'min_amount': 'amount__gte',
+        'max_amount': 'amount__lte',
+        'account': 'account__iregex',
+        'column': 'etype',
     }
 
     transaction_constraints = {
-        'description': 'description__regex',
-        'comment': 'comment__regex',
+        'description': 'description__iregex',
+        'comment': 'comment__iregex',
         'date':  'pdate',
         'start_date': 'pdate__gte',
         'end_date': 'pdate__lte',
+        'amount':  'pamount',
+        'min_amount': 'pamount__gte',
+        'max_amount': 'pamount__lte',
+        'debit': 'pdebit__iregex',
+        'credit': 'pcredit__iregex',
+        'tag': 'tags',
     }
 
     @staticmethod
-    def select(cls, **constraints):
+    def select(collection, **constraints):
         '''
         Fetch transactions that match constraints.
 
         Arguments:
-            cls:  the collection to search (Entry or Transaction)
+            collection:  the collection to search (Entry or Transaction)
             constraints:  a dictionary of field names and values
         '''
-        if cls not in [Entry, Transaction]:
+        if collection not in [Entry, Transaction]:
             raise ValueError('select: collection must be Entry or Transaction')
-        mapping = DB.transaction_constraints if cls == Transaction else DB.entry_constraints
+        mapping = DB.transaction_constraints if collection == Transaction else DB.entry_constraints
         dct = {}
         for field, value in constraints.items():
             if field not in mapping:
                 raise ValueError(f'select: unknown constraint: {field}')
             dct[mapping[field]] = value
-        return cls.objects(Q(**dct))
+        return collection.objects(Q(**dct))

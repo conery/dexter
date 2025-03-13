@@ -60,3 +60,117 @@ class TestDB:
         assert p0.pdebit == 'groceries'
         assert p0.pamount == 75.00
     
+    def test_select_transactions(self, db):
+        '''
+        Test the select method, fetching transaction that match constraints
+        '''
+        # all transactions
+        lst = DB.select(Transaction)
+        assert len(lst) == 16
+
+        # select by date
+        lst = DB.select(Transaction, date=date(2024,1,21))
+        assert len(lst) == 1
+        assert lst[0].pdate == date(2024,1,21)
+
+        lst = DB.select(Transaction, start_date=date(2024,1,21))
+        assert len(lst) == 10
+        assert all(t.pdate >= date(2024,1,21) for t in lst)
+
+        lst = DB.select(Transaction, end_date=date(2024,1,21))
+        assert len(lst) == 7
+        assert all(t.pdate <= date(2024,1,21) for t in lst)
+
+        # select by amount
+        lst = DB.select(Transaction, amount=75)
+        assert len(lst) == 3
+        assert all(t.pamount == 75 for t in lst)
+
+        lst = DB.select(Transaction, max_amount=75)
+        assert len(lst) == 7
+        assert all(t.pamount <= 75 for t in lst)
+
+        lst = DB.select(Transaction, min_amount=75)
+        assert len(lst) == 12
+        assert all(t.pamount >= 75 for t in lst)
+
+        # select by descriptiom
+        lst = DB.select(Transaction, description = r'^s')
+        assert len(lst) == 6
+        assert all(t.description.startswith('S') for t in lst)
+
+        lst = DB.select(Transaction, comment = r'budget')
+        assert len(lst) == 2
+        assert all('budget' in t.comment for t in lst)
+
+        # select by account
+        lst = DB.select(Transaction, credit='mortgage')
+        assert len(lst) == 2
+        assert all('mortgage' in t.pcredit for t in lst)
+
+        lst = DB.select(Transaction, debit='mortgage')
+        assert len(lst) == 2
+        assert all('mortgage' in t.pdebit for t in lst)
+
+    def test_select_transactions_multi(self, db):
+        '''
+        Test the select with multple constraints
+        '''
+        lst = DB.select(Transaction, description = r'^s', min_amount=100)
+        assert len(lst) == 1
+        assert lst[0].description.startswith('S')
+        assert lst[0].pamount > 100
+
+        lst = DB.select(Transaction, start_date = date(2024,2,1), credit='visa')
+        assert len(lst) == 2
+        assert all('visa' in t.pcredit and t.pdate >= date(2024,2,1) for t in lst)
+
+    def test_select_entries(self, db):
+        '''
+        Test the select method, fetching individual entries that match constraints
+        '''
+        # all entries
+        lst = DB.select(Entry)
+        assert len(lst) == 38
+
+        # select by date
+        lst = DB.select(Entry, date=date(2024,1,5))
+        assert len(lst) == 2
+        assert all(e.date == date(2024,1,5) for e in lst)
+
+        lst = DB.select(Entry, start_date=date(2024,1,5))
+        assert len(lst) == 29
+        assert all(e.date >= date(2024,1,5) for e in lst)
+
+        lst = DB.select(Entry, end_date=date(2024,1,5))
+        assert len(lst) == 11
+        assert all(e.date <= date(2024,1,5) for e in lst)
+
+        # select by amount
+        lst = DB.select(Entry, amount=900)
+        assert len(lst) == 2
+        assert all(e.amount == 900 for e in lst)
+
+        lst = DB.select(Entry, max_amount=900)
+        assert len(lst) == 24
+        assert all(e.amount <= 900 for e in lst)
+
+        lst = DB.select(Entry, min_amount=900)
+        assert len(lst) == 16
+        assert all(e.amount >= 900 for e in lst)
+
+        # select by account
+        lst = DB.select(Entry, account='groceries')
+        assert len(lst) == 6
+        assert all(e.account == 'groceries' for e in lst)
+
+        # select by column
+        lst = DB.select(Entry, column='credit')
+        assert len(lst) == 22
+        assert all(e.etype == EntryType.cr for e in lst)
+
+        lst = DB.select(Entry, column='debit')
+        assert len(lst) == 16
+        assert all(e.etype == EntryType.dr for e in lst)
+
+
