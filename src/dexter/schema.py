@@ -33,6 +33,10 @@ class Entry(Document):
     etype = EnumField(EntryType, required=True) 
     amount = FloatField(required=True)
 
+    def __str__(self):
+        e = '+' if self.etype == EntryType.dr else '-'
+        return f'<En {self.date} {self.account} {e}${self.amount}>'
+
 class Transaction(Document):
     description = StringField(required=True)
     comment = StringField()
@@ -42,6 +46,9 @@ class Transaction(Document):
     pdebit = StringField()
     pcredit = StringField()
     pamount = FloatField()
+
+    def __str__(self):
+        return f'<Tr {self.pdate} {self.pcredit} -> {self.pdebit} ${self.pamount} {self.description}>'
 
     @property
     def accounts(self):
