@@ -51,5 +51,5 @@ def select_transactions(args):
          kwargs[name] = val
    
    logging.debug(f'select {cls} {kwargs}')
-   print_transaction_table(DB.select(cls, **kwargs))
+   print_transaction_table(DB.select(cls, **kwargs), as_csv=args.csv, name='Transactions')
 

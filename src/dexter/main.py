@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 import sys
 
-from .util import setup_logging
+from .util import setup_logging, parse_date, date_range
 from .DB import DB
 from .select import select_transactions
 
@@ -45,9 +45,6 @@ def reconcile_statements(args):
 def generate_report(args):
     print('generate_report')
 
-# Lists used to define choices in command line options, and also later in the program
-
-months = [ m[:3].lower() for m in calendar.month_name[1:] ]
 
 def init_cli():
     """
@@ -56,6 +53,7 @@ def init_cli():
     Returns:
         a Namespace object with values of the command line arguments. 
     """
+    months = [ m[:3].lower() for m in calendar.month_name[1:] ]
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--dbname', metavar='X', help='database name', default='dexter')
@@ -92,9 +90,9 @@ def init_cli():
 
     select_parser = subparsers.add_parser('select', help='select transactions')
     select_parser.add_argument('--entry', action='store_true', help='seach individual debit or credit entries')
-    select_parser.add_argument('--date', metavar='D', help='transaction date')
-    select_parser.add_argument('--start_date', metavar='D', help='starting date')
-    select_parser.add_argument('--end_date', metavar='D', help='ending date')
+    select_parser.add_argument('--date', metavar='D', type=parse_date, help='transaction date')
+    select_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    select_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     select_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
     select_parser.add_argument('--credit', metavar='A', help='credit account name')
     select_parser.add_argument('--debit', metavar='A', help='debit account name')
@@ -121,6 +119,11 @@ def init_cli():
         print('command required')
         parser.print_usage()
         exit(1)
+
+    if m := args.month:
+        ds, de = date_range(m)
+        args.start_date = ds
+        args.end_date = de
     
     return args 
 
@@ -129,6 +132,9 @@ def main():
     Top level entry point
     """
     args = init_cli()
+    for k, v in vars(args).items():
+        print(k,v)
+    exit()
     setup_logging(args.log)
     try:
         DB.open(args.dbname)

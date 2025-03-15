@@ -29,7 +29,8 @@ def setup_logging(arg):
 
 # Date API
 
-from datetime import datetime
+from datetime import date, datetime
+import calendar
 
 date_formats = [
     '%Y-%m-%d',      #  2022-08-31
@@ -57,25 +58,34 @@ def parse_date(text=None, last_month=False):
         text:  a string with the date to parse (may be None)
         last_month:  if True (and text is None) return the first day of last month
     '''
+    today = date.today()
+
     if text is None:
-        today = datetime.today()
         if last_month:
             m = (today.month - 2) % 12 + 1
             y = today.year if today.month > 1 else today.year - 1
-            date = today.replace(year=y, month=m)
+            res = today.replace(year=y, month=m)
         else:
-            date = today
+            res = today
     else:
-        date = None
+        res = None
         for fmt in date_formats:
             try:
-                date = datetime.strptime(text,fmt)
+                res = datetime.strptime(text,fmt)
                 break
             except Exception:
                 pass
-        if date is None:
+        if res is None:
             return None
     
-    year = date.year if date.year > 1900 else today.year if date.month <= today.month else today.year - 1
+    year = res.year if res.year > 1900 else today.year if res.month <= today.month else today.year - 1
 
-    return f'{year:4d}-{date.month:02d}-{date.day:02d}'
+    return date(year, res.month, res.day)
+
+def date_range(month, year=None):
+    '''Return the first and last day of a month (three-letter abbreviation)'''
+    today = date.today()
+    m = datetime.strptime(month.lower(),'%b').month
+    y = year or (today.year if m < today.month else today.year - 1)
+    _, last = calendar.monthrange(y,m)
+    return date(y,m,1), date(y,m,last)
