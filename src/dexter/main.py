@@ -132,9 +132,6 @@ def main():
     Top level entry point
     """
     args = init_cli()
-    for k, v in vars(args).items():
-        print(k,v)
-    exit()
     setup_logging(args.log)
     try:
         DB.open(args.dbname)
