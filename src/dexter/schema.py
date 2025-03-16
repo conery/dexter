@@ -3,21 +3,26 @@
 from enum import Enum
 from mongoengine import *
 
-class AccountType(Enum):
+class Category(Enum):
     Q = 'Q'         # equity
     I = 'I'         # income
     A = 'A'         # assets
     E = 'E'         # expenses
     L = 'L'         # liabilities
-    X = 'X'         # unknown
 
-class EntryType(Enum):
+    def __str__(self):
+        return self.value
+
+class Column(Enum):
     cr = 'credit'
     dr = 'debit'
 
+    def __str__(self):
+        return self.value
+
 class Account(Document):
     name = StringField(required=True)
-    group = EnumField(AccountType, required=True)
+    category = EnumField(Category, required=True)
     comment = StringField()
 
     @queryset_manager
@@ -30,11 +35,11 @@ class Entry(Document):
     date = DateField(required=True)
     description = StringField(required=True)
     account = StringField(required=True)
-    etype = EnumField(EntryType, required=True) 
+    column = EnumField(Column, required=True) 
     amount = FloatField(required=True)
 
     def __str__(self):
-        e = '+' if self.etype == EntryType.dr else '-'
+        e = '+' if self.column == Column.dr else '-'
         return f'<En {self.date} {self.account} {e}${self.amount}>'
 
 class Transaction(Document):
@@ -56,11 +61,11 @@ class Transaction(Document):
 
     @property
     def credits(self):
-        return [ e for e in self.entries if e.etype == EntryType.cr ]
+        return [ e for e in self.entries if e.column == Column.cr ]
     
     @property
     def debits(self):
-        return [ e for e in self.entries if e.etype == EntryType.dr ]
+        return [ e for e in self.entries if e.column == Column.dr ]
 
     @property
     def originals(self):
@@ -68,6 +73,6 @@ class Transaction(Document):
 
     def clean(self):
         self.pdate = min(e.date for e in self.entries)
-        self.pamount = sum(e.amount for e in self.entries if e.etype == EntryType.cr)
+        self.pamount = sum(e.amount for e in self.entries if e.column == Column.cr)
         self.pcredit = '/'.join(a.account for a in self.credits)
         self.pdebit = '/'.join(a.account for a in self.debits)

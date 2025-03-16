@@ -42,7 +42,7 @@ class TestDB:
         test data.
         '''
         assert sorted(db.list_collection_names()) == ['account', 'entry', 'transaction']
-        assert db.command('count','account')['n'] == 11
+        assert db.command('count','account')['n'] == 10
         assert db.command('count','entry')['n'] == 38
         assert db.command('count','transaction')['n'] == 16
 
@@ -167,10 +167,10 @@ class TestDB:
         # select by column
         lst = DB.select(Entry, column='credit')
         assert len(lst) == 22
-        assert all(e.etype == EntryType.cr for e in lst)
+        assert all(e.column == Column.cr for e in lst)
 
         lst = DB.select(Entry, column='debit')
         assert len(lst) == 16
-        assert all(e.etype == EntryType.dr for e in lst)
+        assert all(e.column == Column.dr for e in lst)
 
 

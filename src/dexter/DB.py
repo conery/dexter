@@ -54,7 +54,7 @@ class DB:
         'min_amount': 'amount__gte',
         'max_amount': 'amount__lte',
         'account': 'account__iregex',
-        'column': 'etype',
+        'column': 'column',
     }
 
     transaction_constraints = {

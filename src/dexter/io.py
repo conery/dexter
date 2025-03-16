@@ -32,7 +32,7 @@ class JournalParser:
         self.entries = []
         self.transactions = []
 
-        self.account_types = list(AccountType.__members__.keys())
+        self.account_types = list(Category.__members__.keys())
         self.account_names = set()
         self.transaction_date = None
 
@@ -50,12 +50,12 @@ class JournalParser:
         where G is a single-letter account type and N is the account name.
         '''
         logging.debug(f'JournalParser.new_account "{cmnd}"')
-        _, grp, spec = cmnd.split()
-        assert grp in self.account_types, f'  (unknown group: {grp})'
+        _, cat, spec = cmnd.split()
+        assert cat in self.account_types, f'  (unknown category: {cat})'
         assert spec not in self.account_names, f'  (duplicate account name: {spec})'
         acct = Account(
             name=spec, 
-            group=grp,
+            category=cat,
         )
         if len(comment) > 0:
             acct.note = comment[0].strip()
@@ -89,14 +89,14 @@ class JournalParser:
             raise ValueError(f'unknown account: {acct}')
         amount = parse_amount(amt)
         desc = comment[0].strip() if comment else ''
-        etype = 'credit' if amount < 0 else 'debit'
+        col = 'credit' if amount < 0 else 'debit'
         trans = self.transactions[-1]
         entry = Entry(
             uid = '',               # UIDs not needed in .journal files
             date = self.transaction_date,
             description = desc,
             account = acct,
-            etype = etype,
+            column = col,
             amount = abs(amount),
         )
         trans.entries.append(entry)

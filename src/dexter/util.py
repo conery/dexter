@@ -47,12 +47,14 @@ date_formats = [
 
 def parse_date(text=None, last_month=False):
     '''
-    Parse a date string, return a string of the form YYYY-MM-DD, 
-    the format used in the DB.  Possible input formats are defined
-    in a global dict named `date_formats`.  
+    Parse a date string.  Possible input formats are defined in a global dict 
+    named `date_formats`.  
 
     If no date is specified, use today's date, or, if last_month is True, the
     first day of the previous month.
+
+    Raises an exception if the text does not match any of the formats or if
+    the date values are not a valid combination (e.g. "2024-02-30").
 
     Arguments:
         text:  a string with the date to parse (may be None)
@@ -75,8 +77,8 @@ def parse_date(text=None, last_month=False):
                 break
             except Exception:
                 pass
-        if res is None:
-            return None
+        else:
+            raise ValueError(f'parse_date: unable to parse {text}')
     
     year = res.year if res.year > 1900 else today.year if res.month <= today.month else today.year - 1
 

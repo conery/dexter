@@ -5,6 +5,8 @@
 import csv
 import sys
 
+from .schema import Entry, Transaction, Column
+
 from rich.console import Console
 from rich.theme import Theme
 from rich.style import Style
@@ -60,6 +62,14 @@ transaction_header_format = {
     'tags': {'width': 15},
 }
 
+entry_header_format = {
+    'date': {'width': 12},
+    'account': {'width': 15},
+    'amount':  {'width': 12, 'justify': 'right'},
+    'column':  {'width': 10, 'justify': 'center'},
+}
+
+
 def print_transaction_table(
         lst, 
         as_csv=False, 
@@ -68,7 +78,13 @@ def print_transaction_table(
         styles={}
     ):
 
-    header = dict(transaction_header_format)
+    if lst and isinstance(lst[0],Entry):
+        header = dict(entry_header_format)
+        row_type = 'entry'
+    else:
+        header = dict(transaction_header_format)
+        row_type = 'transaction'
+
     colnames = header.keys()
 
     if as_csv:
@@ -86,12 +102,18 @@ def print_transaction_table(
             
     for rec in lst:
         row = []
-        row.append(str(rec.pdate))
-        row.append(rec.pcredit)
-        row.append(rec.pdebit)
-        row.append(format_amount(rec.pamount, dollar_sign=True))
-        row.append(rec.description)
-        row.append(rec.comment)
+        if row_type == 'entry':
+            row.append(str(rec.date))
+            row.append(rec.account)
+            row.append(format_amount(rec.amount, dollar_sign=True))
+            row.append(str(rec.column))
+        else:
+            row.append(str(rec.pdate))
+            row.append(rec.pcredit)
+            row.append(rec.pdebit)
+            row.append(format_amount(rec.pamount, dollar_sign=True))
+            row.append(rec.description)
+            row.append(rec.comment)
         if as_csv:
             writer.writerow(dict(zip(colnames,row)))
         else:

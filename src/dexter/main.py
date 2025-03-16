@@ -94,16 +94,17 @@ def init_cli():
     select_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     select_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     select_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
-    select_parser.add_argument('--credit', metavar='A', help='credit account name')
-    select_parser.add_argument('--debit', metavar='A', help='debit account name')
-    select_parser.add_argument('--account', metavar='A', help='source or destination account name')
+    select_parser.add_argument('--credit', metavar='A', help='credit account name (transaction)')
+    select_parser.add_argument('--debit', metavar='A', help='debit account name (transaction)')
+    select_parser.add_argument('--account', metavar='A', help='account name (entry)')
+    select_parser.add_argument('--column', metavar='C', choices=['credit','debit'], help='entry type (entry)')
     select_parser.add_argument('--description', metavar='X', help='descriptions pattern')
-    select_parser.add_argument('--original', metavar='X', help='original description pattern')
-    select_parser.add_argument('--comment', metavar='X', help='comment pattern')
-    select_parser.add_argument('--tags', metavar='X', help='tag pattern')
-    select_parser.add_argument('--amount', metavar='N', type=float, help='transaction amount')
-    select_parser.add_argument('--min_amount', metavar='N', type=float, help='minimum transaction amount')
-    select_parser.add_argument('--max_amount', metavar='N', type=float, help='maximum transaction amount')
+    # select_parser.add_argument('--original', metavar='X', help='original description pattern')
+    select_parser.add_argument('--comment', metavar='X', help='comment pattern (transaction)')
+    select_parser.add_argument('--tag', metavar='X', help='tag pattern (transaction)')
+    select_parser.add_argument('--amount', metavar='N', type=float, help='amount')
+    select_parser.add_argument('--min_amount', metavar='N', type=float, help='minimum amount')
+    select_parser.add_argument('--max_amount', metavar='N', type=float, help='maximum amount')
     select_parser.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
     select_parser.add_argument('--total', action='store_true', help='print total amount of selected transactions')
     select_parser.add_argument('--update', metavar='F V', nargs=2, help='update fields')
@@ -120,10 +121,11 @@ def init_cli():
         parser.print_usage()
         exit(1)
 
-    if m := args.month:
-        ds, de = date_range(m)
-        args.start_date = ds
-        args.end_date = de
+    if 'month' in vars(args):
+        if m := args.month:
+            ds, de = date_range(m)
+            args.start_date = ds
+            args.end_date = de
     
     return args 
 
@@ -133,6 +135,10 @@ def main():
     """
     args = init_cli()
     setup_logging(args.log)
+    logging.debug('command line arguments:')
+    for name, val in vars(args).items():
+        if val is not None:
+            logging.debug(f'  --{name} {val}')
     try:
         DB.open(args.dbname)
         args.dispatch(args)

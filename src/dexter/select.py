@@ -36,7 +36,6 @@ def select_transactions(args):
    # else:
    #    logging.debug(f'unknown collection')
 
-   logging.debug('select')
 
    if args.entry:
       dct = DB.entry_constraints
@@ -44,12 +43,17 @@ def select_transactions(args):
    else:
       dct = DB.transaction_constraints
       cls = Transaction
+   logging.debug(f'select {cls}')
 
    kwargs = {}
    for name in dct:
       if val := vars(args).get(name):
          kwargs[name] = val
+         logging.debug(f'  {name} = {val}')
    
-   logging.debug(f'select {cls} {kwargs}')
-   print_transaction_table(DB.select(cls, **kwargs), as_csv=args.csv, name='Transactions')
+   print_transaction_table(
+      DB.select(cls, **kwargs), 
+      as_csv=args.csv, 
+      name='Entries' if args.entry else 'Transactions',
+   )
 
