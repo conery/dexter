@@ -10,27 +10,13 @@ import sys
 
 from .util import setup_logging, parse_date, date_range
 from .DB import DB
+
+from .io import import_records, export_records
 from .select import select_transactions
 
 # Functions for commands (will be moved to modules)
 
-def initialize_database(args):
-    '''
-    Top level function for the `init` command.
-
-    Arguments:
-        args: Namespace object with command line arguments.
-    '''
-    p = Path(args.file)
-    match p.suffix:
-        case '.journal': DB.import_journal(p)
-        case _: logging.error(f'init: unknown file extension:{p.suffix}')
-
-def backup_database(args):
-    raise RuntimeError("nope")
-    print('backup_database')
-
-def import_transactions(args):
+def parse_csv_files(args):
     print('import_transactions')
 
 def parse_statements(args):
@@ -61,20 +47,18 @@ def init_cli():
     
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
-    init_parser = subparsers.add_parser('init', help='load documents into a database')
-    init_parser.add_argument(
-        '--file', 
-        metavar='F', 
-        help='name of file with records to import',
-        default='dexter.json'
-    )
-    init_parser.set_defaults(dispatch=initialize_database)
+    import_parser = subparsers.add_parser('import', help='load documents into a database')
+    import_parser.add_argument('--file', metavar='F', help='name of file with records to import',default='dexter.json')
+    import_parser.add_argument('--format', metavar='F', choices=['json', 'journal'], help='file format', default='json')
+    import_parser.set_defaults(dispatch=import_records)
 
-    backup_parser = subparsers.add_parser('backup', help='export a database to a text file')
-    backup_parser.set_defaults(dispatch=backup_database)
+    export_parser = subparsers.add_parser('export', help='export a database to a text file')
+    export_parser.add_argument('--file', metavar='F', help='name of output file',default='dexter.json')
+    export_parser.add_argument('--format', metavar='F', choices=['json', 'journal'], help='file format', default='json')
+    export_parser.set_defaults(dispatch=export_records)
 
-    import_parser = subparsers.add_parser('import', help='import transactions from CSV files')
-    import_parser.set_defaults(dispatch=import_transactions)
+    collect_parser = subparsers.add_parser('collect', help='import transactions from CSV files')
+    collect_parser.set_defaults(dispatch=parse_csv_files)
 
     statements_parser = subparsers.add_parser('parse', help='import card and bank account statements')
     statements_parser.set_defaults(dispatch=parse_statements)

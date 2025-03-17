@@ -1,9 +1,46 @@
 #  Methods for reading and writing database contents
 
 import logging
+from pathlib import Path
 import re
 
 from .schema import *
+
+##E
+#
+# Methods for importing records from a text file.  
+#
+
+def import_records(args):
+    '''
+    The top level function, called from main when the command 
+    is "import".  Redirects to the method that will load the data,
+    using the file name extension or command line argument to 
+    determine the input file format.
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    logging.info(f'import {vars(args)}')
+    return
+
+    p = Path(args.file)
+    match p.suffix:
+        case '.journal': DB.import_journal(p)
+        case _: logging.error(f'init: unknown file extension:{p.suffix}')
+
+
+def export_records(args):
+    '''
+    The top level function, called from main when the command 
+    is "export".  Redirects to the method that will save the data,
+    using the file name extension or command line argument to 
+    determine the input file format.
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    logging.info(f'export {vars(args)}')
 
 def parse_amount(s):
     '''
