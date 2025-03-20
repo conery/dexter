@@ -5,6 +5,7 @@ import pytest
 from datetime import date
 from dexter.DB import DB
 from dexter.schema import *
+from dexter.io import import_journal
 
 @pytest.fixture
 def db():
@@ -13,8 +14,8 @@ def db():
     database named "pytest", load the example data into the DB.
     '''
     DB.open('pytest')
-    DB.client.drop_database('pytest')
-    DB.import_journal('test/fixtures/mini.journal')
+    DB.erase_database()
+    import_journal('test/fixtures/mini.journal')
     return DB.database
 
 class TestDB:

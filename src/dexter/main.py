@@ -55,6 +55,7 @@ def init_cli():
     export_parser = subparsers.add_parser('export', help='export a database to a text file')
     export_parser.add_argument('--file', metavar='F', help='name of output file',default='dexter.json')
     export_parser.add_argument('--format', metavar='F', choices=['json', 'journal'], help='file format', default='json')
+    export_parser.add_argument('--force', action='store_true', help='overwrite existing file')
     export_parser.set_defaults(dispatch=export_records)
 
     collect_parser = subparsers.add_parser('collect', help='import transactions from CSV files')

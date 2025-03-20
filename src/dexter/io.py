@@ -4,12 +4,32 @@ import logging
 from pathlib import Path
 import re
 
+from .DB import DB
 from .schema import *
 
-##E
+###
 #
-# Methods for importing records from a text file.  
+# Methods for exporting and importing records from a text file.  
 #
+
+def export_records(args):
+    '''
+    The top level function, called from main when the command 
+    is "export".  Writes records from all collections to a single
+    JSON file.
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    logging.info(f'Exporting to {args.file}')
+    logging.debug(f'export {vars(args)}')
+    try:
+        mode = 'w' if args.force else 'x'
+        with open(args.file, mode) as f:
+            DB.print_records(f)
+    except FileExistsError as err:
+        logging.error(f'file exists: {args.file}, use --force to overwrite')
+        exit(1)
 
 def import_records(args):
     '''
@@ -21,26 +41,43 @@ def import_records(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    logging.info(f'import {vars(args)}')
-    return
+    logging.debug(f'import {vars(args)}')
 
     p = Path(args.file)
-    match p.suffix:
-        case '.journal': DB.import_journal(p)
+    fmt = args.format or p.suffix[1:]
+    match fmt:
+        case 'journal': import_journal(p)
+        case 'json': import_json(p)
         case _: logging.error(f'init: unknown file extension:{p.suffix}')
 
+# Import records from a .journal file
 
-def export_records(args):
+def import_journal(fn: Path):
     '''
-    The top level function, called from main when the command 
-    is "export".  Redirects to the method that will save the data,
-    using the file name extension or command line argument to 
-    determine the input file format.
+    Read accounts and transactions from a plain text accounting
+    (.jorurnal) file.  Erases any previous documents in the database.
 
     Arguments:
-        args: Namespace object with command line arguments.
+        fn: path to the input file
     '''
-    logging.info(f'export {vars(args)}')
+    logging.info(f'DB:importing journal file:{fn}')
+    DB.erase_database()
+    for obj in JournalParser().parse_file(fn):
+        obj.save()
+
+# Import records from a JSON file (created by a previous call to
+# export_records)
+
+def import_json(fn: Path):
+    '''
+    Read accounts and transactions from a JSON file.  Erases any
+    previous documents in the database.
+
+    Arguments:
+        fn: path to the input file
+    '''
+    logging.info(f'DB:importing JSON file:{fn}')
+    DB.erase_database()
 
 def parse_amount(s):
     '''
@@ -171,4 +208,3 @@ class JournalParser:
 
         # return objects in the order we want them saved
         return self.accounts + self.entries + self.transactions
-

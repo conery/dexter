@@ -28,7 +28,7 @@ class Account(Document):
     @queryset_manager
     def nominal_accounts(doc_cls, queryset):
         # return queryset.filter(Q(group='expenses') | Q(group='liabilities'))
-        return queryset.filter(group__in=['E','L'])
+        return queryset.filter(category__in=['E','L'])
 
 class Entry(Document):
     uid = StringField(required=True)

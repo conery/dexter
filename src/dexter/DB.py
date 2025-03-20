@@ -1,9 +1,10 @@
 # Database schema and API
 
+from datetime import date
+import json
 import logging
 from mongoengine import *
 
-from .io import JournalParser
 from .schema import *
 
 class DB:
@@ -26,24 +27,38 @@ class DB:
         Arguments:
             dbname:  name of the databaae to use
         '''
-        logging.info(f'DB: open {dbname}')
+        logging.debug(f'DB: open {dbname}')
         DB.client = connect(dbname, UuidRepresentation='standard')
         DB.database = DB.client[dbname]
         DB.dbname = dbname
 
     @staticmethod
-    def import_journal(fn: str):
+    def erase_database():
         '''
-        Read statements and transactions from a plain text accounting
-        (.jorurnal) file.  Erases any previous documents in the database.
+        Erase the database.
+        '''
+        DB.client.drop_database(DB.dbname)
+
+    @staticmethod
+    def print_records(f):
+        '''
+        Iterate over collections, write each record along with its 
+        collection name.
 
         Arguments:
-            fn: path to the input file
+            f: file object for the output
         '''
-        logging.info(f'DB:importing journal file:{fn}')
-        DB.client.drop_database(DB.dbname)
-        for obj in JournalParser().parse_file(fn):
-            obj.save()
+
+        models = [cls for cls in Document.__subclasses__() if hasattr(cls, 'objects')]
+
+        for cls in models:
+            collection = cls._meta['collection']
+            logging.debug(f'exporting {collection}')
+            for obj in cls.objects:
+                print(f'["{collection}", {obj.to_json()}]', file=f)
+                
+    # These dictionaries map command line arguments to names of 
+    # object attributes to use in calls that select objects.
 
     entry_constraints = {
         'description': 'description__iregex',
