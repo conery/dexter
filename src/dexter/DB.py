@@ -31,6 +31,9 @@ class DB:
         DB.client = connect(dbname, UuidRepresentation='standard')
         DB.database = DB.client[dbname]
         DB.dbname = dbname
+        DB.models = [cls for cls in Document.__subclasses__() if hasattr(cls, 'objects')]
+        DB.collections = { cls._meta["collection"]: cls for cls in DB.models }
+        logging.debug(f'models: {DB.models}')
 
     @staticmethod
     def erase_database():
@@ -40,7 +43,21 @@ class DB:
         DB.client.drop_database(DB.dbname)
 
     @staticmethod
-    def print_records(f):
+    def add_record(collection: str, doc: str):
+        '''
+        Add a new record to a collection.
+
+        Arguments:
+            collection:  the name of the collection
+            doc:  a JSON string with the document descriptio
+        '''
+        logging.debug(f'{collection} {doc}')
+        cls = DB.collections[collection]
+        obj = cls.from_json(doc, True)
+        obj.save()
+
+    @staticmethod
+    def save_records(f):
         '''
         Iterate over collections, write each record along with its 
         collection name.
@@ -49,13 +66,10 @@ class DB:
             f: file object for the output
         '''
 
-        models = [cls for cls in Document.__subclasses__() if hasattr(cls, 'objects')]
-
-        for cls in models:
-            collection = cls._meta['collection']
+        for collection, cls in DB.collections.items():
             logging.debug(f'exporting {collection}')
             for obj in cls.objects:
-                print(f'["{collection}", {obj.to_json()}]', file=f)
+                print(f'{collection}: {obj.to_json()}', file=f)
                 
     # These dictionaries map command line arguments to names of 
     # object attributes to use in calls that select objects.

@@ -33,7 +33,7 @@ class TestDB:
     def test_open(self, db):
         '''
         After opening the connection the module saves the name of the
-        database.
+        database and the collections it contains.
         '''
         assert DB.dbname == 'pytest'
 
@@ -42,7 +42,8 @@ class TestDB:
         Check the number of documents in each of the collections in the 
         test data.
         '''
-        assert sorted(db.list_collection_names()) == ['account', 'entry', 'transaction']
+        assert len(DB.models) == 3
+        assert set(DB.collections.keys()) == {'account', 'entry', 'transaction'}
         assert db.command('count','account')['n'] == 10
         assert db.command('count','entry')['n'] == 38
         assert db.command('count','transaction')['n'] == 16

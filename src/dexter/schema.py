@@ -70,7 +70,7 @@ class Transaction(Document):
     @property
     def originals(self):
         return '/'.join(e.description for e in self.entries)
-
+    
     def clean(self):
         self.pdate = min(e.date for e in self.entries)
         self.pamount = sum(e.amount for e in self.entries if e.column == Column.cr)

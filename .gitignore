@@ -169,3 +169,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project data
+
+# text files with documents exported from a DB -- almost JSON but not quite, so
+# we don't give them .json exensions
+*.docs

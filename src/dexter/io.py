@@ -1,5 +1,6 @@
 #  Methods for reading and writing database contents
 
+import json
 import logging
 from pathlib import Path
 import re
@@ -26,7 +27,7 @@ def export_records(args):
     try:
         mode = 'w' if args.force else 'x'
         with open(args.file, mode) as f:
-            DB.print_records(f)
+            DB.save_records(f)
     except FileExistsError as err:
         logging.error(f'file exists: {args.file}, use --force to overwrite')
         exit(1)
@@ -46,9 +47,33 @@ def import_records(args):
     p = Path(args.file)
     fmt = args.format or p.suffix[1:]
     match fmt:
-        case 'journal': import_journal(p)
         case 'json': import_json(p)
+        case 'journal': import_journal(p)
         case _: logging.error(f'init: unknown file extension:{p.suffix}')
+
+# Import records from a JSON file (created by a previous call to
+# export_records)
+
+def import_json(fn: Path):
+    '''
+    Read accounts and transactions from a JSON file.  Erases any
+    previous documents in the database.
+
+    Arguments:
+        fn: path to the input file
+    '''
+    logging.info(f'DB:importing JSON file:{fn}')
+    DB.erase_database()
+
+    with open(fn) as f:
+        for line in f:
+            try:
+                sep = line.find(':')
+                collection = line[:sep]
+                doc = line[sep+1:].strip()
+                DB.add_record(collection, doc)
+            except Exception as err:
+                logging.error(err)
 
 # Import records from a .journal file
 
@@ -64,20 +89,6 @@ def import_journal(fn: Path):
     DB.erase_database()
     for obj in JournalParser().parse_file(fn):
         obj.save()
-
-# Import records from a JSON file (created by a previous call to
-# export_records)
-
-def import_json(fn: Path):
-    '''
-    Read accounts and transactions from a JSON file.  Erases any
-    previous documents in the database.
-
-    Arguments:
-        fn: path to the input file
-    '''
-    logging.info(f'DB:importing JSON file:{fn}')
-    DB.erase_database()
 
 def parse_amount(s):
     '''
