@@ -18,8 +18,7 @@ def setup_logging(arg):
             level = logging.WARNING
     logging.basicConfig(
         level=level,
-        style='{',
-        format='{relativeCreated:4.0f} msec: {message}',
+        format='%(levelname)s:%(message)s',
         handlers = [RichHandler(markup=True, rich_tracebacks=True)],
     )
 
