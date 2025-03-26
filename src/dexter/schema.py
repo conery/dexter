@@ -25,12 +25,16 @@ class Account(Document):
     category = EnumField(Category, required=True)
     comment = StringField()
 
+    def __str__(self):
+        return f'<Acct {self.name} {self.category}'
+
     @queryset_manager
     def nominal_accounts(doc_cls, queryset):
         # return queryset.filter(Q(group='expenses') | Q(group='liabilities'))
         return queryset.filter(category__in=['E','L'])
 
 class Entry(Document):
+    # uid = StringField(required=True, unique=True)
     uid = StringField(required=True)
     date = DateField(required=True)
     description = StringField(required=True)

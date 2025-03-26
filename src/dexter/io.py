@@ -219,3 +219,19 @@ class JournalParser:
 
         # return objects in the order we want them saved
         return self.accounts + self.entries + self.transactions
+
+###
+#
+# Top level method for parsing a CSV file to add new records to a DB
+#
+
+def add_records(args):
+    '''
+    The top level function, called from main when the command 
+    is "add".  Parses one or more CSV files to create new Entry
+    documents.
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    logging.info(f'add {vars(args)}')

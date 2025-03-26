@@ -11,13 +11,10 @@ import sys
 from .util import setup_logging, parse_date, date_range
 from .DB import DB
 
-from .io import import_records, export_records
+from .io import import_records, export_records, add_records
 from .select import select_transactions
 
 # Functions for commands (will be moved to modules)
-
-def parse_csv_files(args):
-    print('import_transactions')
 
 def parse_statements(args):
     print('parse_statements')
@@ -44,22 +41,28 @@ def init_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dbname', metavar='X', help='database name', default='dexter')
     parser.add_argument('--log', metavar='X', choices=['quiet','info','debug'], default='info')
+    parser.add_argument('--preview', action='store_true')
     
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
-    import_parser = subparsers.add_parser('import', help='load documents into a database')
-    import_parser.add_argument('--file', metavar='F', help='name of file with records to import',default='dexter.json')
-    import_parser.add_argument('--format', metavar='F', choices=['json', 'journal'], help='file format', default='json')
-    import_parser.set_defaults(dispatch=import_records)
+    import_recs_parser = subparsers.add_parser('import', help='load documents into a database')
+    import_recs_parser.add_argument('--file', metavar='F', help='name of file with records to import',default='dexter.docs')
+    import_recs_parser.add_argument('--format', metavar='F', choices=['docs', 'journal'], help='file format', default='docs')
+    import_recs_parser.set_defaults(dispatch=import_records)
 
-    export_parser = subparsers.add_parser('export', help='export a database to a text file')
-    export_parser.add_argument('--file', metavar='F', help='name of output file',default='dexter.json')
-    export_parser.add_argument('--format', metavar='F', choices=['json', 'journal'], help='file format', default='json')
-    export_parser.add_argument('--force', action='store_true', help='overwrite existing file')
-    export_parser.set_defaults(dispatch=export_records)
+    export_recs_parser = subparsers.add_parser('export', help='export a database to a text file')
+    export_recs_parser.add_argument('--file', metavar='F', help='name of output file',default='dexter.docs')
+    export_recs_parser.add_argument('--format', metavar='F', choices=['docs', 'journal'], help='file format', default='docs')
+    export_recs_parser.add_argument('--force', action='store_true', help='overwrite existing file')
+    export_recs_parser.set_defaults(dispatch=export_records)
 
-    collect_parser = subparsers.add_parser('collect', help='import transactions from CSV files')
-    collect_parser.set_defaults(dispatch=parse_csv_files)
+    add_recs_parser = subparsers.add_parser('add', help='add new records from CSV files')
+    add_recs_parser.add_argument('path', metavar='P', help='name of single file or directory containing several files')
+    add_recs_parser.add_argument('--account', metavar='A', help='process only this account')
+    add_recs_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    add_recs_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
+    add_recs_parser.add_argument('--month', metavar='D', choices=months, help='add records only for this month')
+    add_recs_parser.set_defaults(dispatch=add_records)
 
     statements_parser = subparsers.add_parser('parse', help='import card and bank account statements')
     statements_parser.set_defaults(dispatch=parse_statements)
