@@ -5,7 +5,8 @@
 import csv
 import sys
 
-from .schema import Entry, Transaction, Column
+# from .schema import Entry, Transaction, Column
+from .DB import Entry, Transaction, Column
 
 from rich.console import Console
 from rich.theme import Theme

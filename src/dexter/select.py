@@ -2,8 +2,8 @@
 
 import logging
 
-from .schema import Transaction, Entry
-from .DB import DB
+# from .schema import Transaction, Entry
+from .DB import DB, Transaction, Entry
 from .console import print_transaction_table
 
 def select_transactions(args):

@@ -5,8 +5,8 @@ import logging
 from pathlib import Path
 import re
 
-from .DB import DB
-from .schema import *
+from .DB import DB, Account, Entry, Transaction, Category
+# from .schema import *
 
 ###
 #

@@ -3,8 +3,8 @@
 import pytest
 
 from datetime import date
-from dexter.DB import DB
-from dexter.schema import *
+from dexter.DB import DB, Document, Account, Entry, Transaction, Column
+# from dexter.schema import *
 from dexter.io import import_journal
 
 @pytest.fixture
