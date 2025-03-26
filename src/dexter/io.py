@@ -1,6 +1,5 @@
 #  Methods for reading and writing database contents
 
-import json
 import logging
 from pathlib import Path
 import re
@@ -17,7 +16,7 @@ def export_records(args):
     '''
     The top level function, called from main when the command 
     is "export".  Writes records from all collections to a single
-    JSON file.
+    text file.
 
     Arguments:
         args: Namespace object with command line arguments.
@@ -47,22 +46,22 @@ def import_records(args):
     p = Path(args.file)
     fmt = args.format or p.suffix[1:]
     match fmt:
-        case 'json': import_json(p)
+        case 'docs': import_docs(p)
         case 'journal': import_journal(p)
         case _: logging.error(f'init: unknown file extension:{p.suffix}')
 
-# Import records from a JSON file (created by a previous call to
+# Import records from a docs file (created by a previous call to
 # export_records)
 
-def import_json(fn: Path):
+def import_docs(fn: Path):
     '''
-    Read accounts and transactions from a JSON file.  Erases any
+    Read accounts and transactions from a docs file.  Erases any
     previous documents in the database.
 
     Arguments:
         fn: path to the input file
     '''
-    logging.info(f'DB:importing JSON file:{fn}')
+    logging.info(f'DB:importing docs file:{fn}')
     DB.erase_database()
 
     with open(fn) as f:

@@ -1,6 +1,7 @@
 # Database schema and API
 
 from enum import Enum
+from hashlib import md5
 import logging
 from mongoengine import *
 
@@ -50,6 +51,14 @@ class Entry(Document):
     def __str__(self):
         e = '+' if self.column == Column.dr else '-'
         return f'<En {self.date} {self.account} {e}${self.amount}>'
+    
+    @property
+    def hash(self):
+        s = f'{self.account}{self.date}{self.amount}{self.description}'
+        return md5(bytes(s, 'utf-8')).hexdigest()
+    
+    def clean(self):
+        self.uid = self.hash
 
 class Transaction(Document):
     description = StringField(required=True)
