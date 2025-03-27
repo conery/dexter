@@ -233,4 +233,54 @@ def add_records(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    logging.info(f'add {vars(args)}')
+    p = Path(args.path)
+    if p.is_dir():
+        files = collect_all(p, args.account) 
+    elif p.is_file():
+        files = collect_one(p, args.account)
+    else:
+        raise FileNotFoundError(f'no such file: {args.path}')
+    for fn in files:
+        logging.info(f'add records from {fn}')
+    
+
+def collect_all(dirname, account):
+    '''
+    Helper function for add_records.  Find all CSV files in a
+    directory, make sure there is a parser for each file.
+
+    Arguments:
+        dirname:  the name of the directory to scan
+        account:  the name of the account (optional)
+    '''
+    files = [ ]
+    for path in dirname.iterdir():
+        if path.suffix not in ['.csv','.CSV']:
+            continue
+        # if cls := parsers.get(p.stem):
+        #     files.append((Path(path)/fn, cls, p.stem))
+        files.append(path)
+    return files
+
+def collect_one(path, account):
+    '''
+    Helper function for add_records.  Ensure the file is a CSV
+    file and there is a parser for the account.
+
+    Arguments:
+        path:  the name of the file
+        account:  the name of the account (optional)
+    '''
+    if path.suffix not in ['.csv','.CSV']:
+        raise ValueError(f'expected CSV file, not {path}')
+    # if cls := parsers.get(p.stem):
+    #     files = [(p, cls, p.stem)]
+    # elif args.account:
+    #     if cls := parsers.get(args.account):
+    #         files = [(p, cls, args.account)]
+    #     else:
+    #         raise ValueError('unknown account name')
+    # else:
+    #     raise ValueError('file name does not match an account')
+    return [path]
+
