@@ -1,0 +1,14 @@
+# Default configuration settings
+
+[terminology]
+credit = "credit"   # alts:  "from", "out", "destination"
+debit = "debit"     # alts:  "to", "in", "source"
+
+[csv]
+
+[csv.occu]
+description = "desc"
+date = "date"
+amount = "amount"
+column = "column"
+

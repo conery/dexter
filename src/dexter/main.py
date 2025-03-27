@@ -5,9 +5,9 @@
 import argparse
 import calendar
 import logging
-from pathlib import Path
 import sys
 
+from .config import init_config
 from .util import setup_logging, parse_date, date_range
 from .DB import DB
 
@@ -31,7 +31,8 @@ def generate_report(args):
 
 def init_cli():
     """
-    Use argparse to create the command line API.
+    Use argparse to create the command line API, initialize the logger
+    to print status messages on the console.
 
     Returns:
         a Namespace object with values of the command line arguments. 
@@ -42,6 +43,7 @@ def init_cli():
     parser.add_argument('--dbname', metavar='X', help='database name', default='dexter')
     parser.add_argument('--log', metavar='X', choices=['quiet','info','debug'], default='info')
     parser.add_argument('--preview', action='store_true')
+    parser.add_argument('--config', metavar='F', help='TOML file with configuration settings')
     
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
@@ -114,7 +116,13 @@ def init_cli():
             ds, de = date_range(m)
             args.start_date = ds
             args.end_date = de
-    
+
+    setup_logging(args.log)
+    logging.debug('command line arguments:')
+    for name, val in vars(args).items():
+        if val is not None:
+            logging.debug(f'  --{name} {val}')
+
     return args 
 
 def main():
@@ -122,12 +130,8 @@ def main():
     Top level entry point
     """
     args = init_cli()
-    setup_logging(args.log)
-    logging.debug('command line arguments:')
-    for name, val in vars(args).items():
-        if val is not None:
-            logging.debug(f'  --{name} {val}')
     try:
+        init_config(args.config)
         DB.open(args.dbname)
         args.dispatch(args)
     except Exception as err:
