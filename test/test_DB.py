@@ -48,6 +48,13 @@ class TestDB:
         assert db.command('count','entry')['n'] == 38
         assert db.command('count','transaction')['n'] == 16
 
+    def test_uids(self, db):
+        '''
+        Every entry should have a unique UID value
+        '''
+        uids = DB.uids()
+        assert len(uids) == db.command('count','entry')['n']
+
     def test_transaction_attributes(self, db):
         '''
         Test the computed attributes of the Transaction class
@@ -55,7 +62,7 @@ class TestDB:
         lst = Transaction.objects(description='Safeway')
         p0 = lst[0]
         assert p0.accounts == {'groceries','checking'}
-        assert p0.originals == '/'
+        assert p0.originals == 'weekly/Safeway'
         assert len(p0.debits) == len(p0.credits) == 1
         assert p0.pdate == date(2024,1,7)
         assert p0.pcredit == 'checking'

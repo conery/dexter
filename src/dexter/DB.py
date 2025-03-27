@@ -160,6 +160,17 @@ class DB:
             logging.debug(f'exporting {collection}')
             for obj in cls.objects:
                 print(f'{collection}: {obj.to_json()}', file=f)
+
+    # Methods used when adding new records to make sure we don't
+    # have duplicates
+
+    @staticmethod
+    def uids():
+        '''
+        Return the set of unique identifiers (uids) on all Entry
+        documents in the database. 
+        '''
+        return {e.uid for e in Entry.objects}
                 
     # These dictionaries map command line arguments to names of 
     # object attributes to use in calls that select objects.

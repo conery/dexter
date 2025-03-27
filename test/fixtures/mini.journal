@@ -16,79 +16,79 @@ account E travel
 # Monthly paychecks and bucket fills
 
 2024-01-02 paycheck ; 
-    checking     $5,000.00
-    yoyodyne    $-5,000.00
+    checking     $5,000.00      ; Jan pay
+    yoyodyne    $-5,000.00      ; January
 
 2024-01-02 fill buckets ; 2024 budget
-    yoyodyne      $5,000.00
-    groceries    $-300.00
-    mortgage   $-1,800.00
-    car          $-900.00
-    travel     $-2,000.00
+    yoyodyne      $5,000.00     ; January allocation
+    groceries    $-300.00       ; Jan
+    mortgage   $-1,800.00       ; Jan
+    car          $-900.00       ; Jan
+    travel     $-2,000.00       ; Jan
 
 2024-02-02 paycheck ; 
-    checking     $5,000.00
-    yoyodyne    $-5,000.00
+    checking     $5,000.00      ; Feb pay
+    yoyodyne    $-5,000.00      ; February
 
 2024-02-02 fill buckets ; 2024 budget
-    yoyodyne      $5,000.00
-    groceries    $-300.00
-    mortgage   $-1,800.00
-    car          $-900.00
-    travel     $-2,000.00
+    yoyodyne      $5,000.00     ; February allocation
+    groceries    $-300.00       ; Feb
+    mortgage   $-1,800.00       ; Feb
+    car          $-900.00       ; Feb
+    travel     $-2,000.00       ; Feb
 
 # Car expenses
 
 2024-01-05 car payment ; 
-    car        $500.00
-    checking    $-500.00
+    car        $500.00          ; Jan
+    checking    $-500.00        ; xfer to loan #xxx
 
 2024-02-05 car payment ; 
-    car        $500.00
-    checking    $-500.00
+    car        $500.00          ; Feb
+    checking    $-500.00        ; xfer to loan #xxx
 
 2024-01-10 Shell Oil ; 
-    car    $50.00
-    visa    $-50.00
+    car    $50.00               ; gas
+    visa    $-50.00             ; Barney's Shell
 
 2024-02-26 Shell Oil ; 
-    car    $60.00
-    visa    $-60.00
+    car    $60.00               ; gas
+    visa    $-60.00             ; Fred's Shell
 
 # Mortgage payments
 
 2024-01-04 Rocket Mortgage ; 
-    mortgage    $1,800.00
-    checking    $-1,800.00
+    mortgage    $1,800.00        ; Jan
+    checking    $-1,800.00       ; xfer to loan #yyy
 
 2024-02-04 Rocket Mortgage ; 
-    mortgage    $1,800.00
-    checking    $-1,800.00
+    mortgage    $1,800.00        ; Feb
+    checking    $-1,800.00       ; xfer to loan #yyy
 
 # Groceries
 
 2024-01-07  Safeway ; weekly groceries
-    groceries  $75.00
-    checking    $-75.00
+    groceries  $75.00           ; weekly
+    checking    $-75.00         ; Safeway
 
 2024-01-21  Safeway 
-    groceries  $175.00  ; big party this weekend
-    visa    $-175.00
+    groceries  $175.00          ; big party this weekend
+    visa    $-175.00            ; Safeway
 
 2024-02-07  Safeway ;
-    groceries  $75.00
-    checking    $-75.00
+    groceries  $75.00           ; weekly
+    checking    $-75.00         ; Safeway
 
 2024-02-21  Safeway ;
-    groceries  $75.00
-    visa    $-75.00
+    groceries  $75.00           ; normal
+    visa    $-75.00             ; Safeway
 
 ; Buy something for the house using a card, return part of it
 
-2024-03-10 Home Depot ; 
-    household    $50.00
-    amex    $-50.00
+2024-03-10 Home Depot ; paint
+    household    $50.00         ; paint
+    amex    $-50.00             ; HD Store 100
 
-2024-03-12 Home Depot ; 
-    household    $-25.00
-    amex    $25.00
+2024-03-12 Home Depot ; return
+    household    $-25.00        ; didn't use pink
+    amex    $25.00              ; HD Store 100
