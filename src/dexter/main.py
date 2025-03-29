@@ -7,9 +7,9 @@ import calendar
 import logging
 import sys
 
-from .config import init_config
-from .util import setup_logging, parse_date, date_range
+from .config import Config
 from .DB import DB
+from .util import setup_logging, parse_date, date_range
 
 from .io import import_records, export_records, add_records
 from .select import select_transactions
@@ -131,7 +131,7 @@ def main():
     """
     args = init_cli()
     try:
-        init_config(args.config)
+        Config.init(args.config)
         DB.open(args.dbname)
         args.dispatch(args)
     except Exception as err:

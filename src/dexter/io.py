@@ -1,11 +1,13 @@
 #  Methods for reading and writing database contents
 
+import csv
 import logging
 from pathlib import Path
 import re
 
 from .DB import DB, Account, Entry, Transaction, Category
-# from .schema import *
+from .config import Config
+from .util import parse_date
 
 ###
 #
@@ -235,52 +237,85 @@ def add_records(args):
     '''
     p = Path(args.path)
     if p.is_dir():
-        files = collect_all(p, args.account) 
+        files = collect_all(p) 
     elif p.is_file():
         files = collect_one(p, args.account)
     else:
-        raise FileNotFoundError(f'no such file: {args.path}')
-    for fn in files:
-        logging.info(f'add records from {fn}')
+        raise FileNotFoundError(f'add_records: no such file or directory: {args.path}')
+    for fn, parser in files:
+        parse_file(fn, parser, args.start_date, args.end_date)
     
-
-def collect_all(dirname, account):
+def collect_all(dirname):
     '''
     Helper function for add_records.  Find all CSV files in a
     directory, make sure there is a parser for each file.
 
     Arguments:
         dirname:  the name of the directory to scan
-        account:  the name of the account (optional)
+
+    Returns:
+        a list of tuples containing the name of a file and the
+        name of the parser to use for that file.
     '''
     files = [ ]
     for path in dirname.iterdir():
         if path.suffix not in ['.csv','.CSV']:
             continue
-        # if cls := parsers.get(p.stem):
-        #     files.append((Path(path)/fn, cls, p.stem))
-        files.append(path)
+        if path.stem not in Config.parsers.keys():
+            logging.error(f'collect_all: no parser for {path.stem}')
+            continue
+        files.append((path, Config.parsers[path.stem]))
     return files
 
 def collect_one(path, account):
     '''
     Helper function for add_records.  Ensure the file is a CSV
-    file and there is a parser for the account.
+    file and there is a parser for the file.
 
     Arguments:
         path:  the name of the file
         account:  the name of the account (optional)
     '''
     if path.suffix not in ['.csv','.CSV']:
-        raise ValueError(f'expected CSV file, not {path}')
-    # if cls := parsers.get(p.stem):
-    #     files = [(p, cls, p.stem)]
-    # elif args.account:
-    #     if cls := parsers.get(args.account):
-    #         files = [(p, cls, args.account)]
-    #     else:
-    #         raise ValueError('unknown account name')
-    # else:
-    #     raise ValueError('file name does not match an account')
-    return [path]
+        raise ValueError(f'collect_one: expected CSV file, not {path}')
+    parser = account or path.stem
+    if parser not in Config.parsers.keys():
+        raise ValueError(f'collect_one: no parser for {parser}')
+    return [(path,Config.parsers[parser])]
 
+def parse_file(fn, pname, starting, ending):
+    '''
+    Make a new Entry object for every record in a CSV file.
+
+    Arguments:
+        fn:  the name of the CSV file
+        pname:  the name of a parser (column mapping) that specifies
+            which columns to use
+        starting:  start date
+        ending:  end date
+
+    Returns:
+        a list of Entry objects
+    '''
+    res = []
+    cmap = Config.colmaps[pname]
+    with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for rec in reader:
+            if list(rec.values()) == reader.fieldnames:
+                continue
+            rec_date = parse_date(cmap['date'](rec))
+            if starting and rec_date < starting:
+                continue
+            if ending and rec_date > ending:
+                continue
+            desc = {
+                'date': rec_date,
+                'description': cmap['description'](rec),
+                'amount': cmap['amount'](rec),
+                'column': 'credit' if cmap['credit'](rec) else 'debit',
+                'account': pname,
+            }
+            e = Entry(**desc)
+            logging.debug(e)
+    return res
