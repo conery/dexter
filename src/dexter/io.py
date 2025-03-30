@@ -7,6 +7,7 @@ import re
 
 from .DB import DB, Account, Entry, Transaction, Category
 from .config import Config
+from .console import print_records
 from .util import parse_date
 
 ###
@@ -48,14 +49,14 @@ def import_records(args):
     p = Path(args.file)
     fmt = args.format or p.suffix[1:]
     match fmt:
-        case 'docs': import_docs(p)
-        case 'journal': import_journal(p)
+        case 'docs': import_docs(p, args.preview)
+        case 'journal': import_journal(p, args.preview)
         case _: logging.error(f'init: unknown file extension:{p.suffix}')
 
 # Import records from a docs file (created by a previous call to
 # export_records)
 
-def import_docs(fn: Path):
+def import_docs(fn: Path, preview):
     '''
     Read accounts and transactions from a docs file.  Erases any
     previous documents in the database.
@@ -78,18 +79,23 @@ def import_docs(fn: Path):
 
 # Import records from a .journal file
 
-def import_journal(fn: Path):
+def import_journal(fn: Path, preview):
     '''
     Read accounts and transactions from a plain text accounting
     (.jorurnal) file.  Erases any previous documents in the database.
 
     Arguments:
         fn: path to the input file
+        preview:  if True print documents instead of saving them
     '''
     logging.info(f'DB:importing journal file:{fn}')
-    DB.erase_database()
-    for obj in JournalParser().parse_file(fn):
-        obj.save()
+    recs = JournalParser().parse_file(fn)
+    if preview:
+        print_records(recs)
+    else:
+        DB.erase_database()
+        for obj in recs:
+            obj.save()
 
 def parse_amount(s):
     '''
@@ -121,64 +127,89 @@ class JournalParser:
         self.account_types = list(Category.__members__.keys())
         self.account_names = set()
         self.transaction_date = None
+        self.transaction_total = 0
 
     # def validate_account(self, acct):
     #     parts = acct.split(':')
     #     if parts[0] not in self.account_types:
     #         raise ValueError(f'unknown account type: {parts[0]}')
 
-    def new_account(self, cmnd, comment):
+    def new_account(self, cmnd, tokens):
         '''
         Helper function to create an Account document from the current line.
 
-        Expected format:
-           account G N
+        Arguments:
+           cmnd:  a string with the 'account' command followed by the account name
+           tokens:  list of strings with the remainder of the line
+
+        Expected format of the command part
+           account N C
         where G is a single-letter account type and N is the account name.
         '''
-        logging.debug(f'JournalParser.new_account "{cmnd}"')
-        _, cat, spec = cmnd.split()
-        assert cat in self.account_types, f'  (unknown category: {cat})'
-        assert spec not in self.account_names, f'  (duplicate account name: {spec})'
-        acct = Account(
-            name=spec, 
-            category=cat,
-        )
-        if len(comment) > 0:
-            acct.note = comment[0].strip()
-        self.accounts.append(acct)
-        self.account_names.add(spec)
+        logging.debug(f'JournalParser.new_account: {cmnd} {tokens}')
+        lst = cmnd.split()
+        name = lst[1].strip()
+        assert name not in self.account_names, f'  (duplicate account name: {name})'
 
-    def new_transaction(self, cmnd, comment):
+        comment = tokens[0].strip() if tokens else ''
+        if m := re.search(r'(.*?)type: (\w)(.*)', comment):
+            cat = m[2]
+        else:            
+            cat = name[0].upper()
+
+        acct = Account(
+            name=name, 
+            category=cat,
+            comment=comment,
+        )
+        self.accounts.append(acct)
+        self.account_names.add(name)
+
+    def new_transaction(self, date, tokens):
         '''
         Helper function to create a Transaction object from the current line.
+
+        Arguments:
+           date: the date from the front of the line
+           tokens:  list of strings with the remainder of the line
         '''
-        logging.debug(f'JournalParser.new_transaction "{cmnd}"')
-        m = re.match(r'(\d{4}-\d{2}-\d{2})(.*)', cmnd)
+        logging.debug(f'JournalParser.new_transaction {date} {tokens}')
+        m = re.match(r'(\d{4}-\d{2}-\d{2})(.*)', date)
         self.transaction_date = m.group(1)
+        self.transaction_total = 0
         trans = Transaction(
             description = m.group(2).strip(),
         )
-        if len(comment) > 0:
-            trans.comment = comment[0].strip()
+        comment = tokens[0].strip() if tokens else ''
+        trans.comment = comment
         self.transactions.append(trans)
 
-    def new_entry(self, cmnd, comment):
+    def new_entry(self, cmnd, tokens):
         '''
         Helper function to create a new Entry object.  Appends the
         new object to the entries list of the most recent Transaction
         (which means it raises an exception if there is no Transaction).
+
+        Arguments:
+           cmnd: a string with the account name and amount
+           tokens:  list of strings with the remainder of the line
         '''
-        logging.debug(f'JournalParser.new_entry {cmnd}')
-        acct, amt = cmnd.split()
-        # self.validate_account(acct)
+        logging.debug(f'JournalParser.new_entry {cmnd} {tokens}')
+        parts = cmnd.strip().split()
+        acct = parts[0]
         if acct not in self.account_names:
             raise ValueError(f'unknown account: {acct}')
-        amount = parse_amount(amt)
-        desc = comment[0].strip() if comment else ''
+        
+        if len(parts) > 1:
+            amount = parse_amount(parts[1])
+            self.transaction_total += amount
+        else:
+            amount = -self.transaction_total
+
+        desc = tokens[0].strip() if tokens else ''
         col = 'credit' if amount < 0 else 'debit'
         trans = self.transactions[-1]
         entry = Entry(
-            uid = '',               # UIDs not needed in .journal files
             date = self.transaction_date,
             description = desc,
             account = acct,
@@ -242,8 +273,11 @@ def add_records(args):
         files = collect_one(p, args.account)
     else:
         raise FileNotFoundError(f'add_records: no such file or directory: {args.path}')
-    for fn, parser in files:
-        parse_file(fn, parser, args.start_date, args.end_date)
+    for fn, parser, account in files:
+        recs = parse_file(fn, parser, account, args.start_date, args.end_date, DB.uids())
+        if args.preview:
+            print_records(recs)
+
     
 def collect_all(dirname):
     '''
@@ -254,8 +288,9 @@ def collect_all(dirname):
         dirname:  the name of the directory to scan
 
     Returns:
-        a list of tuples containing the name of a file and the
-        name of the parser to use for that file.
+        a list of tuples containing the name of a file, the
+        name of the parser to use for that file, and the full
+        name of the account
     '''
     files = [ ]
     for path in dirname.iterdir():
@@ -275,15 +310,29 @@ def collect_one(path, account):
     Arguments:
         path:  the name of the file
         account:  the name of the account (optional)
+
+    Returns:
+        a list of with a single tuple containing the name of a file, the
+        name of the parser to use for that file, and the full
+        name of the account
     '''
     if path.suffix not in ['.csv','.CSV']:
         raise ValueError(f'collect_one: expected CSV file, not {path}')
-    parser = account or path.stem
-    if parser not in Config.parsers.keys():
+    aname = account or path.stem
+    logging.debug(f'aname {aname}')
+    alist = DB.find_account(aname)
+    logging.debug(f'alist {alist}')
+    if len(alist) == 0:
+        raise ValueError(f'collect_one: no account name matches {aname}')
+    if len(alist) > 1:
+        raise ValueError(f'collect_one: ambiguous account name {aname}')
+    parser = alist[0].name.split(':')[0]
+    logging.debug(f'parser {parser}')
+    if parser not in Config.colmaps.keys():
         raise ValueError(f'collect_one: no parser for {parser}')
-    return [(path,Config.parsers[parser])]
+    return [(path, parser, alist[0].name)]
 
-def parse_file(fn, pname, starting, ending):
+def parse_file(fn, pname, account, starting, ending, previous):
     '''
     Make a new Entry object for every record in a CSV file.
 
@@ -293,10 +342,12 @@ def parse_file(fn, pname, starting, ending):
             which columns to use
         starting:  start date
         ending:  end date
+        pevious:  set of UIDS of previously added entries
 
     Returns:
         a list of Entry objects
     '''
+    logging.debug(f'parsing {fn} {pname} {account} {starting} {ending}')
     res = []
     cmap = Config.colmaps[pname]
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
@@ -314,8 +365,11 @@ def parse_file(fn, pname, starting, ending):
                 'description': cmap['description'](rec),
                 'amount': cmap['amount'](rec),
                 'column': 'credit' if cmap['credit'](rec) else 'debit',
-                'account': pname,
+                'account': account,
             }
             e = Entry(**desc)
+            if e.hash in previous:
+                continue
+            res.append(e)
             logging.debug(e)
     return res

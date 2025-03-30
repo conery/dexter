@@ -15,7 +15,7 @@ def db():
     '''
     DB.open('pytest')
     DB.erase_database()
-    import_journal('test/fixtures/mini.journal')
+    import_journal('test/fixtures/mini.journal', False)
     return DB.database
 
 class TestDB:

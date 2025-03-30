@@ -34,8 +34,9 @@ class Config:
     cname = 'credit'
     dname = 'debit'
 
-    parsers = { }
+    # parsers = { }
     colmaps = { }
+    fullname = { }
 
     @staticmethod
     def init(cfile: str | None):
@@ -60,15 +61,14 @@ class Config:
             logging.debug(f'config: cname = "{Config.cname}" dname = "{Config.dname}"')
 
         if cd := config.get('csv'):
+            logging.debug(f'cd {cd}')
             for fmt, spec in cd.items():
-                accts = spec.pop('accounts')
-                dct = { a: fmt for a in accts }
-                Config.parsers |= dct
-                # cmap = ColMap(**spec)
-                # Config.colmaps[fmt] = spec
+                logging.debug(f'fmt {fmt} spec {spec}')
                 Config.compile_specs(fmt, spec)
-                logging.debug(f'config: parsers {dct}')
-                logging.debug(f'config: colmap for {fmt}: {spec}')
+
+        # logging.debug(f'config: parsers: {Config.parsers}')
+        logging.debug(f'config: colmaps: {Config.colmaps}')
+        logging.debug(f'config: fullname: {Config.fullname}')
 
     @staticmethod
     def load_toml_file(fn):

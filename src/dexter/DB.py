@@ -5,8 +5,6 @@ from hashlib import md5
 import logging
 from mongoengine import *
 
-# from .schema import *
-
 ### Database Schema, defined using MongoEngine
 
 class Category(Enum):
@@ -33,11 +31,18 @@ class Account(Document):
 
     def __str__(self):
         return f'<Acct {self.name} {self.category}'
+    
+    def row(self):
+        return [
+            'account',
+            str(self.category),
+            self.name,
+            self.comment,
+        ]
 
     @queryset_manager
     def nominal_accounts(doc_cls, queryset):
-        # return queryset.filter(Q(group='expenses') | Q(group='liabilities'))
-        return queryset.filter(category__in=['E','L'])
+        return queryset.filter(category__in=['E','I'])
 
 class Entry(Document):
     # uid = StringField(required=True, unique=True)
@@ -51,6 +56,17 @@ class Entry(Document):
     def __str__(self):
         e = '+' if self.column == Column.dr else '-'
         return f'<En {self.date} {self.account} {e}${self.amount}>'
+    
+    def row(self):
+        amt = f'${self.amount:.02f}'
+        style = '[red]' if self.column == Column.cr else ""
+        return [
+            'entry',
+            str(self.date),
+            f'{self.account:20}',
+            f'{style}{amt:>15s}',
+            self.description,
+        ]
     
     @property
     def hash(self):
@@ -72,6 +88,14 @@ class Transaction(Document):
 
     def __str__(self):
         return f'<Tr {self.pdate} {self.pcredit} -> {self.pdebit} ${self.pamount} {self.description}>'
+
+    def row(self):
+        return [
+            'transaction',
+            str(self.pdate),
+            f'{self.pcredit} -> {self.pdebit}',
+            self.description,
+        ]
 
     @property
     def accounts(self):
@@ -160,6 +184,16 @@ class DB:
             logging.debug(f'exporting {collection}')
             for obj in cls.objects:
                 print(f'{collection}: {obj.to_json()}', file=f)
+
+    @staticmethod
+    def find_account(s: str):
+        '''
+        Return a list of account names that contain a string.
+
+        Arguments:
+            s:  the string to search for
+        '''
+        return Account.objects(name__contains=s)
 
     # Methods used when adding new records to make sure we don't
     # have duplicates

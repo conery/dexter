@@ -2,16 +2,16 @@
 ; transactions exported from finances.db
 ;
 
-account Q equity
-account I yoyodyne
-account A checking
-account L amex
-account L visa
-account E groceries
-account E household
-account E mortgage
-account E car
-account E travel
+account equity           ; type: Q
+account yoyodyne         ; type: I
+account checking         ; type: A
+account amex             ; type: L
+account visa             ; type: L
+account groceries        ; type: E
+account household        ; type: E
+account mortgage         ; type: E
+account car              ; type: E
+account travel           ; type: E
 
 # Monthly paychecks and bucket fills
 

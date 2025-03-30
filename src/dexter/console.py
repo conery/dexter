@@ -70,6 +70,28 @@ entry_header_format = {
     'column':  {'width': 10, 'justify': 'center'},
 }
 
+def print_records(docs):
+    '''
+    Print a grid containing descriptions of documents.  Each document
+    class has its own `row` method that has the information it wants
+    to display.  Groups documents by collection, then prints each group.
+
+    Arguments:
+        docs:  a list of documents
+    '''
+    dct = {}
+    for obj in docs:
+        lst = obj.row()
+        a = dct.setdefault(lst[0], [])
+        a.append(lst)
+    
+    for tbl, lst in dct.items():
+        n = len(lst[0])
+        grid = Table.grid(""*n, padding=[0,1,0,1])
+        for row in lst:
+            grid.add_row(*row)
+        console.print(grid)
+        console.print()
 
 def print_transaction_table(
         lst, 
