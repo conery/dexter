@@ -247,7 +247,6 @@ class JournalParser:
                 except Exception as err:
                     logging.error(f'JournalParser: error in {cmnd}')
                     logging.error(err)
-            logging.debug(f'End of file')
 
         # return objects in the order we want them saved
         return self.accounts + self.entries + self.transactions
@@ -266,72 +265,31 @@ def add_records(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    p = Path(args.path)
-    if p.is_dir():
-        files = collect_all(p) 
-    elif p.is_file():
-        files = collect_one(p, args.account)
-    else:
-        raise FileNotFoundError(f'add_records: no such file or directory: {args.path}')
-    for fn, parser, account in files:
-        recs = parse_file(fn, parser, account, args.start_date, args.end_date, DB.uids())
+    for path in args.files:
+        logging.info(f'Add records from {path}')
+        if not path.is_file():
+            logging.error(f'add: no file named {path}')
+            continue            
+        basename = args.account or path.stem
+        alist = DB.find_account(basename)
+        if len(alist) == 0:
+            logging.error(f'add: no account name matches {basename}')
+            continue
+        if len(alist) > 1:
+            logging.error(f'add: ambiguous account name {basename}')
+            continue
+        account = alist[0].name
+        parser = account.split(':')[0]
+        if parser not in Config.colmaps.keys():
+            logging.error(f'add: no parser for {account}')
+            continue
+        recs = parse_file(path, parser, account, args.start_date, args.end_date, DB.uids())
         if args.preview:
             print_records(recs)
-
+        else:
+            for obj in recs:
+                obj.save()
     
-def collect_all(dirname):
-    '''
-    Helper function for add_records.  Find all CSV files in a
-    directory, make sure there is a parser for each file.
-
-    Arguments:
-        dirname:  the name of the directory to scan
-
-    Returns:
-        a list of tuples containing the name of a file, the
-        name of the parser to use for that file, and the full
-        name of the account
-    '''
-    files = [ ]
-    for path in dirname.iterdir():
-        if path.suffix not in ['.csv','.CSV']:
-            continue
-        if path.stem not in Config.parsers.keys():
-            logging.error(f'collect_all: no parser for {path.stem}')
-            continue
-        files.append((path, Config.parsers[path.stem]))
-    return files
-
-def collect_one(path, account):
-    '''
-    Helper function for add_records.  Ensure the file is a CSV
-    file and there is a parser for the file.
-
-    Arguments:
-        path:  the name of the file
-        account:  the name of the account (optional)
-
-    Returns:
-        a list of with a single tuple containing the name of a file, the
-        name of the parser to use for that file, and the full
-        name of the account
-    '''
-    if path.suffix not in ['.csv','.CSV']:
-        raise ValueError(f'collect_one: expected CSV file, not {path}')
-    aname = account or path.stem
-    logging.debug(f'aname {aname}')
-    alist = DB.find_account(aname)
-    logging.debug(f'alist {alist}')
-    if len(alist) == 0:
-        raise ValueError(f'collect_one: no account name matches {aname}')
-    if len(alist) > 1:
-        raise ValueError(f'collect_one: ambiguous account name {aname}')
-    parser = alist[0].name.split(':')[0]
-    logging.debug(f'parser {parser}')
-    if parser not in Config.colmaps.keys():
-        raise ValueError(f'collect_one: no parser for {parser}')
-    return [(path, parser, alist[0].name)]
-
 def parse_file(fn, pname, account, starting, ending, previous):
     '''
     Make a new Entry object for every record in a CSV file.
@@ -371,5 +329,5 @@ def parse_file(fn, pname, account, starting, ending, previous):
             if e.hash in previous:
                 continue
             res.append(e)
-            logging.debug(e)
+            logging.debug(f'record: {e}')
     return res

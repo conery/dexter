@@ -87,7 +87,7 @@ def print_records(docs):
     
     for tbl, lst in dct.items():
         n = len(lst[0])
-        grid = Table.grid(""*n, padding=[0,1,0,1])
+        grid = Table.grid(""*n, padding=[0,2,0,2])
         for row in lst:
             grid.add_row(*row)
         console.print(grid)

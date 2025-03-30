@@ -63,8 +63,8 @@ class Entry(Document):
         return [
             'entry',
             str(self.date),
-            f'{self.account:20}',
             f'{style}{amt:>15s}',
+            f'{self.account:20}',
             self.description,
         ]
     

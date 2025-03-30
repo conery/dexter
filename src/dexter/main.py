@@ -5,6 +5,7 @@
 import argparse
 import calendar
 import logging
+from pathlib import Path
 import sys
 
 from .config import Config
@@ -58,7 +59,7 @@ def init_cli():
     export_recs_parser.set_defaults(dispatch=export_records)
 
     add_recs_parser = subparsers.add_parser('add', help='add new records from CSV files')
-    add_recs_parser.add_argument('path', metavar='P', help='name of single file or directory containing several files')
+    add_recs_parser.add_argument('files', metavar='F', nargs='+', type=Path, help='name(s) of CSV file(s) with records to add')
     add_recs_parser.add_argument('--account', metavar='A', help='process only this account')
     add_recs_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     add_recs_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
