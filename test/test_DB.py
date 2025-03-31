@@ -1,22 +1,7 @@
 # Unit tests for the DB module
 
-import pytest
-
 from datetime import date
 from dexter.DB import DB, Document, Account, Entry, Transaction, Column
-# from dexter.schema import *
-from dexter.io import import_journal
-
-@pytest.fixture
-def db():
-    '''
-    Connect to the MongoDB server running on localhost, initialize a
-    database named "pytest", load the example data into the DB.
-    '''
-    DB.open('pytest')
-    DB.erase_database()
-    import_journal('test/fixtures/mini.journal', False)
-    return DB.database
 
 class TestDB:
     '''
@@ -36,14 +21,14 @@ class TestDB:
         database and the collections it contains.
         '''
         assert DB.dbname == 'pytest'
+        assert len(DB.models) == 3
+        assert set(DB.collections.keys()) == {'account', 'entry', 'transaction'}
 
     def test_import(self, db):
         '''
         Check the number of documents in each of the collections in the 
         test data.
         '''
-        assert len(DB.models) == 3
-        assert set(DB.collections.keys()) == {'account', 'entry', 'transaction'}
         assert db.command('count','account')['n'] == 10
         assert db.command('count','entry')['n'] == 38
         assert db.command('count','transaction')['n'] == 16
@@ -55,19 +40,34 @@ class TestDB:
         uids = DB.uids()
         assert len(uids) == db.command('count','entry')['n']
 
+    def test_find_one_account(self, db):
+        '''
+        Call find_account with a string that matches one name
+        '''
+        lst = DB.find_account("yoyo")
+        assert len(lst) == 1 and lst[0].name == 'income:yoyodyne'
+
+    def test_find_many_accounts(self, db):
+        '''
+        Call find_account with a string that matches multiple accounts
+        '''
+        lst = DB.find_account('expenses')
+        assert len(lst) == 5
+        assert all([lambda a: a.name.startswith('expenses:') for a in lst])
+
     def test_transaction_attributes(self, db):
         '''
         Test the computed attributes of the Transaction class
         '''
         lst = Transaction.objects(description='Safeway')
-        p0 = lst[0]
-        assert p0.accounts == {'groceries','checking'}
-        assert p0.originals == 'weekly/Safeway'
-        assert len(p0.debits) == len(p0.credits) == 1
-        assert p0.pdate == date(2024,1,7)
-        assert p0.pcredit == 'checking'
-        assert p0.pdebit == 'groceries'
-        assert p0.pamount == 75.00
+        t = lst[0]
+        assert t.accounts == {'expenses:groceries','bank:checking'}
+        assert t.originals == 'weekly/Safeway'
+        assert len(t.debits) == len(t.credits) == 1
+        assert t.pdate == date(2024,1,7)
+        assert t.pcredit == 'bank:checking'
+        assert t.pdebit == 'expenses:groceries'
+        assert t.pamount == 75.00
     
     def test_select_transactions(self, db):
         '''
@@ -171,7 +171,7 @@ class TestDB:
         # select by account
         lst = DB.select(Entry, account='groceries')
         assert len(lst) == 6
-        assert all(e.account == 'groceries' for e in lst)
+        assert all(e.account == 'expenses:groceries' for e in lst)
 
         # select by column
         lst = DB.select(Entry, column='credit')
