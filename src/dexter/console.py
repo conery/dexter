@@ -54,20 +54,21 @@ def format_amount(n, dollar_sign=False):
 
 
 transaction_header_format = {
-    'date': {'width': 12},
-    'credit': {'width': 15},
-    'debit': {'width': 15},
-    'amount':  {'width': 12, 'justify': 'right'},
-    'description': {'width': 30, 'no_wrap': True},
-    'comment': {'width': 15, 'no_wrap': True},
-    'tags': {'width': 15},
+    'date':         {'width': 12},
+    'credit':       {'width': 20},
+    'debit':        {'width': 20},
+    'amount':       {'width': 12, 'justify': 'right'},
+    'description':  {'width': 30, 'no_wrap': True},
+    'comment':      {'width': 15, 'no_wrap': True},
+    'tags':         {'width': 15},
 }
 
 entry_header_format = {
-    'date': {'width': 12},
-    'account': {'width': 15},
-    'amount':  {'width': 12, 'justify': 'right'},
+    'date':    {'width': 12},
+    'account': {'width': 25},
+    'amount':  {'width': 15, 'justify': 'right'},
     'column':  {'width': 10, 'justify': 'center'},
+    'tags':    {'width': 20},
 }
 
 def print_records(docs):
@@ -130,6 +131,7 @@ def print_transaction_table(
             row.append(rec.account)
             row.append(format_amount(rec.amount, dollar_sign=True))
             row.append(str(rec.column))
+            row.append(" ".join(rec.tags))
         else:
             row.append(str(rec.pdate))
             row.append(rec.pcredit)
@@ -137,6 +139,7 @@ def print_transaction_table(
             row.append(format_amount(rec.pamount, dollar_sign=True))
             row.append(rec.description)
             row.append(rec.comment)
+            row.append(str(rec.tags))
         if as_csv:
             writer.writerow(dict(zip(colnames,row)))
         else:

@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 import re
 
-from .DB import DB, Account, Entry, Transaction, Category
+from .DB import DB, Account, Entry, Transaction, RegExp, Category
 from .config import Config
 from .console import print_records
 from .util import parse_date
@@ -52,6 +52,8 @@ def import_records(args):
         case 'docs': import_docs(p, args.preview)
         case 'journal': import_journal(p, args.preview)
         case _: logging.error(f'init: unknown file extension:{p.suffix}')
+    if args.regexp and not args.preview:
+        import_regexp(args.regexp)
 
 # Import records from a docs file (created by a previous call to
 # export_records)
@@ -96,6 +98,15 @@ def import_journal(fn: Path, preview):
         DB.erase_database()
         for obj in recs:
             obj.save()
+
+# Read regular expression descriptions from a CSV file
+
+def import_regexp(fn):
+    with open(fn) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for rec in reader:
+            e = RegExp(**rec)
+            e.save()
 
 def parse_amount(s):
     '''

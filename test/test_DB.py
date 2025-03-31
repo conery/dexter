@@ -21,8 +21,8 @@ class TestDB:
         database and the collections it contains.
         '''
         assert DB.dbname == 'pytest'
-        assert len(DB.models) == 3
-        assert set(DB.collections.keys()) == {'account', 'entry', 'transaction'}
+        assert len(DB.models) == 4
+        assert set(DB.collections.keys()) == {'account', 'entry', 'transaction', 'reg_exp'}
 
     def test_import(self, db):
         '''

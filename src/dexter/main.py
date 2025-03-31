@@ -49,6 +49,7 @@ def init_cli():
     import_recs_parser = subparsers.add_parser('import', help='load documents into a database')
     import_recs_parser.add_argument('--file', metavar='F', help='name of file with records to import',default='dexter.docs')
     import_recs_parser.add_argument('--format', metavar='F', choices=['docs', 'journal'], help='file format')
+    import_recs_parser.add_argument('--regexp', metavar='F', help='CSV file with regular expressions') 
     import_recs_parser.set_defaults(dispatch=import_records)
 
     export_recs_parser = subparsers.add_parser('export', help='export a database to a text file')

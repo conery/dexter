@@ -3,8 +3,9 @@
 import logging
 import re
 
-from .DB import DB
+from .DB import DB, Entry
 from .config import Config
+from .console import print_records
 
 def pair_entries(args):
     '''
@@ -16,4 +17,12 @@ def pair_entries(args):
     '''
     logging.info(f'Finding matches for unpaired entries')
     logging.debug(f'pair {vars(args)}')
+
+    unpaired = DB.select(Entry, tag='#unpaired')
+    
+    if args.preview:
+        print_records(unpaired)
+        return
+
+    
 

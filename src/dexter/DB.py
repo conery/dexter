@@ -23,6 +23,13 @@ class Column(Enum):
 
     def __str__(self):
         return self.value
+    
+class Action(Enum):
+    T = 'trans'
+    X = 'xfer'
+
+    def __str__(self):
+        return self.value
 
 class Account(Document):
     name = StringField(required=True)
@@ -65,7 +72,7 @@ class Entry(Document):
             str(self.date),
             f'{style}{amt:>15s}',
             f'{self.account:20}',
-            self.description,
+            self.description[:50],
             str(self.tags),
         ]
     
@@ -119,6 +126,24 @@ class Transaction(Document):
         self.pamount = sum(e.amount for e in self.entries if e.column == Column.cr)
         self.pcredit = '/'.join(a.account for a in self.credits)
         self.pdebit = '/'.join(a.account for a in self.debits)
+
+class RegExp(Document):
+    action = EnumField(Action, required=True) 
+    expr = StringField(required=True)
+    repl = StringField(required=True)
+    acct = StringField(required=True)
+
+    def __str__(self):
+        return f'<RE {self.action} {self.expr} {self.repl} ${self.acct}>'
+
+    def row(self):
+        return [
+            'regexp',
+            str(self.action),
+            self.expr,
+            self.repl,
+            self.acct,
+        ]
 
 ### Database API
 
@@ -233,7 +258,7 @@ class DB:
         documents in the database. 
         '''
         return {e.uid for e in Entry.objects}
-                
+    
     # These dictionaries map command line arguments to names of 
     # object attributes to use in calls that select objects.
 
@@ -247,6 +272,7 @@ class DB:
         'max_amount': 'amount__lte',
         'account': 'account__iregex',
         'column': 'column',
+        'tag': 'tags',
     }
 
     transaction_constraints = {
