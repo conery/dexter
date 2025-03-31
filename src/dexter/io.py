@@ -29,7 +29,7 @@ def export_records(args):
     try:
         mode = 'w' if args.force else 'x'
         with open(args.file, mode) as f:
-            DB.save_records(f)
+            DB.export_as_json(f)
     except FileExistsError as err:
         logging.error(f'file exists: {args.file}, use --force to overwrite')
         exit(1)
@@ -73,7 +73,7 @@ def import_docs(fn: Path, preview):
                 sep = line.find(':')
                 collection = line[:sep]
                 doc = line[sep+1:].strip()
-                DB.add_record(collection, doc)
+                DB.import_from_json(collection, doc)
             except Exception as err:
                 logging.error(err)
 
@@ -287,8 +287,7 @@ def add_records(args):
         if args.preview:
             print_records(recs)
         else:
-            for obj in recs:
-                obj.save()
+            DB.save_records(recs)
     
 def parse_file(fn, pname, account, starting, ending, previous):
     '''

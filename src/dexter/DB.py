@@ -45,13 +45,13 @@ class Account(Document):
         return queryset.filter(category__in=['E','I'])
 
 class Entry(Document):
-    # uid = StringField(required=True, unique=True)
-    uid = StringField(required=True)
+    uid = StringField(required=True, unique=True)
     date = DateField(required=True)
     description = StringField(required=True)
     account = StringField(required=True)
     column = EnumField(Column, required=True) 
     amount = FloatField(required=True)
+    tags = ListField(StringField())
 
     def __str__(self):
         e = '+' if self.column == Column.dr else '-'
@@ -66,6 +66,7 @@ class Entry(Document):
             f'{style}{amt:>15s}',
             f'{self.account:20}',
             self.description,
+            str(self.tags),
         ]
     
     @property
@@ -157,7 +158,7 @@ class DB:
         DB.client.drop_database(DB.dbname)
 
     @staticmethod
-    def add_record(collection: str, doc: str):
+    def import_from_json(collection: str, doc: str):
         '''
         Add a new record to a collection.
 
@@ -171,7 +172,7 @@ class DB:
         obj.save()
 
     @staticmethod
-    def save_records(f):
+    def export_as_json(f):
         '''
         Iterate over collections, write each record along with its 
         collection name.
@@ -184,6 +185,33 @@ class DB:
             logging.debug(f'exporting {collection}')
             for obj in cls.objects:
                 print(f'{collection}: {obj.to_json()}', file=f)
+
+
+    MAX_DUPS = 2
+
+    def save_records(recs):
+        '''
+        Save new records from a CSV file in the database.  Handle duplicates in 
+        new records by modifying the description so the UID is different from the
+        other copies.
+
+        Arguments:
+            recs:  a list of Entry objects
+        '''
+        for obj in recs:
+            desc = obj.description
+            obj.tags.append('#unpaired')
+            n = 0
+            while n < DB.MAX_DUPS:
+                try:
+                    obj.save()
+                    break
+                except NotUniqueError:
+                    n += 1
+                    obj.description = f'{desc} ({n})'
+                    logging.debug(f'add: dup ({n}) for {obj}')
+            else:
+                logging.error(f'add: max {DB.MAX_DUPS} copies exceeded for {obj}')
 
     @staticmethod
     def find_account(s: str):
