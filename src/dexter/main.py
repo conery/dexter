@@ -13,12 +13,10 @@ from .DB import DB
 from .util import setup_logging, parse_date, date_range
 
 from .io import import_records, export_records, add_records
+from .pair import pair_entries
 from .select import select_transactions
 
 # Functions for commands (will be moved to modules)
-
-def parse_statements(args):
-    print('parse_statements')
 
 def review_transactions(args):
     print('review_transactions')
@@ -66,8 +64,8 @@ def init_cli():
     add_recs_parser.add_argument('--month', metavar='D', choices=months, help='add records only for this month')
     add_recs_parser.set_defaults(dispatch=add_records)
 
-    statements_parser = subparsers.add_parser('parse', help='import card and bank account statements')
-    statements_parser.set_defaults(dispatch=parse_statements)
+    statements_parser = subparsers.add_parser('pair', help='make transactions from matching entries')
+    statements_parser.set_defaults(dispatch=pair_entries)
 
     review_parser = subparsers.add_parser('review', help='review transactions')
     review_parser.set_defaults(dispatch=review_transactions)
