@@ -34,6 +34,8 @@ class Config:
     cname = 'credit'
     dname = 'debit'
 
+    unpaired_tag = '#unpaired'
+
     # parsers = { }
     colmaps = { }
     fullname = { }

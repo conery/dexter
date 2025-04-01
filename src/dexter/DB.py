@@ -8,6 +8,8 @@ import string
 
 from mongoengine import *
 
+from .config import Config
+
 ### Database Schema, defined using MongoEngine
 
 class Category(Enum):
@@ -26,6 +28,9 @@ class Column(Enum):
 
     def __str__(self):
         return self.value
+    
+    def opposite(self):
+        return Column.dr if self.value == 'credit' else Column.cr
     
 class Action(Enum):
     T = 'trans'
@@ -252,7 +257,7 @@ class DB:
                 print(f'{collection}: {obj.to_json()}', file=f)
 
 
-    MAX_DUPS = 2
+    MAX_DUPS = 10
 
     def save_records(recs):
         '''
@@ -264,8 +269,9 @@ class DB:
             recs:  a list of Entry objects
         '''
         for obj in recs:
+            logging.debug(f'save {obj}')
             desc = obj.description
-            obj.tags.append('#unpaired')
+            obj.tags.append(Config.unpaired_tag)
             n = 0
             while n < DB.MAX_DUPS:
                 try:

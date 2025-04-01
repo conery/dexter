@@ -182,4 +182,9 @@ class TestDB:
         assert len(lst) == 16
         assert all(e.column == Column.dr for e in lst)
 
-
+    def test_entry_attributes(self, db):
+        lst = DB.select(Entry, column='credit')
+        e = lst[0]
+        assert e.column == Column.cr
+        assert e.column.opposite() == Column.dr
+        assert e.column.opposite().opposite() == e.column
