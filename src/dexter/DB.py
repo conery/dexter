@@ -3,6 +3,9 @@
 from enum import Enum
 from hashlib import md5
 import logging
+import re
+import string
+
 from mongoengine import *
 
 ### Database Schema, defined using MongoEngine
@@ -140,10 +143,47 @@ class RegExp(Document):
         return [
             'regexp',
             str(self.action),
-            self.expr,
+            f"r'self.expr'",
             self.repl,
             self.acct,
         ]
+    
+    placeholder = r'{(\d+)(\.\w+)?}'
+
+    transforms = {
+        '': lambda s: s,
+        '.lower':  lambda s: s.lower(),
+        '.capwords':  lambda s: string.capwords(s),
+    }
+
+    def matches(self, s):
+        '''
+        Return True if this regular expression matches a string.
+
+        Arguments:
+            s: the string to match
+        '''
+        return bool(re.match(self.expr, s, re.I))
+
+    def apply(self, s: str):
+        '''
+        If this regular expression matches the string s return the 
+        result (after substituting parts), otherwise return None
+
+        Arguments:
+            s: the string to match
+        '''
+        repl = None
+
+        if m := re.match(self.expr, s, re.I):
+            repl = self.repl
+            for i, f in re.findall(RegExp.placeholder, self.repl, re.I):
+                print(i,f)
+                if f:
+                    repl = repl.replace(f,'')
+                repl = repl.replace(f'{{{i}}}', RegExp.transforms[f](m[int(i)+1]))
+
+        return repl    
 
 ### Database API
 
@@ -247,6 +287,20 @@ class DB:
             s:  the string to search for
         '''
         return Account.objects(name__contains=s)
+    
+    # RegExp search.  The first version is a simple linear search.
+    # TBD: implement an indexing scheme based on the first letter
+    # in the string.
+
+    @staticmethod
+    def find_regexp(s: str):
+        '''
+        Return a list of RegExp objects that match a string.
+
+        Arguments:
+            s: the string to match.
+        '''
+        return [e for e in RegExp.objects if e.matches(s)]
 
     # Methods used when adding new records to make sure we don't
     # have duplicates

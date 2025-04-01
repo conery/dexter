@@ -1,0 +1,6 @@
+action,expr,repl,acct
+trans,CHEVRON,Chevron,car
+trans,COSTCO,Costco,food:groceries
+trans,.*COMCAST,Comcast,utility
+trans,Check # (\d+),Check #{0} :,
+trans,WSFERRIES-(.*),Ferry {0.capwords},travel
