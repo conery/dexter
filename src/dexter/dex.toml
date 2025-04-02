@@ -7,8 +7,14 @@ debit = "debit"     # alts:  "to", "in", "source"
 [csv]
 
 [csv.occu]
-description = "desc"
-date = "date"
-amount = "amount"
-column = "column"
+description = 'rec["Description"] + rec["Extended Description"]'
+date = 'rec["Posting Date"]'
+amount = 'abs(float(rec["Amount"]))'
+credit = 'rec["Amount"].startswith("-")'
+
+[csv.chase]
+description = 'rec["Description"]'
+date = 'rec["Post Date"]'
+amount = 'abs(float(rec["Amount"]))'
+credit = 'rec["Amount"].startswith("-")'
 

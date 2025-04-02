@@ -21,12 +21,12 @@ def pair_entries(args):
     unpaired = DB.select(Entry, tag=Config.unpaired_tag)
 
     new_transactions = []
-    credits = []
-    debits = []
+    credits = {}
+    debits = {}
     alternatives = []
     unmatched = []
 
-    for entry in unpaired:
+    for entry in sorted(unpaired, key=lambda e: e.date):
         if lst := DB.find_regexp(entry.description):
             if len(lst) > 0:
                 alternatives.append(lst[1:])
@@ -35,29 +35,26 @@ def pair_entries(args):
                 case Action.T: 
                     new_transactions.append(matching_transaction(entry, regexp))
                 case Action.X:
-                    if entry.column == Column.cr:
-                        credits.append(entry)
-                        debits.append(matching_transfer(entry, regexp))
-                    else:
-                        debits.append(entry)
-                        credits.append(matching_transfer(entry, regexp))
+                    xfer_part(entry, regexp, credits, debits)
                 case _:
                     logging.error(f'pair: unknown action {regexp.action} for {entry}')
         else:
             unmatched.append(entry)
 
+    xfers = combine_xfer_parts(credits, debits)
+
     if args.preview:
-        logging.info('Matched')
+        logging.info(f'{len(new_transactions)} Matched')
         print_records(new_transactions)
-        logging.info('Transfers (credits)')
-        print_records(credits)
-        logging.info('Transfers (debits)')
-        print_records(debits)
+        logging.info(f'{len(xfers)} Transfers')
+        print_records(xfers)
         logging.info(f'{len(unmatched)} unmatched')
     else:
         logging.info(f'pair: {len(new_transactions)} matched')
-        logging.info(f'pair: {len(credits)} paired')
-        save_transactions(new_transactions)
+        logging.info(f'pair: {len(xfers)} paired')
+        logging.info(f'pair: {len(unmatched)} unmatched')
+        save_matched_transactions(new_transactions)
+        save_xfers(xfers)
 
 def matching_transaction(entry, regexp):
     '''
@@ -78,10 +75,7 @@ def matching_transaction(entry, regexp):
     new_transaction.entries.append(new_entry)
     return new_transaction
 
-def matching_transfer(entry, regexp):
-    return Entry()
-
-def save_transactions(lst):
+def save_matched_transactions(lst):
     '''
     Save the new transactions in the database.  We also need to remove the
     #unpaired tag from the first entry and save both entries.
@@ -98,3 +92,58 @@ def save_transactions(lst):
         except Exception as err:
             logging.error(f'pair: error while saving transaction: {err}')
 
+def xfer_part(entry, regexp, credits, debits):
+    '''
+    Add the entry to one of the dictionaries that holds transfer parts,
+    using the amount as the key.
+
+    Note: put the result of applying the regexp in a new 'note' field of the
+    entry.  This field is not part of the model and won't be saved with
+    the updated Entry.
+    '''
+    entry.note = regexp.apply(entry.description)
+    key = str(entry.amount)
+    dct = credits if entry.column == Column.cr else debits
+    dct.setdefault(key, [])
+    dct[key].append(entry)
+
+def combine_xfer_parts(credits, debits):
+    '''
+    Candidates for the two ends of a transfer are in dictionaries indexed
+    by amount.  Iterate over the dictionaries to find matching ends.
+
+    Arguments:
+        credits:  dictionary with credit halves
+        debits:   dictionary with debit halves
+    '''
+    logging.debug(f'combining {len(credits)} credits with {len(debits)} debits')
+    logging.debug(credits)
+    logging.debug(debits)
+    res = []
+    for amt, clist in credits.items():
+        logging.debug(f'amt {amt} entries {clist}')
+        if dlist := debits.get(amt):
+            while clist and dlist:
+                e1 = clist.pop(0)
+                e2 = dlist.pop(0)
+                logging.debug('(%s %s) paired with (%s %s)', e1.account, e1.description, e2.account, e2.description)
+                t = Transaction(description=f'{e1.note} {e1.account} ⧓ {e2.account}')
+                t.entries += [e1,e2]
+                res.append(t)
+    return res
+
+def save_xfers(lst):
+    '''
+    Save the new transactions formed by combining two transfer parts.
+
+    Arguments:
+        lst: the list of transactions
+    '''
+    for obj in lst:
+        try:
+            for e in obj.entries:
+                e.tags.remove(Config.unpaired_tag)
+                e.save()
+            obj.save()
+        except Exception as err:
+            logging.error(f'pair: error saving transfer: {obj}')

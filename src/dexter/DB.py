@@ -68,6 +68,8 @@ class Entry(Document):
     amount = FloatField(required=True)
     tags = ListField(StringField())
 
+    meta = {'strict': False}
+
     def __str__(self):
         e = '+' if self.column == Column.dr else '-'
         return f'<En {self.date} {self.account} {e}${self.amount}>'
@@ -183,7 +185,6 @@ class RegExp(Document):
         if m := re.match(self.expr, s, re.I):
             repl = self.repl
             for i, f in re.findall(RegExp.placeholder, self.repl, re.I):
-                print(i,f)
                 if f:
                     repl = repl.replace(f,'')
                 repl = repl.replace(f'{{{i}}}', RegExp.transforms[f](m[int(i)+1]))

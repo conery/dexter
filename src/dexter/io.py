@@ -318,6 +318,7 @@ def parse_file(fn, pname, account, starting, ending, previous):
     logging.debug(f'parsing {fn} {pname} {account} {starting} {ending}')
     res = []
     cmap = Config.colmaps[pname]
+    logging.debug(f'parser {pname} colmap {cmap}')
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
         reader = csv.DictReader(csvfile)
         for rec in reader:
