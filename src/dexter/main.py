@@ -9,6 +9,7 @@ from pathlib import Path
 import sys
 
 from .config import Config
+from .console import console
 from .DB import DB
 from .util import setup_logging, parse_date, date_range
 
@@ -66,6 +67,7 @@ def init_cli():
     add_recs_parser.set_defaults(dispatch=add_records)
 
     statements_parser = subparsers.add_parser('pair', help='make transactions from matching entries')
+    statements_parser.add_argument('--repl', action='store_true', help='use a REPL to display and edit entries')
     statements_parser.set_defaults(dispatch=pair_entries)
 
     review_parser = subparsers.add_parser('review', help='review transactions')
@@ -134,4 +136,4 @@ def main():
         DB.open(args.dbname)
         args.dispatch(args)
     except Exception as err:
-        logging.error(err)
+        console.print_exception(show_locals=True)

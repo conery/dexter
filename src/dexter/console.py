@@ -36,6 +36,14 @@ dark_terminal = Theme({
     'error': Style(
         color = 'red'
     ),
+    'autofill': Style(
+        color = 'honeydew2',
+    ),
+    'editable': Style(
+        color = 'white',
+        bgcolor = 'grey39',
+        italic = True
+    )
 })
 
 console = Console(theme=dark_terminal)

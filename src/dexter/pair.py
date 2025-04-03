@@ -6,14 +6,32 @@ import re
 from .DB import DB, Transaction, Entry, Action, Column
 from .config import Config
 from .console import print_records
+from .repl import REPL
 
 def pair_entries(args):
     '''
     The top level function, called from main when the command 
-    is "pair".  
+    is "pair". 
 
     Arguments:
         args: Namespace object with command line arguments.
+    '''
+    if args.repl:
+        repl_pair()
+    else:
+        auto_pair()
+
+def repl_pair():
+    '''
+    Use a REPL to display and edit one entry at a time.
+    '''
+    unpaired = DB.select(Entry, tag=Config.unpaired_tag)
+    REPL(unpaired)
+
+def auto_pair():
+    '''
+    Function called to use regular expressions to find or create matching
+    pairs of entries.
     '''
     logging.info(f'Finding matches for unpaired entries')
     logging.debug(f'pair {vars(args)}')
