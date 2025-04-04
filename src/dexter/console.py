@@ -45,8 +45,8 @@ dark_terminal = Theme({
         italic = True
     ),
     'edited': Style(
-        color = 'white',
-        bgcolor = 'grey39',
+        color = 'dodger_blue2',
+        bgcolor = 'grey82',
     ),})
 
 console = Console(theme=dark_terminal)

@@ -61,17 +61,13 @@ def make_panel(trans):
     '''
 
     def tline():
-        desc = trans.description or (' ⌃P description     ')
-        comm = trans.comment or (' ⌃N comment  ')
-        tags = trans.tags or ' ⌃G tags '
-
         line = Text(str(trans.entries[0].date))
         line += Text('  ')
-        line += Text(desc, style='editable')
+        line += text['description']
         line += Text('  ; ')
-        line += Text(comm, style='editable')
+        line += text['comment']
         line += Text('  # ')
-        line += Text(tags, style='editable')
+        line += text['tags']
         return line
 
     def a1line():
@@ -86,8 +82,17 @@ def make_panel(trans):
         return line
     
     def a2line():
-        acct = trans.entries[1].account or ' ⌃A account '
-        return indent + Text(acct, style='editable')
+        return indent + text['account']
+    
+    text = {
+        'description': Text(trans.description or (' ⌃P description     ')),
+        'comment': Text(trans.comment or (' ⌃N comment  ')),
+        'tags': Text(trans.tags or ' ⌃G tags '),
+        'account': Text(trans.entries[1].account or ' ⌃A account ')
+    }
+
+    for f, t in text.items():
+        t.style = 'edited' if f in trans.edited else 'editable'
 
     indent = Text('    ')
     grp = Group(tline(), a1line(), a2line())
@@ -110,14 +115,23 @@ class KEY:
     NEXT = chr(ESC) + '[' + 'B'
     EDIT_DESC = ctrl('P')             # mnemonic:  "payee"
     EDIT_COMMENT = ctrl('N')          # mnemonic:  "note"
+    EDIT_TAGS = ctrl('G')
+    EDIT_ACCOUNT = ctrl('T')          # mnemonic:  "to"
     EDIT_REGEXP = ctrl('E')
-    SET_TAGS = ctrl('G')
+    FILL_DESC = ctrl('F')
     MOD_DESC = ctrl('L')              # mnemonic:  "lambda"
     ACCEPT = ctrl('A')
 
 cmnd_keys = { x[1] for x in vars(KEY).items() if not x[0].startswith('__') }
 digit_keys = set('0123456789')
 all_keys = cmnd_keys | digit_keys | { '?' }
+
+field_names = {
+    KEY.EDIT_DESC: 'description',
+    KEY.EDIT_COMMENT: 'comment',
+    KEY.EDIT_TAGS: 'tags',
+    KEY.MOD_DESC: 'description',
+}
 
 # Display a single transactions.  If there were any
 # issues when making the row they were appended to the message list,
@@ -149,24 +163,33 @@ def make_candidate(e):
     new_transaction = Transaction()
     new_transaction.entries.append(e) 
     new_transaction.entries.append(new_entry)
+    new_transaction.edited = set()
     return new_transaction
 
 def REPL(entries):
     row = 0
+    tlist = [make_candidate(e) for e in entries]
     try:
         if not debugging():
             console.set_alt_screen(True)
-        while len(entries) > 0:
-            entry = entries[row]
-            display_row(make_candidate(entry))
+        while len(tlist) > 0:
+            display_row(tlist[row])
             key = click.getchar()
             if key not in all_keys:
                 continue
             match key:
                 case KEY.PREV:
-                    row = (row - 1) % len(entries)
+                    row = (row - 1) % len(tlist)
                 case KEY.NEXT:
-                    row = (row + 1) % len(entries)
+                    row = (row + 1) % len(tlist)
+                case KEY.FILL_DESC:
+                    fill_description(tlist[row])
+                case KEY.EDIT_DESC | KEY.EDIT_COMMENT | KEY.EDIT_TAGS:
+                    edit_field(tlist[row], key)
+                case KEY.EDIT_ACCOUNT:
+                    edit_account(tlist[row])
+                case KEY.MOD_DESC:
+                    modify_description(tlist[row])
                 case _:
                     continue
     except KeyboardInterrupt:
@@ -175,3 +198,57 @@ def REPL(entries):
         pass
     
     console.set_alt_screen(False)
+
+def fill_description(trans):
+    '''
+    Copy the description from the entry to the transaction
+    '''
+    trans.description = trans.entries[0].description
+    trans.edited.add('description')
+
+def edit_field(trans, key):
+    '''
+    Use readline to edit the contents of a field in a transaction.  If the
+    field is not empty use the current contents to initialize the line.
+
+    Arguments:
+        trans:  the transaction to update
+        key: the keystroke that triggered the edit (specifies the field)
+    '''
+    field = field_names[key]
+    if s := trans[field]:
+        h = lambda: readline.insert_text(s)
+        readline.set_startup_hook(h)
+    text = input(field + '> ')
+    trans[field] = text
+    trans.edited.add(field)
+
+def edit_account(trans):
+    '''
+    Edit the account field on the new entry, using command completion
+    to fill in account names.
+
+    TBD:  check for splits, edit the selected split
+
+    Arguments:
+        trans:  the transaction to update
+    '''
+    pass
+
+def modify_description(rec):
+    '''
+    Get a second keystroke, use it to specify a function to apply to the
+    description field.
+    '''
+
+    abbrevs_and_articles = {
+        '&amp;': '&',
+        'And': 'and',
+        'For': 'for',
+        'In': 'in',
+        'Of': 'of',
+        'Or': 'or',
+        'The': 'the',
+    }
+
+    pass
