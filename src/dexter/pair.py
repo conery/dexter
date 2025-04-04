@@ -17,18 +17,18 @@ def pair_entries(args):
         args: Namespace object with command line arguments.
     '''
     if args.repl:
-        repl_pair()
+        repl_pair(args)
     else:
-        auto_pair()
+        auto_pair(args)
 
-def repl_pair():
+def repl_pair(args):
     '''
     Use a REPL to display and edit one entry at a time.
     '''
     unpaired = DB.select(Entry, tag=Config.unpaired_tag)
     REPL(unpaired)
 
-def auto_pair():
+def auto_pair(args):
     '''
     Function called to use regular expressions to find or create matching
     pairs of entries.

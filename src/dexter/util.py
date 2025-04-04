@@ -26,6 +26,12 @@ def setup_logging(arg):
         if name.startswith('pymongo.'):
             logger.setLevel(logging.WARNING)
 
+# Return True if the log level is set to DEBUG
+
+def debugging():
+    return logging.getLogger().level <= logging.DEBUG
+
+
 # Date API
 
 from datetime import date, datetime

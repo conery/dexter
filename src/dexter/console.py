@@ -43,8 +43,11 @@ dark_terminal = Theme({
         color = 'white',
         bgcolor = 'grey39',
         italic = True
-    )
-})
+    ),
+    'edited': Style(
+        color = 'white',
+        bgcolor = 'grey39',
+    ),})
 
 console = Console(theme=dark_terminal)
 # console = Console(theme=light_terminal)
