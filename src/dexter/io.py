@@ -97,7 +97,11 @@ def import_journal(fn: Path, preview):
     else:
         DB.erase_database()
         for obj in recs:
-            obj.save()
+            try:
+                obj.save()
+            except Exception as err:
+                logging.error(f'import: error saving {obj}')
+                logging.error(err)
 
 # Read regular expression descriptions from a CSV file
 
@@ -155,7 +159,7 @@ class JournalParser:
 
         Expected format of the command part
            account N C
-        where G is a single-letter account type and N is the account name.
+        where N is the account name and C is a category name
         '''
         logging.debug(f'JournalParser.new_account: {cmnd} {tokens}')
         lst = cmnd.split()
@@ -163,10 +167,10 @@ class JournalParser:
         assert name not in self.account_names, f'  (duplicate account name: {name})'
 
         comment = tokens[0].strip() if tokens else ''
-        if m := re.search(r'(.*?)type: (\w)(.*)', comment):
+        if m := re.search(r'(.*?)type: (\w+)', comment):
             cat = m[2]
         else:            
-            cat = name[0].upper()
+            cat = name.split(':')[0]
 
         acct = Account(
             name=name, 

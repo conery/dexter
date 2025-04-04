@@ -13,11 +13,11 @@ from .config import Config
 ### Database Schema, defined using MongoEngine
 
 class Category(Enum):
-    Q = 'Q'         # equity
-    I = 'I'         # income
-    A = 'A'         # assets
-    E = 'E'         # expenses
-    L = 'L'         # liabilities
+    Q =  'equity'
+    I =  'income'
+    A =  'asset'
+    E =  'expense'
+    L =  'liability'
 
     def __str__(self):
         return self.value
@@ -45,7 +45,7 @@ class Account(Document):
     comment = StringField()
 
     def __str__(self):
-        return f'<Acct {self.name} {self.category}'
+        return f'<Acct {self.name} {self.category}>'
     
     def row(self):
         return [
@@ -294,6 +294,33 @@ class DB:
             s:  the string to search for
         '''
         return Account.objects(name__contains=s)
+    
+    @staticmethod
+    def account_name_parts(category=None):
+        '''
+        Return all the strings that appear as part of an account name.
+        '''
+        res = set()
+        for acct in Account.objects:
+            if category and acct.category.value != category:
+                continue
+            res |= set(acct.name.split(':'))
+        return res
+    
+    @staticmethod
+    def full_names(category=None):
+        '''
+        Return a dictionary that maps a partial account name to a list
+        of full named that contain that part.
+        '''
+        dct = {}
+        for acct in Account.objects:
+            if category and acct.category.value != category:
+                continue
+            for part in acct.name.split(':'):
+                lst = dct.setdefault(part, [])
+                lst.append(acct.name)
+        return dct
     
     # RegExp search.  The first version is a simple linear search.
     # TBD: implement an indexing scheme based on the first letter

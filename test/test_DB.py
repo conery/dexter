@@ -45,15 +45,17 @@ class TestDB:
         Call find_account with a string that matches one name
         '''
         lst = DB.find_account("yoyo")
-        assert len(lst) == 1 and lst[0].name == 'income:yoyodyne'
+        assert len(lst) == 1 and lst[0].name == 'yoyodyne'
 
-    def test_find_many_accounts(self, db):
+    def test_name_parts(self, db):
         '''
-        Call find_account with a string that matches multiple accounts
+        Test the method that separates names into parts
         '''
-        lst = DB.find_account('expenses')
-        assert len(lst) == 5
-        assert all([lambda a: a.name.startswith('expenses:') for a in lst])
+        names = DB.account_name_parts()
+        assert len(names) == 13
+        assert 'yoyodyne' in names
+        assert 'chase' in names
+        assert 'visa' in names
 
     def test_transaction_attributes(self, db):
         '''
@@ -61,12 +63,12 @@ class TestDB:
         '''
         lst = Transaction.objects(description='Safeway')
         t = lst[0]
-        assert t.accounts == {'expenses:groceries','bank:checking'}
+        assert t.accounts == {'groceries','bank:checking'}
         assert t.originals == 'weekly/Safeway'
         assert len(t.debits) == len(t.credits) == 1
         assert t.pdate == date(2024,1,7)
         assert t.pcredit == 'bank:checking'
-        assert t.pdebit == 'expenses:groceries'
+        assert t.pdebit == 'groceries'
         assert t.pamount == 75.00
     
     def test_select_transactions(self, db):
@@ -171,7 +173,7 @@ class TestDB:
         # select by account
         lst = DB.select(Entry, account='groceries')
         assert len(lst) == 6
-        assert all(e.account == 'expenses:groceries' for e in lst)
+        assert all(e.account == 'groceries' for e in lst)
 
         # select by column
         lst = DB.select(Entry, column='credit')

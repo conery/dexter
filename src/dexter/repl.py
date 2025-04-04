@@ -2,6 +2,7 @@
 
 import click
 from curses.ascii import ESC, ctrl, unctrl
+import logging
 import readline
 import re
 import string
@@ -167,6 +168,10 @@ def make_candidate(e):
     return new_transaction
 
 def REPL(entries):
+    accounts = list(DB.account_name_parts('expense') | DB.account_name_parts('income'))
+    fullnames = DB.full_names('expense') | DB.full_names('income')
+    readline.parse_and_bind('tab: complete')
+    readline.set_completer(completer_function(accounts))
     row = 0
     tlist = [make_candidate(e) for e in entries]
     try:
@@ -187,7 +192,7 @@ def REPL(entries):
                 case KEY.EDIT_DESC | KEY.EDIT_COMMENT | KEY.EDIT_TAGS:
                     edit_field(tlist[row], key)
                 case KEY.EDIT_ACCOUNT:
-                    edit_account(tlist[row])
+                    edit_account(tlist[row], fullnames)
                 case KEY.MOD_DESC:
                     modify_description(tlist[row])
                 case _:
@@ -223,7 +228,7 @@ def edit_field(trans, key):
     trans[field] = text
     trans.edited.add(field)
 
-def edit_account(trans):
+def edit_account(trans, names):
     '''
     Edit the account field on the new entry, using command completion
     to fill in account names.
@@ -233,7 +238,20 @@ def edit_account(trans):
     Arguments:
         trans:  the transaction to update
     '''
-    pass
+    entry = trans.entries[1]
+    if s := entry.account:
+        h = lambda: readline.insert_text(s)
+        readline.set_startup_hook(h)
+    text = input('account> ')
+    if accts := names.get(text):
+        if len(accts) > 1:
+            messages.append(f'ambiguous, choose from {accts}')
+        else:
+            entry.account = accts[0]
+            trans.edited.add('account')
+    else:
+        messages.append(f'unknown account: {text}')
+
 
 def modify_description(rec):
     '''

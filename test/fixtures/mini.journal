@@ -2,93 +2,93 @@
 ; transactions exported from finances.db
 ;
 
-account equity                    ; type: Q
-account income:yoyodyne           ; type: I
-account bank:checking             ; type: A
-account amex:blue                 ; type: L
-account chase:visa                ; type: L
-account expenses:groceries        ; type: E
-account expenses:household        ; type: E
-account expenses:mortgage         ; type: E
-account expenses:car              ; type: E
-account expenses:travel           ; type: E
+account equity                    ; type: equity
+account yoyodyne                  ; type: income
+account bank:checking             ; type: asset
+account amex:blue                 ; type: liability
+account chase:visa                ; type: liability
+account groceries                 ; type: expense
+account household                 ; type: expense
+account mortgage                  ; type: expense
+account car                       ; type: expense
+account travel                    ; type: expense
 
 # Monthly paychecks and bucket fills
 
 2024-01-02 paycheck ; 
     bank:checking     $5,000.00      ; Jan pay
-    income:yoyodyne    $-5,000.00      ; January
+    yoyodyne    $-5,000.00      ; January
 
 2024-01-02 fill buckets ; 2024 budget
-    income:yoyodyne      $5,000.00     ; January allocation
-    expenses:groceries    $-300.00       ; Jan
-    expenses:mortgage   $-1,800.00       ; Jan
-    expenses:car          $-900.00       ; Jan
-    expenses:travel     $-2,000.00       ; Jan
+    yoyodyne      $5,000.00     ; January allocation
+    groceries    $-300.00       ; Jan
+    mortgage   $-1,800.00       ; Jan
+    car          $-900.00       ; Jan
+    travel     $-2,000.00       ; Jan
 
 2024-02-02 paycheck ; 
     bank:checking     $5,000.00      ; Feb pay
-    income:yoyodyne    $-5,000.00      ; February
+    yoyodyne    $-5,000.00      ; February
 
 2024-02-02 fill buckets ; 2024 budget
-    income:yoyodyne      $5,000.00     ; February allocation
-    expenses:groceries    $-300.00       ; Feb
-    expenses:mortgage   $-1,800.00       ; Feb
-    expenses:car          $-900.00       ; Feb
-    expenses:travel     $-2,000.00       ; Feb
+    yoyodyne      $5,000.00     ; February allocation
+    groceries    $-300.00       ; Feb
+    mortgage   $-1,800.00       ; Feb
+    car          $-900.00       ; Feb
+    travel     $-2,000.00       ; Feb
 
 # Car expenses
 
 2024-01-05 car payment ; 
-    expenses:car        $500.00          ; Jan
+    car        $500.00          ; Jan
     bank:checking    $-500.00        ; xfer to loan #xxx
 
 2024-02-05 car payment ; 
-    expenses:car        $500.00          ; Feb
+    car        $500.00          ; Feb
     bank:checking    $-500.00        ; xfer to loan #xxx
 
 2024-01-10 Shell Oil ; 
-    expenses:car    $50.00               ; gas
+    car    $50.00               ; gas
     chase:visa    $-50.00             ; Barney's Shell
 
 2024-02-26 Shell Oil ; 
-    expenses:car    $60.00               ; gas
+    car    $60.00               ; gas
     chase:visa    $-60.00             ; Fred's Shell
 
 # Mortgage payments
 
 2024-01-04 Rocket Mortgage ; 
-    expenses:mortgage    $1,800.00        ; Jan
+    mortgage    $1,800.00        ; Jan
     bank:checking    $-1,800.00       ; xfer to loan #yyy
 
 2024-02-04 Rocket Mortgage ; 
-    expenses:mortgage    $1,800.00        ; Feb
+    mortgage    $1,800.00        ; Feb
     bank:checking    $-1,800.00       ; xfer to loan #yyy
 
 # groceries
 
 2024-01-07  Safeway ; weekly groceries
-    expenses:groceries  $75.00           ; weekly
+    groceries  $75.00           ; weekly
     bank:checking    $-75.00         ; Safeway
 
 2024-01-21  Safeway 
-    expenses:groceries  $175.00          ; big party this weekend
+    groceries  $175.00          ; big party this weekend
     chase:visa    $-175.00            ; Safeway
 
 2024-02-07  Safeway ;
-    expenses:groceries  $75.00           ; weekly
+    groceries  $75.00           ; weekly
     bank:checking    $-75.00         ; Safeway
 
 2024-02-21  Safeway ;
-    expenses:groceries  $75.00           ; normal
+    groceries  $75.00           ; normal
     chase:visa    $-75.00             ; Safeway
 
 ; Buy something for the house using a card, return part of it
 
 2024-03-10 Home Depot ; paint
-    expenses:household    $50.00         ; paint
+    household    $50.00         ; paint
     amex:blue    $-50.00             ; HD Store 100
 
 2024-03-12 Home Depot ; return
-    expenses:household    $-25.00        ; didn't use pink
+    household    $-25.00        ; didn't use pink
     amex:blue    $25.00              ; HD Store 100
