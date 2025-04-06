@@ -14,6 +14,7 @@ from rich.panel import Panel
 from rich.console import Group
 
 from .DB import DB, Transaction, Entry
+from .config import Tag
 from .console import console, format_amount
 from .util import debugging
 
@@ -143,6 +144,11 @@ messages = [ ]
 def display_row(trans):
     console.clear()
     console.print(make_panel(trans))
+    if messages:
+        for m in messages:
+            console.print(m)
+    messages.clear()
+    console.print()
 
 def make_candidate(e):
     '''
@@ -195,6 +201,11 @@ def REPL(entries):
                     edit_account(tlist[row], fullnames)
                 case KEY.MOD_DESC:
                     modify_description(tlist[row])
+                case KEY.ACCEPT:
+                    if verify_and_save_transaction(tlist[row]):
+                        del tlist[row]
+                        if tlist:
+                            row = row % len(tlist)
                 case _:
                     continue
     except KeyboardInterrupt:
@@ -221,9 +232,9 @@ def edit_field(trans, key):
         key: the keystroke that triggered the edit (specifies the field)
     '''
     field = field_names[key]
-    if s := trans[field]:
-        h = lambda: readline.insert_text(s)
-        readline.set_startup_hook(h)
+    s = trans[field] or ""
+    h = lambda: readline.insert_text(s)
+    readline.set_startup_hook(h)
     text = input(field + '> ')
     trans[field] = text
     trans.edited.add(field)
@@ -239,9 +250,9 @@ def edit_account(trans, names):
         trans:  the transaction to update
     '''
     entry = trans.entries[1]
-    if s := entry.account:
-        h = lambda: readline.insert_text(s)
-        readline.set_startup_hook(h)
+    s = entry.account or ""
+    h = lambda: readline.insert_text(s)
+    readline.set_startup_hook(h)
     text = input('account> ')
     if accts := names.get(text):
         if len(accts) > 1:
@@ -270,3 +281,41 @@ def modify_description(rec):
     }
 
     pass
+
+def verify_and_save_transaction(trans):
+    '''
+    Verify the user has supplied required fields and if so save the
+    new transaction.  Return True if the transaction can be deleted
+    from the list.
+
+    Arguments:
+        trans:  the transaction to save
+    '''
+    # If no fields are filled in assume the user wants to skip the
+    # transaction and work on it later, OK to delete from list
+    if len(trans.edited) == 0:
+        return True
+    
+    # If the user filled in some fields but not the account make sure
+    # they want to delete the record (nothing will be saved)
+    if 'account' not in trans.edited:
+        console.print(f'[red]Warning: no account specified.')
+        console.print('Discard changes? [yN]', end='')
+        key = click.getchar()
+        return key in 'Yy'
+    
+    # If the description wasn't edited copy the description from the
+    # CSV file
+    if 'description' not in trans.edited:
+        trans.description = trans.entries[0].description
+
+    # Convert the tag string to a list, adding #'s if necessary
+    if 'tags' in trans.edited:
+        trans.tags = [s if s.startswith('#') else f'#{s}' for s in trans.tags.split()]
+
+    # Save the entries and the transaction
+    trans.entries[0].tags.remove(Tag.U)
+    for e in trans.entries:
+        e.save()
+    trans.save()  
+    return True

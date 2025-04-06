@@ -8,7 +8,7 @@ import string
 
 from mongoengine import *
 
-from .config import Config
+from .config import Config, Tag
 
 ### Database Schema, defined using MongoEngine
 
@@ -66,7 +66,7 @@ class Entry(Document):
     account = StringField(required=True)
     column = EnumField(Column, required=True) 
     amount = FloatField(required=True)
-    tags = ListField(StringField())
+    tags = ListField(EnumField(Tag))
 
     meta = {'strict': False}
 
@@ -272,7 +272,7 @@ class DB:
         for obj in recs:
             logging.debug(f'save {obj}')
             desc = obj.description
-            obj.tags.append(Config.unpaired_tag)
+            obj.tags.append(Tag.U)
             n = 0
             while n < DB.MAX_DUPS:
                 try:

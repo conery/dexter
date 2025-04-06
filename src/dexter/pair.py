@@ -4,7 +4,7 @@ import logging
 import re
 
 from .DB import DB, Transaction, Entry, Action, Column
-from .config import Config
+from .config import Config, Tag
 from .console import print_records
 from .repl import REPL
 
@@ -25,7 +25,7 @@ def repl_pair(args):
     '''
     Use a REPL to display and edit one entry at a time.
     '''
-    unpaired = DB.select(Entry, tag=Config.unpaired_tag)
+    unpaired = DB.select(Entry, tag=Tag.U)
     REPL(unpaired)
 
 def auto_pair(args):
@@ -36,7 +36,7 @@ def auto_pair(args):
     logging.info(f'Finding matches for unpaired entries')
     logging.debug(f'pair {vars(args)}')
 
-    unpaired = DB.select(Entry, tag=Config.unpaired_tag)
+    unpaired = DB.select(Entry, tag=Tag.U)
 
     new_transactions = []
     credits = {}
@@ -103,7 +103,7 @@ def save_matched_transactions(lst):
     '''
     for obj in lst:
         try:
-            obj.entries[0].tags.remove(Config.unpaired_tag)
+            obj.entries[0].tags.remove(Tag.U)
             obj.entries[0].save()
             obj.entries[1].save()
             obj.save()
@@ -160,7 +160,7 @@ def save_xfers(lst):
     for obj in lst:
         try:
             for e in obj.entries:
-                e.tags.remove(Config.unpaired_tag)
+                e.tags.remove(Tag.U)
                 e.save()
             obj.save()
         except Exception as err:

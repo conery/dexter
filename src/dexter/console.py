@@ -5,7 +5,7 @@
 import csv
 import sys
 
-# from .schema import Entry, Transaction, Column
+from .config import Config
 from .DB import Entry, Transaction, Column
 
 from rich.console import Console
@@ -79,14 +79,15 @@ entry_header_format = {
     'account': {'width': 25},
     'amount':  {'width': 15, 'justify': 'right'},
     'column':  {'width': 10, 'justify': 'center'},
-    'tags':    {'width': 20},
+    'description':  {'width': 30, 'no_wrap': True},
+    'tags':    {'width': 5, 'justify': 'center'},
 }
 
 def print_records(docs):
     '''
     Print a grid containing descriptions of documents.  Each document
     class has its own `row` method that has the information it wants
-    to display.  Groups documents by collection, then prints each group.
+    to display.  Groups documents by collection, then print each group.
 
     Arguments:
         docs:  a list of documents
@@ -104,6 +105,17 @@ def print_records(docs):
             grid.add_row(*row)
         console.print(grid)
         console.print()
+
+def tag_strings(rec):
+    '''
+    Return a string to display in the tags column of a table, looking up
+    symbols for system tags.
+
+    Arguments:
+        lst:  an Entry document
+    '''
+    i = 0 if rec.column == Column.cr else 1
+    return " ".join([Config.tag_syms[t][i] for t in rec.tags])
 
 def print_transaction_table(
         lst, 
@@ -142,7 +154,8 @@ def print_transaction_table(
             row.append(rec.account)
             row.append(format_amount(rec.amount, dollar_sign=True))
             row.append(str(rec.column))
-            row.append(" ".join(rec.tags))
+            row.append(rec.description)
+            row.append(tag_strings(rec))
         else:
             row.append(str(rec.pdate))
             row.append(rec.pcredit)
@@ -150,7 +163,7 @@ def print_transaction_table(
             row.append(format_amount(rec.pamount, dollar_sign=True))
             row.append(rec.description)
             row.append(rec.comment)
-            row.append(str(rec.tags))
+            row.append("".join([f'#{s}' for s in rec.tags]))
         if as_csv:
             writer.writerow(dict(zip(colnames,row)))
         else:

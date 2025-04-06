@@ -6,6 +6,7 @@
 #
 
 from collections import namedtuple
+from enum import Enum
 import logging
 import os
 from pathlib import Path
@@ -18,6 +19,15 @@ import tomllib
 #
 
 ColMap = namedtuple('ColMap', ['description', 'date', 'amount', 'column'])
+
+###
+#
+# Tags for Entry objects
+
+class Tag(Enum):
+    U = 'unpaired'
+    X = 'xfer'
+    P = 'pending'
 
 ###
 # 
@@ -34,7 +44,11 @@ class Config:
     cname = 'credit'
     dname = 'debit'
 
-    unpaired_tag = '#unpaired'
+    tag_syms = {
+        Tag.U: ['⊏', '⊐'],
+        Tag.X: ['⊢', '⊣'],
+        Tag.P: ['◻︎', '◻︎']
+    }
 
     # parsers = { }
     colmaps = { }
