@@ -37,5 +37,32 @@ def print_transaction_report(args):
     Arguments:
         args:  command line arguments
     '''
-    print('transaction report', vars(args))
+    logging.debug('Transaction report')
+
+    dct = DB.transaction_constraints
+    kwargs = {}
+
+    for name in dct:
+        if val := vars(args).get(name):
+            kwargs[name] = val
+            logging.debug(f'  {name} = {val}')
+
+    if args.csv:
+        printer = print_csv_transaction
+    elif args.compact:
+        printer = print_compact_transaction
+    else:
+        printer = print_journal_transaction
+
+    for t in DB.select(Transaction, **kwargs):
+        printer(t)
+
+def print_csv_transaction(obj):
+    print('csv', obj)
+
+def print_compact_transaction(obj):
+    print('compact', obj)
+
+def print_journal_transaction(obj):
+    print('journal', obj)
 

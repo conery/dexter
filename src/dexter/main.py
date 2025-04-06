@@ -81,6 +81,7 @@ def init_cli():
     report_parser.add_argument('content', metavar='X', choices=['balance', 'expense', 'transaction', 'audit'], help='file format')
     report_parser.set_defaults(dispatch=print_report)
     report_parser.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
+    report_parser.add_argument('--compact', action='store_true', help='print each transaction on a single line')
     report_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     report_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     report_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
