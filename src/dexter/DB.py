@@ -7,6 +7,7 @@ import re
 import string
 
 from mongoengine import *
+import pandas as pd
 
 from .config import Config, Tag
 
@@ -395,3 +396,47 @@ class DB:
                 raise ValueError(f'select: unknown constraint: {field}')
             dct[mapping[field]] = value
         return collection.objects(Q(**dct))
+
+    @staticmethod
+    def balances(date=None, category=None):
+        '''
+        Create a Pandas data frame with sums of credits and debits in accounts.
+
+        Arguments:
+            date:  use transactions up to and including this date
+            category: if given use accounts in this group only
+        '''
+        all_categories = ['income', 'asset', 'liability', 'expense']
+        if category is not None:
+            if category not in all_categories:
+                raise ValueError(f'balances: unknown category {category}')
+            clist = [category]
+        else:
+            clist = all_categories
+        logging.debug(f'balance: categories = {clist}')
+
+        dct = {
+            'category': [],
+            'account':  [],
+            'credit':   [],
+            'debit':    [],
+        }
+        
+        for acct in Account.objects:
+            if acct.category.value not in clist:
+                continue
+            cons = {'account': acct.name}
+            if date:
+                cons['date__lte'] = date
+            dct['category'].append(acct.category.value)
+            dct['account'].append(acct.name)
+            for col in ['credit', 'debit']:
+                cons['column'] = col
+                dct[col].append(Entry.objects(Q(**cons)).sum('amount'))
+
+        df = pd.DataFrame(dct)
+        df['balance'] = df['debit'] - df['credit']
+        logging.debug(df)
+        return df
+    
+

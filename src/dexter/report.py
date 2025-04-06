@@ -2,7 +2,7 @@
 
 import logging
 
-from .DB import DB, Transaction
+from .DB import DB, Transaction, Column
 from .console import console, format_amount
 
 def print_report(args):
@@ -23,7 +23,15 @@ def print_audit_report(args):
     print('audit report', vars(args))
 
 def print_balance_report(args):
-    print('balance report', vars(args))
+    '''
+    Print account balances to stdout.
+
+    Arguments:
+        args:  command line arguments
+    '''
+    logging.debug(f'balance report {vars(args)}')
+    df = DB.balances(category=args.category)
+    print(df)
 
 def print_expense_report(args):
     print('expense report', vars(args))
@@ -70,9 +78,11 @@ def print_journal_transaction(obj):
     console.print(line)
     for entry in obj.entries:
         line = f'    {entry.account:<26s}'
-        amt = format_amount(entry.amount, dollar_sign=True)
-        line += f'{amt:>15s}'
-        line += f'  ; {entry.description}'
+        amt = entry.amount if entry.column == Column.dr else -entry.amount
+        samt = format_amount(amt, dollar_sign=True)
+        line += f'{samt:>15s}'
+        if not entry.description.startswith('match '):
+            line += f'  ; {entry.description}'
         console.print(line)
     console.print()
 

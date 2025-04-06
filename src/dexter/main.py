@@ -85,6 +85,7 @@ def init_cli():
     report_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     report_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     report_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
+    report_parser.add_argument('--category', metavar='C', choices=['income','asset','liability','expense'], help='include accounts in this category only')
 
     select_parser = subparsers.add_parser('select', help='select transactions')
     select_parser.add_argument('--entry', action='store_true', help='seach individual debit or credit entries')
