@@ -2,7 +2,6 @@
 
 import logging
 
-# from .schema import Transaction, Entry
 from .DB import DB, Transaction, Entry
 from .console import print_transaction_table
 
@@ -22,20 +21,6 @@ def select_transactions(args):
       --total will print the total amount of all items
       --csv will print items in CSV format
    '''
-
-   # cmap = {
-   #    'transactions': Transaction,
-   #    'entries':  Entry
-   # }
-
-   # for cname, cls in cmap.items():
-   #    if cname.startswith(args.collection.lower()):
-   #       collection = cls
-   #       logging.debug(f'select {cname}')
-   #       break
-   # else:
-   #    logging.debug(f'unknown collection')
-
 
    if args.entry:
       dct = DB.entry_constraints

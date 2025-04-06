@@ -15,6 +15,7 @@ from .util import setup_logging, parse_date, date_range
 
 from .io import import_records, export_records, add_records
 from .pair import pair_entries
+from .report import print_report
 from .select import select_transactions
 
 # Functions for commands (will be moved to modules)
@@ -66,9 +67,9 @@ def init_cli():
     add_recs_parser.add_argument('--month', metavar='D', choices=months, help='add records only for this month')
     add_recs_parser.set_defaults(dispatch=add_records)
 
-    statements_parser = subparsers.add_parser('pair', help='make transactions from matching entries')
-    statements_parser.add_argument('--repl', action='store_true', help='use a REPL to display and edit entries')
-    statements_parser.set_defaults(dispatch=pair_entries)
+    pair_parser = subparsers.add_parser('pair', help='make transactions from matching entries')
+    pair_parser.add_argument('--repl', action='store_true', help='use a REPL to display and edit entries')
+    pair_parser.set_defaults(dispatch=pair_entries)
 
     review_parser = subparsers.add_parser('review', help='review transactions')
     review_parser.set_defaults(dispatch=review_transactions)
@@ -76,8 +77,13 @@ def init_cli():
     reconcile_parser = subparsers.add_parser('reconcile', help='reconcile statements')
     reconcile_parser.set_defaults(dispatch=reconcile_statements)
 
-    reports_parser = subparsers.add_parser('report', help='generate a report')
-    reports_parser.set_defaults(dispatch=generate_report)
+    report_parser = subparsers.add_parser('report', help='generate a report')
+    report_parser.add_argument('content', metavar='X', choices=['balance', 'expense', 'transaction', 'audit'], help='file format')
+    report_parser.set_defaults(dispatch=print_report)
+    report_parser.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
+    report_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    report_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
+    report_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
 
     select_parser = subparsers.add_parser('select', help='select transactions')
     select_parser.add_argument('--entry', action='store_true', help='seach individual debit or credit entries')
@@ -90,7 +96,6 @@ def init_cli():
     select_parser.add_argument('--account', metavar='A', help='account name (entry)')
     select_parser.add_argument('--column', metavar='C', choices=['credit','debit'], help='entry type (entry)')
     select_parser.add_argument('--description', metavar='X', help='descriptions pattern')
-    # select_parser.add_argument('--original', metavar='X', help='original description pattern')
     select_parser.add_argument('--comment', metavar='X', help='comment pattern (transaction)')
     select_parser.add_argument('--tag', metavar='X', help='tag pattern (transaction)')
     select_parser.add_argument('--amount', metavar='N', type=float, help='amount')
