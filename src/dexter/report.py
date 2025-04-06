@@ -2,8 +2,8 @@
 
 import logging
 
-from .DB import DB, Transaction, Entry
-from .console import print_transaction_table
+from .DB import DB, Transaction
+from .console import console, format_amount
 
 def print_report(args):
     '''
@@ -64,5 +64,15 @@ def print_compact_transaction(obj):
     print('compact', obj)
 
 def print_journal_transaction(obj):
-    print('journal', obj)
+    line = f'{obj.pdate} {obj.description:<30s}'
+    if obj.comment or obj.tags:
+        line += f'[italic] ; {obj.comment} {obj.tags}'
+    console.print(line)
+    for entry in obj.entries:
+        line = f'    {entry.account:<26s}'
+        amt = format_amount(entry.amount, dollar_sign=True)
+        line += f'{amt:>15s}'
+        line += f'  ; {entry.description}'
+        console.print(line)
+    console.print()
 
