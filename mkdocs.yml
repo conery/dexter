@@ -1,1 +1,28 @@
-site_name: My Docs
+site_name: Dexter
+
+theme:
+  name: "readthedocs"
+
+extra:
+  version: Version 0.0.5
+
+extra_css:
+  - css/dex.css
+  
+plugins:
+  - search
+  - mkdocstrings
+
+nav:
+  - "Home":
+    - "Welcome": index.md
+    - "The Budget Model": budgets.md
+  - "Running the Applications":
+    - "dex Command Line": dex.md
+  - "API":
+    - "Database API": api.md
+  - "Reference":
+    - "Source Directory": tbd.md
+    - "Modules": tbd.md
+
+
