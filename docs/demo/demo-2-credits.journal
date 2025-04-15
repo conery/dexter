@@ -1,0 +1,17 @@
+include setup.journal
+
+2024-01-07  Chez Ray
+    expenses:food:restaurant        $75.00
+    assets:checking                $-75.00
+
+2024-01-08  venmo from Sam
+    assets:checking                 $35.00
+    expenses:food:restaurant       $-35.00
+
+2024-01-10  Tools R Us
+    expenses:home                  $100.00
+    assets:checking               $-100.00
+
+2024-01-10  return widget
+    assets:checking                 $25.00
+    expenses:home                  $-25.00

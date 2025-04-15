@@ -8,10 +8,16 @@ extra:
 
 extra_css:
   - css/dex.css
-  
+
+markdown_extensions:
+  - admonition
+
 plugins:
   - search
+  - callouts
   - mkdocstrings
+  - codeinclude:
+      title_mode: none
 
 nav:
   - "Home":
