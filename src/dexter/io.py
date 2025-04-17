@@ -96,8 +96,10 @@ def import_journal(fn: Path, preview):
         print_records(recs)
     else:
         DB.erase_database()
-        for obj in recs:
+        DB.save_records(recs['entries'])
+        for obj in recs['accounts'] + recs['transactions']:
             try:
+                logging.debug(f'save {obj}')
                 obj.save()
             except Exception as err:
                 logging.error(f'import: error saving {obj}')
@@ -263,8 +265,13 @@ class JournalParser:
                     logging.error(f'JournalParser: error in {cmnd}')
                     logging.error(err)
 
-        # return objects in the order we want them saved
-        return self.accounts + self.entries + self.transactions
+        # # return objects in the order we want them saved
+        # return self.accounts + self.entries + self.transactions
+        return {
+            'accounts': self.accounts,
+            'entries': self.entries,
+            'transactions': self.transactions,
+        }
 
 ###
 #

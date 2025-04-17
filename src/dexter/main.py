@@ -15,7 +15,7 @@ from .util import setup_logging, parse_date, date_range
 
 from .io import import_records, export_records, add_records
 from .pair import pair_entries
-from .report import print_report
+from .report import print_audit_report, print_balance_report, print_expense_report
 from .select import select_transactions
 
 # Functions for commands (will be moved to modules)
@@ -77,15 +77,29 @@ def init_cli():
     reconcile_parser = subparsers.add_parser('reconcile', help='reconcile statements')
     reconcile_parser.set_defaults(dispatch=reconcile_statements)
 
-    report_parser = subparsers.add_parser('report', help='generate a report')
-    report_parser.add_argument('content', metavar='X', choices=['balance', 'expense', 'transaction', 'audit'], help='file format')
-    report_parser.set_defaults(dispatch=print_report)
-    report_parser.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
-    report_parser.add_argument('--compact', action='store_true', help='print each transaction on a single line')
-    report_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
-    report_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
-    report_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
-    report_parser.add_argument('--category', metavar='C', choices=['income','asset','liability','expense'], help='include accounts in this category only')
+    audit_parser = subparsers.add_parser('audit', help='print an audit report')
+    audit_parser.set_defaults(dispatch=print_audit_report)
+    audit_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    audit_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
+    audit_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
+
+    balance_parser = subparsers.add_parser('balance', help='print a balance report')
+    balance_parser.set_defaults(dispatch=print_balance_report)
+    balance_parser.add_argument('accts', metavar='A', nargs='*', help='accounts')
+    balance_parser.add_argument('--level', metavar='D', type=parse_date, help='starting date')
+    balance_parser.add_argument('--budget', action='store_true', help='include budget transactions')
+    balance_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    balance_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
+    balance_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
+
+    expense_parser = subparsers.add_parser('expense', help='print an expense report')
+    expense_parser.set_defaults(dispatch=print_expense_report)
+    expense_parser.add_argument('accts', metavar='A', nargs='*', help='accounts')
+    expense_parser.add_argument('--budget', action='store_true', help='include budget transactions')
+    expense_parser.add_argument('--details', action='store_true', help='print each transaction on a single line')
+    expense_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    expense_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
+    expense_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
 
     select_parser = subparsers.add_parser('select', help='select transactions')
     select_parser.add_argument('--entry', action='store_true', help='seach individual debit or credit entries')

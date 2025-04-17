@@ -16,9 +16,9 @@ from .config import Config, Tag
 class Category(Enum):
     Q =  'equity'
     I =  'income'
-    A =  'asset'
-    E =  'expense'
-    L =  'liability'
+    A =  'assets'
+    E =  'expenses'
+    L =  'liabilities'
 
     def __str__(self):
         return self.value
@@ -93,6 +93,7 @@ class Entry(Document):
         return md5(bytes(s, 'utf-8')).hexdigest()
     
     def clean(self):
+        logging.debug(f'uid: {self.hash}')
         self.uid = self.hash
 
 class Transaction(Document):
@@ -270,21 +271,37 @@ class DB:
         Arguments:
             recs:  a list of Entry objects
         '''
+        # for obj in recs:
+        #     logging.debug(f'save {obj}')
+        #     desc = obj.description
+        #     obj.tags.append(Tag.U)
+        #     n = 0
+        #     while n < DB.MAX_DUPS:
+        #         try:
+        #             obj.save()
+        #             break
+        #         except NotUniqueError:
+        #             n += 1
+        #             obj.description = f'{desc} ({n})'
+        #             logging.debug(f'add: dup ({n}) for {obj}')
+        #     else:
+        #         logging.error(f'add: max {DB.MAX_DUPS} copies exceeded for {obj}')
+
+        uids = set()
         for obj in recs:
             logging.debug(f'save {obj}')
             desc = obj.description
-            obj.tags.append(Tag.U)
             n = 0
-            while n < DB.MAX_DUPS:
-                try:
-                    obj.save()
-                    break
-                except NotUniqueError:
-                    n += 1
-                    obj.description = f'{desc} ({n})'
-                    logging.debug(f'add: dup ({n}) for {obj}')
-            else:
-                logging.error(f'add: max {DB.MAX_DUPS} copies exceeded for {obj}')
+            while obj.hash in uids:
+                n += 1
+                if n > DB.MAX_DUPS:
+                    logging.error(f'add: max {DB.MAX_DUPS} copies exceeded for {obj}')
+                    raise ValueError(f'save_records: no uid: {obj}')
+                obj.description = f'{desc} ({n})'
+                logging.debug(f'  {obj.description}')
+            obj.tags.append(Tag.U)
+            obj.save()
+            uids.add(obj.hash)
 
     @staticmethod
     def find_account(s: str):
@@ -312,7 +329,7 @@ class DB:
     def full_names(category=None):
         '''
         Return a dictionary that maps a partial account name to a list
-        of full named that contain that part.
+        of full account names that contain that part.
         '''
         dct = {}
         for acct in Account.objects:
@@ -322,7 +339,35 @@ class DB:
                 lst = dct.setdefault(part, [])
                 lst.append(acct.name)
         return dct
-    
+
+    @staticmethod
+    def account_groups(specs=[]):
+        '''
+        Convert a list of account name specs from the command line into
+        a list of account groups to use in reports.  
+        
+        Specs are strings that correspond to nodes in the account hierarchy,
+        optionally followed by a colon and level number.
+
+        Arguments:
+            specs:  the list of strings from the command line
+        '''
+        if len(specs) == 0:
+            res = [a.name for a in Account.objects]
+        else:
+            res = []
+            for s in specs:
+                parts = s.split(':')
+                if re.match(r'\d+', parts[-1]):
+                    level = int(parts[-1])
+                    pre = ':'.join(parts[:-1])
+                    for acct in Account.objects(name__startswith=pre):
+                        if len(acct.name.split(':')) <= level:
+                            res.append(acct.name)
+                else:
+                    res += [a.name for a in Account.objects(name__startswith=s)]
+        return res
+
     # RegExp search.  The first version is a simple linear search.
     # TBD: implement an indexing scheme based on the first letter
     # in the string.
@@ -397,46 +442,4 @@ class DB:
             dct[mapping[field]] = value
         return collection.objects(Q(**dct))
 
-    @staticmethod
-    def balances(date=None, category=None):
-        '''
-        Create a Pandas data frame with sums of credits and debits in accounts.
-
-        Arguments:
-            date:  use transactions up to and including this date
-            category: if given use accounts in this group only
-        '''
-        all_categories = ['income', 'asset', 'liability', 'expense']
-        if category is not None:
-            if category not in all_categories:
-                raise ValueError(f'balances: unknown category {category}')
-            clist = [category]
-        else:
-            clist = all_categories
-        logging.debug(f'balance: categories = {clist}')
-
-        dct = {
-            'category': [],
-            'account':  [],
-            'credit':   [],
-            'debit':    [],
-        }
-        
-        for acct in Account.objects:
-            if acct.category.value not in clist:
-                continue
-            cons = {'account': acct.name}
-            if date:
-                cons['date__lte'] = date
-            dct['category'].append(acct.category.value)
-            dct['account'].append(acct.name)
-            for col in ['credit', 'debit']:
-                cons['column'] = col
-                dct[col].append(Entry.objects(Q(**cons)).sum('amount'))
-
-        df = pd.DataFrame(dct)
-        df['balance'] = df['debit'] - df['credit']
-        logging.debug(df)
-        return df
-    
 

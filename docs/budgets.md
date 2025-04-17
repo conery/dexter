@@ -36,9 +36,19 @@ In double-entry bookkeeping the **balance** of an account is the sum of the infl
 
 Here are a few example transactions (written in the Journal format used by `hledger` and other plain text accounting applications):
 
-<!--codeinclude-->
-[intro journal](./demo/demo-1-intro.journal)
-<!--/codeinclude-->
+```plain
+2024-01-02  paycheck
+    assets:checking             $5000.00
+    income:yoyodyne            $-5000.00
+
+2024-01-06  Tools R Us
+    expenses:home                $100.00
+    assets:checking             $-100.00
+
+2024-01-07  Chez Ray
+    expenses:food                 $75.00
+    assets:checking              $-75.00
+```
 
 In a journal file the signs on the amounts indicate the direction the money flowed:  `+` for a debit and `-` for a credit.
 
@@ -48,7 +58,8 @@ It debits (adds to) the checking account, and credits an income source.
 The next two transactions show we ate at a restaurant and paid for it using our checking account (either a paper check or a debit card), then bought some tools at a hardware store, also directly from the checking account.
 In both cases the negative amount means funds moved out of the checking account and the positive amount means the money was moved into one of the expense accounts.
 
-Because the Journal format uses positve numbers for debits (inflows) and negative numbers for credit (outflows) all we need to do to compute a balance for an account is add the amounts on all lines that name the account.  Looking at the lines above, the three lines that refer to `assets:checking` have amounts $1000, $-75, and $-100, so the balance is $875.
+Because the Journal format uses positve numbers for debits (inflows) and negative numbers for credit (outflows) all we need to do to compute a balance for an account is add the amounts on all lines that name the account.  
+Looking at the lines above, the three lines that refer to `assets:checking` have amounts $5000, $-75, and $-100, so the balance is $4875.
 
 In the examples above the expense account was debited, but it's worth noting that a transaction can credit an expense account.
 For example, suppose that lunch at the restaurant was with a friend, and the next day our friend used Venmo to reimburse us for their share.
@@ -58,10 +69,10 @@ The best way to represent this is with a transaction that debits the checking ac
 ```plain
 2024-01-08  venmo from Sam
     assets:checking                 $35.00
-    expenses:food:restaurant       $-35.00
+    expenses:food                  $-35.00
 ```
 
-This transaction has an impact on the balance of both accounts: the checking account now has $875 + $35, or $910, and the restaurant account has $75 - $35, or $40.
+This transaction has an impact on the balance of both accounts: the checking account now has $4875 (the previous balance) + $35, or $4910, and the restaurant account has $75 - $35, or $40.
 
 ## Budget Transactions
 
@@ -139,7 +150,7 @@ In this case we're setting the home balance to -$3000 and the car and food balan
 As purchases are recorded, any transaction that debits an expense will add a positive amount.
 The dinner at the restaurant debited the food account for $75:
 ```plain
-    expenses:food:restaurant     $75.00
+    expenses:food                 $75.00
 ```
 The balance increased (became less negative) and now sits at -$925.
 
@@ -188,11 +199,11 @@ Typically we use a debit card (the modern equivalent of writing a check) or one 
 The transactions will look something like this:
 ```plain
 2024-01-07  Chez Ray
-    expenses:food:restaurant     $75.00
+    expenses:food                $75.00
     assets:checking             $-75.00
 
 2024-01-17  Burger Palace
-    expenses:food:restaurant     $25.00
+    expenses:food                $25.00
     liability:chase:visa        $-25.00
 ```
 

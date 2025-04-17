@@ -57,6 +57,19 @@ class TestDB:
         assert 'chase' in names
         assert 'visa' in names
 
+    def test_account_groups(self, db):
+        '''
+        Test the account_groups method.
+        '''
+        grp = DB.account_groups()
+        assert len(grp) == len(Account.objects)
+
+        # !! Add more tests after adding new accounts to test fixture
+
+        # grp = DB.account_groups(['expenses'])
+        # assert len(grp) == 6
+        # assert all(lambda s: s.startswith('expenses') for s in grp)
+
     def test_transaction_attributes(self, db):
         '''
         Test the computed attributes of the Transaction class

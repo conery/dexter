@@ -4,14 +4,14 @@
 
 account equity                    ; type: equity
 account yoyodyne                  ; type: income
-account bank:checking             ; type: asset
-account amex:blue                 ; type: liability
-account chase:visa                ; type: liability
-account groceries                 ; type: expense
-account household                 ; type: expense
-account mortgage                  ; type: expense
-account car                       ; type: expense
-account travel                    ; type: expense
+account bank:checking             ; type: assets
+account amex:blue                 ; type: liabilities
+account chase:visa                ; type: liabilities
+account groceries                 ; type: expenses
+account household                 ; type: expenses
+account mortgage                  ; type: expenses
+account car                       ; type: expenses
+account travel                    ; type: expenses
 
 # Monthly paychecks and bucket fills
 
