@@ -86,7 +86,11 @@ class Entry(Document):
             self.description[:50],
             str(self.tags),
         ]
-    
+
+    @property
+    def value(self):
+        return self.amount if self.column == Column.dr else -self.amount
+
     @property
     def hash(self):
         s = f'{self.account}{self.date}{self.amount}{self.description}'
@@ -357,15 +361,26 @@ class DB:
         else:
             res = []
             for s in specs:
+                grp = []
                 parts = s.split(':')
+                logging.debug(f'account_groups: {parts}')
                 if re.match(r'\d+', parts[-1]):
                     level = int(parts[-1])
                     pre = ':'.join(parts[:-1])
+                    logging.debug(f'account groups: find accounts that start with "{pre}"')
                     for acct in Account.objects(name__startswith=pre):
-                        if len(acct.name.split(':')) <= level:
-                            res.append(acct.name)
+                        if len(acct.name.split(':')) < level:
+                            grp.append(acct.name)
+                        elif len(acct.name.split(':')) == level:
+                            grp.append(f'{acct.name}.*')
+                    logging.debug(f'account groups: found {grp}')
+                    if len(grp) == 0:
+                        grp.append(f'{pre}.*')
+                        logging.debug(f'account groups: grp = {grp}')
                 else:
-                    res += [a.name for a in Account.objects(name__startswith=s)]
+                    logging.debug(f'account_groups: find all accounts below {s}')
+                    grp += [a.name for a in Account.objects(name__startswith=s)]
+                res += grp
         return res
 
     # RegExp search.  The first version is a simple linear search.
@@ -432,6 +447,7 @@ class DB:
             collection:  the collection to search (Entry or Transaction)
             constraints:  a dictionary of field names and values
         '''
+        logging.debug(f'select: {constraints}')
         if collection not in [Entry, Transaction]:
             raise ValueError('select: collection must be Entry or Transaction')
         mapping = DB.transaction_constraints if collection == Transaction else DB.entry_constraints

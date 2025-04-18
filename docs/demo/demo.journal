@@ -1,7 +1,6 @@
 account equity                      ; type: equity
 account assets:checking             ; type: assets
 account assets:savings              ; type: assets
-account expenses                    ; type: expenses
 account expenses:car                ; type: expenses
 account expenses:food               ; type: expenses
 account expenses:food:groceries     ; type: expenses
