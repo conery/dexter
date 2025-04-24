@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 import re
 
-from .DB import DB, Account, Entry, Transaction, RegExp, Category
+from .DB import DB, Account, Entry, Transaction, RegExp, Category, Tag
 from .config import Config
 from .console import print_records
 from .util import parse_date
@@ -93,7 +93,8 @@ def import_journal(fn: Path, preview):
     logging.info(f'DB:importing journal file:{fn}')
     recs = JournalParser().parse_file(fn)
     if preview:
-        print_records(recs)
+        for lst in recs.values():
+            print_records(lst)
     else:
         DB.erase_database()
         DB.save_records(recs['entries'])
@@ -199,6 +200,7 @@ class JournalParser:
         )
         comment = tokens[0].strip() if tokens else ''
         trans.comment = comment
+        trans.tags = [f'#{s[:-1]}' for s in re.findall(r'\w+:', comment)]
         self.transactions.append(trans)
 
     def new_entry(self, cmnd, tokens):
@@ -224,14 +226,18 @@ class JournalParser:
             amount = -self.transaction_total
 
         desc = tokens[0].strip() if tokens else ''
+        tags = re.findall(r'\w+:', desc)
         col = 'credit' if amount < 0 else 'debit'
         trans = self.transactions[-1]
+        if trans.isbudget:
+            tags.append(Tag.B)
         entry = Entry(
             date = self.transaction_date,
             description = desc,
             account = acct,
             column = col,
             amount = abs(amount),
+            tags = tags,
         )
         trans.entries.append(entry)
         self.entries.append(entry)
@@ -346,6 +352,7 @@ def parse_file(fn, pname, account, starting, ending, previous):
                 'amount': cmap['amount'](rec),
                 'column': 'credit' if cmap['credit'](rec) else 'debit',
                 'account': account,
+                'tags': [Tag.U],
             }
             e = Entry(**desc)
             if e.hash in previous:

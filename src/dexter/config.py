@@ -22,12 +22,13 @@ ColMap = namedtuple('ColMap', ['description', 'date', 'amount', 'column'])
 
 ###
 #
-# Tags for Entry objects
+# Tags for Trabsaction and Entry objects
 
 class Tag(Enum):
-    U = 'unpaired'
-    X = 'xfer'
-    P = 'pending'
+    B = '#budget'
+    P = '#pending'
+    U = '#unpaired'
+    X = '#xfer'
 
 ###
 # 
@@ -47,7 +48,8 @@ class Config:
     tag_syms = {
         Tag.U: ['⊏', '⊐'],
         Tag.X: ['⊢', '⊣'],
-        Tag.P: ['◻︎', '◻︎']
+        Tag.P: ['◻︎', '◻︎'],
+        Tag.B: ['⊜', '⊜'],
     }
 
     # parsers = { }

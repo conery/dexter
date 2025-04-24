@@ -41,7 +41,7 @@ def init_cli():
     months = [ m[:3].lower() for m in calendar.month_name[1:] ]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dbname', metavar='X', help='database name', default='dexter')
+    parser.add_argument('--dbname', metavar='X', help='database name')
     parser.add_argument('--log', metavar='X', choices=['quiet','info','debug'], default='info')
     parser.add_argument('--preview', action='store_true')
     parser.add_argument('--config', metavar='F', help='TOML file with configuration settings')
@@ -92,14 +92,14 @@ def init_cli():
     balance_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     balance_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
 
-    expense_parser = subparsers.add_parser('expense', help='print an expense report')
-    expense_parser.set_defaults(dispatch=print_expense_report)
-    expense_parser.add_argument('accts', metavar='A', nargs='*', help='accounts')
-    expense_parser.add_argument('--budget', action='store_true', help='include budget transactions')
-    expense_parser.add_argument('--details', action='store_true', help='print each transaction on a single line')
-    expense_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
-    expense_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
-    expense_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
+    journal_parser = subparsers.add_parser('journal', help='print journals for expense accounts')
+    journal_parser.set_defaults(dispatch=print_expense_report)
+    journal_parser.add_argument('accts', metavar='A', nargs='*', help='accounts')
+    journal_parser.add_argument('--budget', action='store_true', help='include budget transactions')
+    journal_parser.add_argument('--details', action='store_true', help='print each transaction on a single line')
+    journal_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    journal_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
+    journal_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
 
     select_parser = subparsers.add_parser('select', help='select transactions')
     select_parser.add_argument('--entry', action='store_true', help='seach individual debit or credit entries')
@@ -156,5 +156,7 @@ def main():
         Config.init(args.config)
         DB.open(args.dbname)
         args.dispatch(args)
+    except ValueError as err:
+        logging.error(err)
     except Exception as err:
         console.print_exception(show_locals=True)

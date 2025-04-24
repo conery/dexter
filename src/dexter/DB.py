@@ -3,6 +3,7 @@
 from enum import Enum
 from hashlib import md5
 import logging
+import os
 import re
 import string
 
@@ -27,8 +28,8 @@ class Column(Enum):
     cr = 'credit'
     dr = 'debit'
 
-    def __str__(self):
-        return self.value
+    # def __str__(self):
+    #     return self.value
     
     def opposite(self):
         return Column.dr if self.value == 'credit' else Column.cr
@@ -73,7 +74,7 @@ class Entry(Document):
 
     def __str__(self):
         e = '+' if self.column == Column.dr else '-'
-        return f'<En {self.date} {self.account} {e}${self.amount}>'
+        return f'<En {self.date} {self.account} {e}${self.amount} {self.tags}>'
     
     def row(self):
         amt = f'${self.amount:.02f}'
@@ -111,7 +112,7 @@ class Transaction(Document):
     pamount = FloatField()
 
     def __str__(self):
-        return f'<Tr {self.pdate} {self.pcredit} -> {self.pdebit} ${self.pamount} {self.description}>'
+        return f'<Tr {self.pdate} {self.pcredit} -> {self.pdebit} ${self.pamount} {self.description} {self.tags}>'
 
     def row(self):
         return [
@@ -119,6 +120,8 @@ class Transaction(Document):
             str(self.pdate),
             f'{self.pcredit} -> {self.pdebit}',
             self.description,
+            self.comment,
+            str(self.tags),
         ]
 
     @property
@@ -136,7 +139,11 @@ class Transaction(Document):
     @property
     def originals(self):
         return '/'.join(e.description for e in self.entries)
-    
+
+    @property
+    def isbudget(self):
+        return Tag.B.value in self.tags
+
     def clean(self):
         self.pdate = min(e.date for e in self.entries)
         self.pamount = sum(e.amount for e in self.entries if e.column == Column.cr)
@@ -216,10 +223,16 @@ class DB:
         and database in static variables that are accessible outside the
         class.
 
+        If `dbname` is None use the name in the envionment variable DEX_DB.
+
         Arguments:
-            dbname:  name of the databaae to use
+            dbname:  name of the databaae
         '''
+        dbname = dbname or os.getenv('DEX_DB')
+        if dbname is None:
+            raise ValueError('DB.open: specify a database name with --db or DEX_DB')           
         logging.debug(f'DB: open {dbname}')
+
         DB.client = connect(dbname, UuidRepresentation='standard')
         DB.database = DB.client[dbname]
         DB.dbname = dbname
@@ -303,7 +316,7 @@ class DB:
                     raise ValueError(f'save_records: no uid: {obj}')
                 obj.description = f'{desc} ({n})'
                 logging.debug(f'  {obj.description}')
-            obj.tags.append(Tag.U)
+            # obj.tags.append(Tag.U)
             obj.save()
             uids.add(obj.hash)
 
@@ -381,6 +394,24 @@ class DB:
                     logging.debug(f'account_groups: find all accounts below {s}')
                     grp += [a.name for a in Account.objects(name__startswith=s)]
                 res += grp
+        return res
+    
+    @staticmethod
+    def balance(acct, ending=None, budgets=True):
+        '''
+        Compute the balance of an account, with or without budget transactions.
+
+        Arguments:
+            acct: the name of the account
+            budgets: if False ignore budget transactions
+        '''
+        kwargs = {'account': acct}
+        if ending:
+            kwargs['end_date'] = ending
+        res = sum(e.value for e in DB.select(Entry, **kwargs))
+        if not budgets:
+            kwargs['tag'] = Tag.B
+            res -= sum(e.value for e in DB.select(Entry, **kwargs))
         return res
 
     # RegExp search.  The first version is a simple linear search.
