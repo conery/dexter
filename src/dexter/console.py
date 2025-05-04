@@ -17,8 +17,8 @@ from rich.table import Table
 
 light_terminal = Theme({
     'table_header': Style(
-        color = 'blue',
-        bgcolor= 'white'
+        color = 'black',
+        bgcolor= 'grey82',
     ),
 })
 
@@ -47,10 +47,11 @@ dark_terminal = Theme({
     'edited': Style(
         color = 'dodger_blue2',
         bgcolor = 'grey82',
-    ),})
+    ),
+})
 
-console = Console(theme=dark_terminal)
-# console = Console(theme=light_terminal)
+# console = Console(theme=dark_terminal)
+console = Console(theme=light_terminal)
 
 def format_amount(n, dollar_sign=False):
     '''

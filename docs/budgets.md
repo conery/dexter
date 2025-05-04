@@ -1,8 +1,6 @@
-# Envelope Budgeting with Double Entry Bookkeeping
+# Envelope Budgeting with Dexter
 
-In this section we introduce a new approach to envelope budgeting in a double-entry accounting system.
-
-The philosophy is to allocate income to "envelopes" or "buckets" for different expense categories.
+[Envelope budgeting](https://en.wikipedia.org/wiki/Envelope_system) is a systen where income is allocated to "envelopes" or "buckets" for different expense categories 
 When an expense is incurred, it should be paid for out of the corresponding envelope.
 
 The idea is that when we go to make a purchase and there is not enough money in an envelope we should rethink our plans.
@@ -26,7 +24,7 @@ These typically involve setting up new asset accounts to represent envelopes and
 
 Our method is much simpler.
 We don't require any new accounts or any type of virtual transactions.
-A single transaction at the beginning of the month will fill envelopes, and after that all purchases automatically reduce the available funds in the corresponding envelope.
+A single **budget transaction** at the beginning of the month will fill envelopes, and after that all purchases automatically reduce the available funds in the corresponding envelope.
 
 ## Account Balances
 
@@ -46,7 +44,7 @@ Here are a few example transactions (written in the Journal format used by `hled
     assets:checking             $-100.00
 
 2024-01-07  Chez Ray
-    expenses:food                 $75.00
+    expenses:food:restaurant      $75.00
     assets:checking              $-75.00
 ```
 
@@ -55,28 +53,45 @@ In a journal file the signs on the amounts indicate the direction the money flow
 The first transaction is for our monthly paycheck.
 It debits (adds to) the checking account, and credits an income source.
 
-The next two transactions show we ate at a restaurant and paid for it using our checking account (either a paper check or a debit card), then bought some tools at a hardware store, also directly from the checking account.
+The next two transactions show we bought some tools at a hardware store and paid for them using our checking account (either a paper check or a debit card), then ate at a restaurant, also paying for it directly from the checking account.
 In both cases the negative amount means funds moved out of the checking account and the positive amount means the money was moved into one of the expense accounts.
 
-Because the Journal format uses positve numbers for debits (inflows) and negative numbers for credit (outflows) all we need to do to compute a balance for an account is add the amounts on all lines that name the account.  
+Because the Journal format uses positve numbers for debits (inflows) and negative numbers for credit (outflows) all we need to do to compute a balance for an account is add the amounts on all lines that name the account.
 Looking at the lines above, the three lines that refer to `assets:checking` have amounts $5000, $-75, and $-100, so the balance is $4875.
 
-In the examples above the expense account was debited, but it's worth noting that a transaction can credit an expense account.
+In the examples so far the expense account was debited, but it's worth noting that a transaction can credit an expense account.
 For example, suppose that lunch at the restaurant was with a friend, and the next day our friend used Venmo to reimburse us for their share.
-On our bank statement that will show up as a deposit into our bank account.
-The best way to represent this is with a transaction that debits the checking account (it's an inflow into the account) and credits the expense account that was used for the original purchase:
+The best way to represent this is with a transaction that debits the checking account (it's an inflow into the account) and credits the food expense account.
+Note how the signs are the opposite of what they were in the original purchase:
 
 ```plain
 2024-01-08  venmo from Sam
     assets:checking                 $35.00
-    expenses:food                  $-35.00
+    expenses:food:restaurant       $-35.00
 ```
 
 This transaction has an impact on the balance of both accounts: the checking account now has $4875 (the previous balance) + $35, or $4910, and the restaurant account has $75 - $35, or $40.
 
+This command shows the balance of `expenses:food`, including all subcategories (`expenses:food:groceries`, `expenses:food:restaurant`, _etc_), from the start of the year through the date of the Venmo transaction:
+
+```bash
+$ dex journal expenses:food:2 --start 2024-01-01 --end 2024-01-31 --detail         
+
+expenses:food.*                                                                                                
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ date         ┃ description            ┃ account                ┃        debit ┃       credit ┃      balance ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ 2024-01-01   │ starting balance       │                        │              │              │        $0.00 │
+│ 2024-01-07   │ Chez Ray               │ assets:checking        │       $75.00 │              │       $75.00 │
+│ 2024-01-08   │ venmo from Sam         │ assets:checking        │              │       $35.00 │       $40.00 │
+└──────────────┴────────────────────────┴────────────────────────┴──────────────┴──────────────┴──────────────┘
+```
+
 ## Budget Transactions
 
-The paycheck transaction shown above deposited $5000 in our bank account, and we want to distribute all of it to envelopes, using the following budget:
+The paycheck transaction at the beginning of the month deposited $5000 in our bank account.
+If we're using zero-based budgeting we'll want to distribute all of it to envelopes.
+Suppose this is our budget:
 
 | Expense Category | Amount | Comment |
 | ---- | ----- | ----- |
@@ -84,14 +99,14 @@ The paycheck transaction shown above deposited $5000 in our bank account, and we
 | Car  | $1000 | payment, fuel, misc expenses |
 | Food | $1000 | groceries, restaurants |
 
-The key idea behind our approach is to use **_expense accounts_**, not asset accounts, to represent envelopes.
+The key idea behind Dexter's approach to budgeting is to use **_expense accounts_**, not asset accounts, to represent envelopes.
 
-> [!NOTE] Envelopes = Expense Accounts
-> Envelopes are not simply _associated with_ expense accounts, they _are_ expense accounts.
+<!-- > [!NOTE] Envelopes = Expense Accounts
+> Envelopes are not simply _associated with_ expense accounts, they _are_ expense accounts. -->
 
-The transaction below, which we call a **budget allocation transaction**, allocates funds to envelopes using the budget shown above.
+The transaction below, which we call a **budget allocation transaction**, allocates funds to envelopes according to our budget.
 Note that it _debits income accounts_ and _credits expense accounts_.
-The credits are how we model the process of adding money to the envelope, and the debits are a record of where that money came from.
+The credits are how we model the process of adding money to the envelope, and the debits is a record of where that money came from.
 
 ```plain
 2024-01-02  fill envelopes                        ; budget:
@@ -110,7 +125,7 @@ That seems meaningless, but in fact it's very useful information, as we'll expla
 
 On the other side, what are all those credits to expense accounts doing?
 They certainly play havoc with the balances of those accounts.
-For example, when that credit is combined with the $100 debit at the tool store shown earlier the home account balance is -$3000 plus $100, for a total of -$2900.
+For example, when the credit to `expenses:food` is combined with the two transactions shown earlier the food account balance is -$1000 plus $40, for a total of -$960.
 But here also there is a method to our madness, to be explained shortly.
 
 Before we get to the explanations, though, there is an important point:
@@ -119,9 +134,22 @@ Before we get to the explanations, though, there is an important point:
 
 It's very easy to recover the original meanings of the balance of income and expense accounts by simply not including budget transactions in balance calculations.
 
-Dexter's expense report uses both definitions of when computing the balance on expense accounts:
+Dexter's expense report commands assume we want to use the traditional definitions for income and expense balances.
+If you want to include budget transactions add a `--budget` option to the shell command.
+When the table is printed, an envelope icon (✉️) is included in the column heading for the balance.
+
 ```bash
-$ tbd...
+$ dex journal expenses:food:2 --start 2024-01-01 --end 2024-01-31 --detail --budget
+
+expenses:food.*                                                                                                
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ date         ┃ description            ┃ account                ┃        debit ┃       credit ┃   ✉️  balance ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ 2024-01-01   │ starting balance       │                        │              │              │        $0.00 │
+│ 2024-01-02   │ fill envelopes         │ income:yoyodyne        │              │    $1,000.00 │   −$1,000.00 │
+│ 2024-01-07   │ Chez Ray               │ assets:checking        │       $75.00 │              │     −$925.00 │
+│ 2024-01-08   │ venmo from Sam         │ assets:checking        │              │       $35.00 │     −$960.00 │
+└──────────────┴────────────────────────┴────────────────────────┴──────────────┴──────────────┴──────────────┘
 ```
 
 Budget transactions can also be used in `hledger` and other plain text accounting applications.
@@ -196,24 +224,24 @@ The budget transaction for the new month will include a credit for $1000, and th
 
 When we eat dinner at a restaurant we have a choice of how to pay for it.
 Typically we use a debit card (the modern equivalent of writing a check) or one of our credit cards.
-The transactions will look something like this:
+In these transactions we used a debit card at one restaurant and a credit card at the other:
 ```plain
 2024-01-07  Chez Ray
-    expenses:food                $75.00
+    expenses:food:restaurant     $75.00
     assets:checking             $-75.00
 
 2024-01-17  Burger Palace
-    expenses:food                $25.00
-    liability:chase:visa        $-25.00
+    expenses:food:restaurant     $25.00
+    liabilities:chase:visa      $-25.00
 ```
 
-For budgeting purposes it doesn't matter what account was used for the credit (source) side of the transaction.
+For budgeting purposes it doesn't matter which account was used for the credit (source) side of the transaction.
 Whenever a transaction debits an expense account the envelope balance is updated.
 After lunch at Burger Palace the food account will have -$1000 + $75 + $25 = -$900.
 
 ## Income Account Balance
 
-When a database has a budget transaction it changes how we interpret the balance for income accounts.
+When a database has a budget allocation transaction it changes how we interpret the balance for income accounts.
 
 Currently your income transactions probably all have the same general form as the example shown above:
 ```plain
@@ -266,7 +294,7 @@ Another common occurrence is that your asset accounts will earn interest each mo
 
 One way to deal with is to have a rule or a script that runs every month to compute the total earned in all accounts and insert a new budget transaction that allocates that amount to one of your envelopes:
 ```plain
-2024-01-31  allocate interest income    ; budget:
+2024-01-31  allocate interest income           ; budget:
     income:interest                $12.34
     expenses:bank                 $-12.34
 ```
@@ -304,7 +332,9 @@ The debits and credits on this transaction need to be consistent with other tran
 
 * the credit to the `car` account, indicated by the minus sign, is comparable to credits in other transactions, for example if we return a purchase or when when money is allocated by a budget transaction; it means "we are adding this much money to the envelope"
 
-**One other important note:** this transaction should have a `budget:` tag to make sure it is not included in reports that use the traditional definition of the expense account balances.
+**One other important note:** this transaction should be tagged to make sure it is not included in reports that use the traditional definition of the expense account balances.
+
+> Dexter can import transactions from a Journal file.  In those files tags use the Ledger/hledger format of a tag name followed by a colon.  In the database and in shell commands tags are denoted by a hash tag before the tag name.
 
 ## Using the Equity Account
 
@@ -319,8 +349,8 @@ This shows our checking account had $1000 and our savings account had $7000 on J
 ```
 To make sure the transaction balances, the amount on the last line is the total amount in all of our accounts.
 
-In this situation, the total in the `equity` account is the amount of money we have in the bank.
-It's not the same as our real-life equity (net worth), which would include large assets like homes, investment accounts, _etc_.
+<!-- In this situation, the total in the `equity` account is the amount of money we have in the bank.
+It's not the same as our real-life equity (net worth), which would include large assets like homes, investment accounts, _etc_. -->
 
 ### Transfers to Savings Accounts
 
@@ -378,7 +408,7 @@ But we also want to make sure that money ends up in the `travel` envelope:
 ```
 Note how we're debiting `equity` (when we moved money to savings it was a credit), and the credit to the expense account is adding the money to the travel envelope (just like the credits in the budget transaction). 
 
-**Important:**  This transaction should also be tagged `budget:` so it is filtered out with other budget transactions when making reports that use the standard definitions of income and expense balance.
+**Important:**  This transaction should also be tagged so it is filtered out with other budget transactions when making reports that use the standard definitions of income and expense balance.
 
 ## Nominal Accounts
 

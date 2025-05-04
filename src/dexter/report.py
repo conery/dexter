@@ -134,8 +134,8 @@ def print_detail_table(lst, name, bal, budget, date):
 
     t = Table(
         Column(header='date', width=12),
-        Column(header='description', width=30, no_wrap=True),
-        Column(header='account', width=30),
+        Column(header='description', width=22, no_wrap=True),
+        Column(header='account', width=22, no_wrap=True),
         Column(header='debit', width=12, justify='right'),
         Column(header='credit', width=12, justify='right'),
         Column(header=balance_header, width=12, justify='right'),

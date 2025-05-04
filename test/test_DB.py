@@ -29,8 +29,8 @@ class TestDB:
         Check the number of documents in each of the collections in the 
         test data.
         '''
-        assert db.command('count','account')['n'] == 10
-        assert db.command('count','entry')['n'] == 38
+        assert db.command('count','account')['n'] == 16
+        assert db.command('count','entry')['n'] == 40
         assert db.command('count','transaction')['n'] == 16
 
     def test_uids(self, db):
@@ -45,17 +45,36 @@ class TestDB:
         Call find_account with a string that matches one name
         '''
         lst = DB.find_account("yoyo")
-        assert len(lst) == 1 and lst[0].name == 'yoyodyne'
+        assert len(lst) == 1 and lst[0].name == 'income:yoyodyne'
 
     def test_name_parts(self, db):
         '''
         Test the method that separates names into parts
         '''
         names = DB.account_name_parts()
-        assert len(names) == 13
+        assert len(names) == 22
         assert 'yoyodyne' in names
         assert 'chase' in names
         assert 'visa' in names
+
+    def test_all_full_names(self, db):
+        '''
+        Test the method that maps a partial name to the full name
+        in the account hierarchy
+        '''
+        dct = DB.full_names()
+        assert len(dct) == 22
+        assert dct['assets'] == ['assets:bank:checking', 'assets:bank:savings']
+        assert len(dct['expenses']) == 10
+
+    def test_full_names(self, db):
+        '''
+        Test the method that maps a partial name to the full name
+        in the account hierarchy
+        '''
+        dct = DB.full_names('expenses')
+        assert len(dct) == 11
+        assert dct['car'] == ['expenses:car', 'expenses:car:payment', 'expenses:car:fuel']
 
     def test_account_groups(self, db):
         '''
@@ -76,12 +95,12 @@ class TestDB:
         '''
         lst = Transaction.objects(description='Safeway')
         t = lst[0]
-        assert t.accounts == {'groceries','bank:checking'}
-        assert t.originals == 'weekly/Safeway'
+        assert t.accounts == {'expenses:food:groceries','assets:bank:checking'}
+        assert t.originals == 'assigned/read from CSV'
         assert len(t.debits) == len(t.credits) == 1
         assert t.pdate == date(2024,1,7)
-        assert t.pcredit == 'bank:checking'
-        assert t.pdebit == 'groceries'
+        assert t.pcredit == 'assets:bank:checking'
+        assert t.pdebit == 'expenses:food:groceries'
         assert t.pamount == 75.00
     
     def test_select_transactions(self, db):
@@ -128,13 +147,13 @@ class TestDB:
         assert all('budget' in t.comment for t in lst)
 
         # select by account
-        lst = DB.select(Transaction, credit='mortgage')
-        assert len(lst) == 2
-        assert all('mortgage' in t.pcredit for t in lst)
+        lst = DB.select(Transaction, credit='expenses:home')
+        assert len(lst) == 3
+        assert all('home' in t.pcredit for t in lst)
 
-        lst = DB.select(Transaction, debit='mortgage')
-        assert len(lst) == 2
-        assert all('mortgage' in t.pdebit for t in lst)
+        lst = DB.select(Transaction, debit='expenses:home')
+        assert len(lst) == 3
+        assert all('home' in t.pdebit for t in lst)
 
     def test_select_transactions_multi(self, db):
         '''
@@ -155,7 +174,7 @@ class TestDB:
         '''
         # all entries
         lst = DB.select(Entry)
-        assert len(lst) == 38
+        assert len(lst) == 40
 
         # select by date
         lst = DB.select(Entry, date=date(2024,1,5))
@@ -163,34 +182,34 @@ class TestDB:
         assert all(e.date == date(2024,1,5) for e in lst)
 
         lst = DB.select(Entry, start_date=date(2024,1,5))
-        assert len(lst) == 29
+        assert len(lst) == 30
         assert all(e.date >= date(2024,1,5) for e in lst)
 
         lst = DB.select(Entry, end_date=date(2024,1,5))
-        assert len(lst) == 11
+        assert len(lst) == 12
         assert all(e.date <= date(2024,1,5) for e in lst)
 
         # select by amount
-        lst = DB.select(Entry, amount=900)
-        assert len(lst) == 2
-        assert all(e.amount == 900 for e in lst)
+        lst = DB.select(Entry, amount=500)
+        assert len(lst) == 10
+        assert all(e.amount == 500 for e in lst)
 
-        lst = DB.select(Entry, max_amount=900)
+        lst = DB.select(Entry, max_amount=500)
+        assert len(lst) == 26
+        assert all(e.amount <= 500 for e in lst)
+
+        lst = DB.select(Entry, min_amount=500)
         assert len(lst) == 24
-        assert all(e.amount <= 900 for e in lst)
-
-        lst = DB.select(Entry, min_amount=900)
-        assert len(lst) == 16
-        assert all(e.amount >= 900 for e in lst)
+        assert all(e.amount >= 500 for e in lst)
 
         # select by account
         lst = DB.select(Entry, account='groceries')
-        assert len(lst) == 6
-        assert all(e.account == 'groceries' for e in lst)
+        assert len(lst) == 4
+        assert all(e.account == 'expenses:food:groceries' for e in lst)
 
         # select by column
         lst = DB.select(Entry, column='credit')
-        assert len(lst) == 22
+        assert len(lst) == 24
         assert all(e.column == Column.cr for e in lst)
 
         lst = DB.select(Entry, column='debit')
@@ -203,3 +222,19 @@ class TestDB:
         assert e.column == Column.cr
         assert e.column.opposite() == Column.dr
         assert e.column.opposite().opposite() == e.column
+
+    def test_balance(self, db):
+        '''
+        The balance over all entries should be 0
+        '''
+        assert DB.balance('') == 0
+
+    def test_food_balance(self, db):
+        '''
+        Test the balance of a specified account, with and without budget
+        transactions and with and without dates
+        '''
+        assert DB.balance('food') == -600
+        assert DB.balance('food', budgets=False) == 400
+        assert DB.balance('food', ending='2024-01-31') == -250
+        assert DB.balance('food', ending='2024-01-31', budgets=False) == 250

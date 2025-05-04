@@ -3,92 +3,100 @@
 ;
 
 account equity                    ; type: equity
-account yoyodyne                  ; type: income
-account bank:checking             ; type: assets
-account amex:blue                 ; type: liabilities
-account chase:visa                ; type: liabilities
-account groceries                 ; type: expenses
-account household                 ; type: expenses
-account mortgage                  ; type: expenses
-account car                       ; type: expenses
-account travel                    ; type: expenses
+account assets:bank:checking             ; type: assets
+account assets:bank:savings             ; type: assets
+account expenses:car                       ; type: expenses
+account expenses:car:payment                       ; type: expenses
+account expenses:car:fuel                       ; type: expenses
+account expenses:food                       ; type: expenses
+account expenses:food:groceries                 ; type: expenses
+account expenses:food:restaurant                ; type: expenses
+account expenses:home                       ; type: expenses
+account expenses:home:household                 ; type: expenses
+account expenses:home:mortgage                  ; type: expenses
+account expenses:travel                    ; type: expenses
+account income:yoyodyne                  ; type: income
+account liabilities:amex                 ; type: liabilities
+account liabilities:chase:visa                ; type: liabilities
 
 # Monthly paychecks and bucket fills
 
-2024-01-02 paycheck ; 
-    bank:checking     $5,000.00      ; Jan pay
-    yoyodyne    $-5,000.00      ; January
+2024-01-02 Jan paycheck ; 
+    assets:bank:checking     $5,000.00
+    income:yoyodyne         $-5,000.00
 
-2024-01-02 fill buckets ; 2024 budget
-    yoyodyne      $5,000.00     ; January allocation
-    groceries    $-300.00       ; Jan
-    mortgage   $-1,800.00       ; Jan
-    car          $-900.00       ; Jan
-    travel     $-2,000.00       ; Jan
+2024-01-02 fill envelopes ;   budget:
+    income:yoyodyne      $5,000.00
+    expenses:food         $-500.00
+    expenses:home       $-2,500.00
+    expenses:car        $-1,000.00
+    expenses:travel       $-500.00
+    equity                $-500.00
 
-2024-02-02 paycheck ; 
-    bank:checking     $5,000.00      ; Feb pay
-    yoyodyne    $-5,000.00      ; February
+2024-02-02 Feb paycheck ; 
+    assets:bank:checking     $5,000.00
+    income:yoyodyne         $-5,000.00
 
-2024-02-02 fill buckets ; 2024 budget
-    yoyodyne      $5,000.00     ; February allocation
-    groceries    $-300.00       ; Feb
-    mortgage   $-1,800.00       ; Feb
-    car          $-900.00       ; Feb
-    travel     $-2,000.00       ; Feb
+2024-02-02 fill envelopes ;    budget:
+    income:yoyodyne      $5,000.00
+    expenses:food         $-500.00
+    expenses:home       $-2,500.00
+    expenses:car        $-1,000.00
+    expenses:travel       $-500.00
+    equity                $-500.00
 
 # Car expenses
 
-2024-01-05 car payment ; 
-    car        $500.00          ; Jan
-    bank:checking    $-500.00        ; xfer to loan #xxx
+2024-01-05 car payment 
+    expenses:car:payment        $500.00
+    assets:bank:checking       $-500.00
 
-2024-02-05 car payment ; 
-    car        $500.00          ; Feb
-    bank:checking    $-500.00        ; xfer to loan #xxx
+2024-02-05 car payment 
+    expenses:car:payment        $500.00
+    assets:bank:checking       $-500.00
 
-2024-01-10 Shell Oil ; 
-    car    $50.00               ; gas
-    chase:visa    $-50.00             ; Barney's Shell
+2024-01-10 Shell Oil 
+    expenses:car:fuel          $50.00
+    liabilities:chase:visa       $-50.00
 
-2024-02-26 Shell Oil ; 
-    car    $60.00               ; gas
-    chase:visa    $-60.00             ; Fred's Shell
+2024-02-26 Shell Oil 
+    expenses:car:fuel          $60.00
+    liabilities:chase:visa       $-60.00
 
 # Mortgage payments
 
-2024-01-04 Rocket Mortgage ; 
-    mortgage    $1,800.00        ; Jan
-    bank:checking    $-1,800.00       ; xfer to loan #yyy
+2024-01-04 Rocket Mortgage 
+    expenses:home:mortgage    $1,800.00        ; Jan
+    assets:bank:checking     $-1,800.00
 
 2024-02-04 Rocket Mortgage ; 
-    mortgage    $1,800.00        ; Feb
-    bank:checking    $-1,800.00       ; xfer to loan #yyy
+    expenses:home:mortgage    $1,800.00        ; Feb
+    assets:bank:checking     $-1,800.00
 
 # groceries
 
 2024-01-07  Safeway ; weekly groceries
-    groceries  $75.00           ; weekly
-    bank:checking    $-75.00         ; Safeway
+    expenses:food:groceries      $75.00         ; assigned
+    assets:bank:checking        $-75.00         ; read from CSV
 
 2024-01-21  Safeway 
-    groceries  $175.00          ; big party this weekend
-    chase:visa    $-175.00            ; Safeway
+    expenses:food:groceries     $175.00          ; big party this weekend
+    liabilities:chase:visa        $-175.00
 
-2024-02-07  Safeway ;
-    groceries  $75.00           ; weekly
-    bank:checking    $-75.00         ; Safeway
+2024-02-07  Safeway
+    expenses:food:groceries      $75.00
+    assets:bank:checking        $-75.00
 
-2024-02-21  Safeway ;
-    groceries  $75.00           ; normal
-    chase:visa    $-75.00             ; Safeway
+2024-02-21  Safeway
+    expenses:food:groceries      $75.00
+    liabilities:chase:visa         $-75.00
 
 ; Buy something for the house using a card, return part of it
 
-2024-03-10 Home Depot ; paint
-    household    $50.00         ; paint
-    amex:blue    $-50.00             ; HD Store 100
+2024-03-10 Home Depot
+    expenses:home:household      $50.00         ; paint
+    liabilities:amex               $-50.00
 
-2024-03-12 Home Depot ; return
-    household    $-25.00        ; didn't use pink
-    amex:blue    $25.00              ; HD Store 100
+2024-03-12 Home Depot
+    expenses:home:household     $-25.00        ; didn't use pink
+    liabilities:amex                $25.00

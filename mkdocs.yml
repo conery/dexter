@@ -21,7 +21,12 @@ plugins:
 
 nav:
   - "Home":
-    - "Welcome": index.md
+    - "Introduction": 
+      - "Overview": index.md
+      - "History": history.md
+      - "Double Entry Bookkeeping": deb.md
+      - "Philosophy": philosophy.md
+      - "Workflow": workflow.md
     - "The Budget Model": budgets.md
   - "Running the Applications":
     - "dex Command Line": dex.md
