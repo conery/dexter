@@ -1,9 +1,10 @@
 # Monthly Workflow
 
-The 
+The standard workflow assumes transactions are saved in a database.
+Each month a new batch of CSVs is downloaded, added to the database, and refined into a set of transactions.
 
-
-Dexter stores account data and transactions in a NoSQL database, so it's not strictly a plain text accounting application, but it does support the `.journal` format used by Ledger, hledger, and similar applications.
-It's a straightforward process to import a journal with account definitions to initialize a database, use Dexter's workflow to process a batch of CSV files downloaded from banks and credit card companies, and export the results as a journal file.
+Because the scripts that initialize a database can read `.journal` files from hledger there is an aternative workflow for users who just want to use Dexter to convert CSV files into transactions or for envelope budgeting.
+In this workflow, a temporary database is created using account definitions, new records are loaded from CSV files, and the results are written back out in a `.journal` format that can be read by hldeger.
+See [hledger Workflow](hledger.md) for details.
 
 

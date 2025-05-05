@@ -233,12 +233,24 @@ class DB:
             raise ValueError('DB.open: specify a database name with --db or DEX_DB')           
         logging.debug(f'DB: open {dbname}')
 
+        DB.client = connect()
+        dblist = DB.client.list_database_names()
+        if dbname not in dblist:
+            raise ValueError(f'DB.open: no database named {dbname}')
+        disconnect()
+
         DB.client = connect(dbname, UuidRepresentation='standard')
         DB.database = DB.client[dbname]
+
+        clist = [x['name'] for x in DB.database.list_collections()]
+        logging.debug(f'DB.open: collections: {clist}')
+
+        if not all(cls in clist for cls in ['account','entry','transaction']):
+            raise ValueError(f'DB.open: database missing Dexter collections')
+
         DB.dbname = dbname
         DB.models = [cls for cls in Document.__subclasses__() if hasattr(cls, 'objects')]
         DB.collections = { cls._meta["collection"]: cls for cls in DB.models }
-        logging.debug(f'models: {DB.models}')
 
     @staticmethod
     def erase_database():
