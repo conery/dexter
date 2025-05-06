@@ -42,6 +42,8 @@ class Config:
     API to the config file.
     '''
 
+    path_to_default = Path(__file__).parent / 'dex.toml'
+
     cname = 'credit'
     dname = 'debit'
 
@@ -55,6 +57,11 @@ class Config:
     # parsers = { }
     colmaps = { }
     fullname = { }
+
+    @staticmethod
+    def print_default():
+        with open(Config.path_to_default) as f:
+            print(f.read())
 
     @staticmethod
     def init(cfile: str | None):
@@ -106,7 +113,7 @@ class Config:
         else:
             config_path = Path.cwd() / 'dex.toml'
             if not config_path.is_file():
-                config_path = Path(__file__).parent / 'dex.toml'
+                config_path = Config.path_to_default
         logging.debug(f'config: reading {config_path}')
 
         with open(config_path, 'rb') as f:

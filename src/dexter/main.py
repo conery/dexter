@@ -19,13 +19,13 @@ from .report import print_audit_report, print_balance_report, print_expense_repo
 from .review import review_unpaired
 from .select import select_transactions
 
-# Functions for commands (will be moved to modules)
+# Stub functions for commands (will be moved to modules)
 
 def reconcile_statements(args):
-    print('reconcile_statements')
+    logging.error('reconcile not implemented')
 
-def generate_report(args):
-    print('generate_report')
+def add_transaction(args):
+    logging.error('add not implemented')
 
 
 def init_cli():
@@ -45,6 +45,8 @@ def init_cli():
     parser.add_argument('--config', metavar='F', help='TOML file with configuration settings')
     
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
+
+    config_parser = subparsers.add_parser('config', help='print default config file')
 
     init_db_parser = subparsers.add_parser('init', help='initialize a database')
     init_db_parser.set_defaults(dispatch=init_database)
@@ -80,6 +82,9 @@ def init_cli():
 
     review_parser = subparsers.add_parser('review', help='review transactions')
     review_parser.set_defaults(dispatch=review_unpaired)
+
+    add_trans_parser = subparsers.add_parser('add', help='add a new transaction')
+    add_trans_parser.set_defaults(dispatch=add_transaction)
 
     reconcile_parser = subparsers.add_parser('reconcile', help='reconcile statements')
     reconcile_parser.set_defaults(dispatch=reconcile_statements)
@@ -139,6 +144,10 @@ def init_cli():
         print('command required')
         parser.print_usage()
         exit(1)
+
+    if args.command == 'config':
+        Config.print_default()
+        exit(0)
 
     if 'month' in vars(args):
         if m := args.month:

@@ -1,8 +1,8 @@
 # Default configuration settings
 
 [terminology]
-cname = "credit"   # alts:  "from", "out", "destination"
-dname = "debit"    # alts:  "to", "in", "source"
+cname = "credit"   # alts:  "from", "out", "source"
+dname = "debit"    # alts:  "to", "in", "destination"
 
 [csv]
 
