@@ -12,61 +12,47 @@ from .util import parse_date
 
 ###
 #
-# Methods for exporting and importing records from a text file.  
+# Top level method for saving all documents to a JSON file
 #
 
-def export_records(args):
+def save_records(args):
     '''
     The top level function, called from main when the command 
-    is "export".  Writes records from all collections to a single
+    is "save".  Writes records from all collections to a single
     text file.
 
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    logging.info(f'Exporting to {args.file}')
-    logging.debug(f'export {vars(args)}')
+    logging.info(f'Saving to {args.file}')
+    logging.debug(f'save {vars(args)}')
     try:
         mode = 'w' if args.force else 'x'
         with open(args.file, mode) as f:
-            DB.export_as_json(f)
+            DB.save_as_json(f)
     except FileExistsError as err:
         logging.error(f'file exists: {args.file}, use --force to overwrite')
         exit(1)
 
-def import_records(args):
+###
+#
+# Top level method for restoring a database from a JSON file
+# created by a previous call to save
+#
+
+def restore_records(args):
     '''
     The top level function, called from main when the command 
-    is "import".  Redirects to the method that will load the data,
-    using the file name extension or command line argument to 
-    determine the input file format.
+    is "restore".  Reads JSON records from a file previously
+    created by a call to "save".
 
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    logging.debug(f'import {vars(args)}')
+    logging.debug(f'restore {vars(args)}')
 
-    p = Path(args.file)
-    fmt = args.format or p.suffix[1:]
-    match fmt:
-        case 'docs': import_docs(p, args.preview)
-        case 'journal': import_journal(p, args.preview)
-        case _: logging.error(f'init: unknown file extension:{p.suffix}')
-    if args.regexp and not args.preview:
-        import_regexp(args.regexp)
-
-# Import records from a docs file (created by a previous call to
-# export_records)
-
-def import_docs(fn: Path, preview):
-    '''
-    Read accounts and transactions from a docs file.  Erases any
-    previous documents in the database.
-
-    Arguments:
-        fn: path to the input file
-    '''
-    logging.info(f'DB:importing docs file:{fn}')
+    fn = Path(args.file)
+    logging.info(f'DB:restoring docs file:{fn}')
     DB.erase_database()
 
     with open(fn) as f:
@@ -75,13 +61,41 @@ def import_docs(fn: Path, preview):
                 sep = line.find(':')
                 collection = line[:sep]
                 doc = line[sep+1:].strip()
-                DB.import_from_json(collection, doc)
+                if args.preview:
+                    print(doc)
+                else:
+                    DB.restore_from_json(collection, doc)
             except Exception as err:
                 logging.error(err)
 
-# Import records from a .journal file
+###
+#
+# Top level method for initializing a database
+#
 
-def import_journal(fn: Path, preview):
+def init_database(args):
+    '''
+    The top level function, called from main when the command 
+    is "init".  Initializes a new database using records from
+    either a .journal file or a CSV file.
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    p = Path(args.file)
+    fmt = args.format or p.suffix[1:]
+    match fmt:
+        case 'journal': init_from_journal(p, args.preview)
+        case 'csv': init_from_csv(p, args.preview)
+        case _: logging.error(f'init_database: unknown file extension:{p.suffix}')
+    # if args.regexp and not args.preview:
+    #     import_regexp(args.regexp)
+
+
+def init_from_csv(fn: Path, preview: bool):
+    logging.error('init_from_csv: not implemented')
+
+def init_from_journal(fn: Path, preview: bool = False):
     '''
     Read accounts and transactions from a plain text accounting
     (.jorurnal) file.  Erases any previous documents in the database.
@@ -105,15 +119,6 @@ def import_journal(fn: Path, preview):
             except Exception as err:
                 logging.error(f'import: error saving {obj}')
                 logging.error(err)
-
-# Read regular expression descriptions from a CSV file
-
-def import_regexp(fn):
-    with open(fn) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for rec in reader:
-            e = RegExp(**rec)
-            e.save()
 
 def parse_amount(s):
     '''
@@ -279,43 +284,60 @@ class JournalParser:
             'transactions': self.transactions,
         }
 
+# Read regular expression descriptions from a CSV file
+
+def import_regexp(fn):
+    with open(fn) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for rec in reader:
+            e = RegExp(**rec)
+            e.save()
+
 ###
 #
-# Top level method for parsing a CSV file to add new records to a DB
+# Top level method for parsing a file to import new records to a DB
 #
 
-def add_records(args):
+def import_records(args):
     '''
     The top level function, called from main when the command 
-    is "add".  Parses one or more CSV files to create new Entry
-    documents.
+    is "import".  Parses one or more files to create new documents.
 
     Arguments:
         args: Namespace object with command line arguments.
     '''
     for path in args.files:
-        logging.info(f'Add records from {path}')
         if not path.is_file():
-            logging.error(f'add: no file named {path}')
-            continue            
-        basename = args.account or path.stem
-        alist = DB.find_account(basename)
-        if len(alist) == 0:
-            logging.error(f'add: no account name matches {basename}')
+            logging.error(f'import: no file named {path}')
             continue
-        if len(alist) > 1:
-            logging.error(f'add: ambiguous account name {basename}')
-            continue
-        account = alist[0].name
-        parser = account.split(':')[0]
-        if parser not in Config.colmaps.keys():
-            logging.error(f'add: no parser for {account}')
-            continue
-        recs = parse_file(path, parser, account, args.start_date, args.end_date, DB.uids())
+        if path.suffix == '.journal':
+            recs = import_from_journal(path)
+        elif path.suffix != '.csv':
+            logging.error(f'import: unknown extension {path.suffix}')
+        else:
+            basename = args.account or path.stem
+            alist = DB.find_account(basename)
+            if len(alist) == 0:
+                logging.error(f'import: no account name matches {basename}')
+                continue
+            if len(alist) > 1:
+                logging.error(f'import: ambiguous account name {basename}')
+                continue
+            account = alist[0].name
+            parser = account.split(':')[0]
+            logging.debug(f'import_records: account {account} parser {parser}')
+            if parser not in Config.colmaps.keys():
+                logging.error(f'import: no parser for {account}')
+                continue
+            recs = parse_file(path, parser, account, args.start_date, args.end_date, DB.uids())
         if args.preview:
             print_records(recs)
         else:
             DB.save_records(recs)
+
+def import_from_journal(fn):
+    logging.error(f'import:  journal format not implemented')
+    return []
     
 def parse_file(fn, pname, account, starting, ending, previous):
     '''
@@ -360,3 +382,18 @@ def parse_file(fn, pname, account, starting, ending, previous):
             res.append(e)
             logging.debug(f'record: {e}')
     return res
+
+###
+#
+# Top level method for exporting transactions
+#
+
+def export_records(args):
+    '''
+    The top level function, called from main when the command 
+    is "export".
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    logging.error(f'export: not implemented')

@@ -2,17 +2,17 @@
 
 import pytest
 
-from dexter.io import import_journal, import_regexp
+from dexter.io import init_from_journal, import_regexp
 from dexter.DB import DB, RegExp, Action
 
 @pytest.fixture
-def redb(scope='module'):
+def redb(scope='session'):
     '''
     Create a new database for the regular expression tests 
     '''
-    DB.open('pytest')
+    DB.open('pytest', must_exist=False)
     DB.erase_database()
-    import_journal('test/fixtures/mini.journal', False)
+    init_from_journal('test/fixtures/mini.journal')
     import_regexp('test/fixtures/regexp.csv')
     return DB.database
 

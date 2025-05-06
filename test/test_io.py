@@ -2,7 +2,7 @@
 
 import pytest
 
-from dexter.io import import_journal, add_records
+from dexter.io import init_from_journal, add_records
 from dexter.DB import DB
 
 @pytest.fixture
@@ -10,9 +10,9 @@ def iodb(scope='module'):
     '''
     Create a new database for the IO tests 
     '''
-    DB.open('pytest')
+    DB.open('pytest', must_exist=False)
     DB.erase_database()
-    import_journal('test/fixtures/mini.journal', False)
+    init_from_journal('test/fixtures/mini.journal')
     return DB.database
 
 class TestIO:

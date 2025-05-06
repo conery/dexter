@@ -164,7 +164,7 @@ def print_transaction_table(
             row.append(format_amount(rec.pamount, dollar_sign=True))
             row.append(rec.description)
             row.append(rec.comment)
-            row.append("".join([f'#{s}' for s in rec.tags]))
+            row.append(", ".join([f'{s}' for s in rec.tags]))
         if as_csv:
             writer.writerow(dict(zip(colnames,row)))
         else:

@@ -217,7 +217,7 @@ class DB:
     dbname = None
 
     @staticmethod
-    def open(dbname: str):
+    def open(dbname: str, must_exist: bool):
         '''
         Connect to a MongoDB server and database.  Saves the connection
         and database in static variables that are accessible outside the
@@ -226,27 +226,30 @@ class DB:
         If `dbname` is None use the name in the envionment variable DEX_DB.
 
         Arguments:
-            dbname:  name of the databaae
+            dbname:  name of the database
+            must_exist:  if True make sure the database exists and is a Dexter database  
         '''
         dbname = dbname or os.getenv('DEX_DB')
         if dbname is None:
             raise ValueError('DB.open: specify a database name with --db or DEX_DB')           
         logging.debug(f'DB: open {dbname}')
 
+        disconnect()
         DB.client = connect()
         dblist = DB.client.list_database_names()
-        if dbname not in dblist:
+        if must_exist and dbname not in dblist:
             raise ValueError(f'DB.open: no database named {dbname}')
+        
         disconnect()
-
         DB.client = connect(dbname, UuidRepresentation='standard')
         DB.database = DB.client[dbname]
 
         clist = [x['name'] for x in DB.database.list_collections()]
         logging.debug(f'DB.open: collections: {clist}')
 
-        if not all(cls in clist for cls in ['account','entry','transaction']):
-            raise ValueError(f'DB.open: database missing Dexter collections')
+        if must_exist:
+            if not all(cls in clist for cls in ['account','entry','transaction']):
+                raise ValueError(f'DB.open: database missing Dexter collections')
 
         DB.dbname = dbname
         DB.models = [cls for cls in Document.__subclasses__() if hasattr(cls, 'objects')]
@@ -260,7 +263,7 @@ class DB:
         DB.client.drop_database(DB.dbname)
 
     @staticmethod
-    def import_from_json(collection: str, doc: str):
+    def restore_from_json(collection: str, doc: str):
         '''
         Add a new record to a collection.
 
@@ -274,7 +277,7 @@ class DB:
         obj.save()
 
     @staticmethod
-    def export_as_json(f):
+    def save_as_json(f):
         '''
         Iterate over collections, write each record along with its 
         collection name.
@@ -284,7 +287,7 @@ class DB:
         '''
 
         for collection, cls in DB.collections.items():
-            logging.debug(f'exporting {collection}')
+            logging.debug(f'saving {collection}')
             for obj in cls.objects:
                 print(f'{collection}: {obj.to_json()}', file=f)
 

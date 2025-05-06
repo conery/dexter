@@ -2,7 +2,6 @@
 
 import click
 from curses.ascii import ESC, ctrl, unctrl
-import logging
 import readline
 import re
 import string
@@ -55,6 +54,86 @@ from .util import debugging
 #     def xline(self):
 #         acct = self.transaction.entries[1].account or ' ^A account '
 #         return Text('    ') + Text(acct, style='editable')
+
+# Key combinations used to trigger updates
+
+class KEY:
+    PREV = chr(ESC) + '[' + 'A'
+    NEXT = chr(ESC) + '[' + 'B'
+    EDIT_DESC = ctrl('P')             # mnemonic:  "payee"
+    EDIT_COMMENT = ctrl('N')          # mnemonic:  "note"
+    EDIT_TAGS = ctrl('G')
+    EDIT_ACCOUNT = ctrl('T')          # mnemonic:  "to"
+    EDIT_REGEXP = ctrl('E')
+    FILL_DESC = ctrl('F')
+    MOD_DESC = ctrl('L')              # mnemonic:  "lambda"
+    ACCEPT = ctrl('A')
+
+cmnd_keys = { x[1] for x in vars(KEY).items() if not x[0].startswith('__') }
+digit_keys = set('0123456789')
+all_keys = cmnd_keys | digit_keys | { '?' }
+
+field_names = {
+    KEY.EDIT_DESC: 'description',
+    KEY.EDIT_COMMENT: 'comment',
+    KEY.EDIT_TAGS: 'tags',
+    KEY.MOD_DESC: 'description',
+}
+
+###
+#
+# Top level method for reviewing transactions
+#
+
+def review_unpaired(args):
+    '''
+    The top level function, called from main when the command 
+    is "review". 
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    unpaired = DB.select(Entry, tag=Tag.U)
+    accounts = list(DB.account_name_parts('expense') | DB.account_name_parts('income'))
+    fullnames = DB.full_names('expense') | DB.full_names('income')
+    readline.parse_and_bind('tab: complete')
+    readline.set_completer(completer_function(accounts))
+    row = 0
+    tlist = [make_candidate(e) for e in unpaired]
+    try:
+        if not debugging():
+            console.set_alt_screen(True)
+        while len(tlist) > 0:
+            display_row(tlist[row])
+            key = click.getchar()
+            if key not in all_keys:
+                continue
+            match key:
+                case KEY.PREV:
+                    row = (row - 1) % len(tlist)
+                case KEY.NEXT:
+                    row = (row + 1) % len(tlist)
+                case KEY.FILL_DESC:
+                    fill_description(tlist[row])
+                case KEY.EDIT_DESC | KEY.EDIT_COMMENT | KEY.EDIT_TAGS:
+                    edit_field(tlist[row], key)
+                case KEY.EDIT_ACCOUNT:
+                    edit_account(tlist[row], fullnames)
+                case KEY.MOD_DESC:
+                    modify_description(tlist[row])
+                case KEY.ACCEPT:
+                    if verify_and_save_transaction(tlist[row]):
+                        del tlist[row]
+                        if tlist:
+                            row = row % len(tlist)
+                case _:
+                    continue
+    except KeyboardInterrupt:
+        pass
+    except EOFError:
+        pass
+    
+    console.set_alt_screen(False)
 
 
 def make_panel(trans):
@@ -110,32 +189,7 @@ def completer_function(tokens):
 
     return completer
 
-# Key combinations used to trigger updates
-
-class KEY:
-    PREV = chr(ESC) + '[' + 'A'
-    NEXT = chr(ESC) + '[' + 'B'
-    EDIT_DESC = ctrl('P')             # mnemonic:  "payee"
-    EDIT_COMMENT = ctrl('N')          # mnemonic:  "note"
-    EDIT_TAGS = ctrl('G')
-    EDIT_ACCOUNT = ctrl('T')          # mnemonic:  "to"
-    EDIT_REGEXP = ctrl('E')
-    FILL_DESC = ctrl('F')
-    MOD_DESC = ctrl('L')              # mnemonic:  "lambda"
-    ACCEPT = ctrl('A')
-
-cmnd_keys = { x[1] for x in vars(KEY).items() if not x[0].startswith('__') }
-digit_keys = set('0123456789')
-all_keys = cmnd_keys | digit_keys | { '?' }
-
-field_names = {
-    KEY.EDIT_DESC: 'description',
-    KEY.EDIT_COMMENT: 'comment',
-    KEY.EDIT_TAGS: 'tags',
-    KEY.MOD_DESC: 'description',
-}
-
-# Display a single transactions.  If there were any
+# Display a single entry.  If there were any
 # issues when making the row they were appended to the message list,
 # display that list after the row.
 
@@ -172,48 +226,6 @@ def make_candidate(e):
     new_transaction.entries.append(new_entry)
     new_transaction.edited = set()
     return new_transaction
-
-def REPL(entries):
-    accounts = list(DB.account_name_parts('expense') | DB.account_name_parts('income'))
-    fullnames = DB.full_names('expense') | DB.full_names('income')
-    readline.parse_and_bind('tab: complete')
-    readline.set_completer(completer_function(accounts))
-    row = 0
-    tlist = [make_candidate(e) for e in entries]
-    try:
-        if not debugging():
-            console.set_alt_screen(True)
-        while len(tlist) > 0:
-            display_row(tlist[row])
-            key = click.getchar()
-            if key not in all_keys:
-                continue
-            match key:
-                case KEY.PREV:
-                    row = (row - 1) % len(tlist)
-                case KEY.NEXT:
-                    row = (row + 1) % len(tlist)
-                case KEY.FILL_DESC:
-                    fill_description(tlist[row])
-                case KEY.EDIT_DESC | KEY.EDIT_COMMENT | KEY.EDIT_TAGS:
-                    edit_field(tlist[row], key)
-                case KEY.EDIT_ACCOUNT:
-                    edit_account(tlist[row], fullnames)
-                case KEY.MOD_DESC:
-                    modify_description(tlist[row])
-                case KEY.ACCEPT:
-                    if verify_and_save_transaction(tlist[row]):
-                        del tlist[row]
-                        if tlist:
-                            row = row % len(tlist)
-                case _:
-                    continue
-    except KeyboardInterrupt:
-        pass
-    except EOFError:
-        pass
-    
-    console.set_alt_screen(False)
 
 def fill_description(trans):
     '''
