@@ -20,20 +20,28 @@ plugins:
       title_mode: none
 
 nav:
-  - "Home":
-    - "Introduction": 
-      - "Overview": index.md
-      - "History": history.md
-      - "Double Entry Bookkeeping": deb.md
-      - "Philosophy": philosophy.md
-      - "Workflow": workflow.md
-    - "The Budget Model": budgets.md
-  - "Running the Applications":
-    - "dex Command Line": dex.md
+  - "Introduction": 
+    - "Overview": index.md
+    - "History": history.md
+    - "Double Entry Bookkeeping": deb.md
+    - "Envelope Budgeting":  envelopes.md
+    - "Philosophy": philosophy.md
+    - "Workflow": workflow.md
+  - "Running the Scripts":
+    - "Shell Command": dex.md
+  - "The Budget Model":
+    - "Envelope Budgeting with Dexter": dexenvelopes.md
+    - "Account Balances": balances.md
+    - "Budget Transactions": budgettrans.md
+    - "Expense Account Balances": expbal.md
+    - "Income Account Balances": incbal.md
+    - "Adjustments": adjustments.md
+    - "Using the Equity Account": equity.md
+    - "Nominal Accounts": nominal.md
+    - "Recap": recap.md
   - "API":
     - "Database API": api.md
   - "Reference":
-    - "Source Directory": tbd.md
-    - "Modules": tbd.md
+    - "Modules": modules.md
 
 
