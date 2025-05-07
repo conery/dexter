@@ -18,7 +18,7 @@ The key idea behind Dexter's approach to budgeting is to use **_expense accounts
 
 The transaction below, which we call a **budget allocation transaction**, allocates funds to envelopes according to our budget.
 Note that it _debits income accounts_ and _credits expense accounts_.
-The credits are how we model the process of adding money to the envelope, and the debits is a record of where that money came from.
+The credits are how we model the process of adding money to the envelope, and the debit is a record of where that money came from:
 
 ```plain
 2024-01-02  fill envelopes                        ; budget:
