@@ -172,7 +172,11 @@ def main():
         Config.init(args.config)
         DB.open(args.dbname, args.command not in ['init','restore'])
         args.dispatch(args)
-    except ValueError as err:
+    except (ValueError, FileNotFoundError, ModuleNotFoundError) as err:
         logging.error(err)
+    # except FileNotFoundError as err:
+    #     logging.error(err)
+    # except ModuleNotFoundError as err:
+    #     logging.error(err)
     except Exception as err:
         console.print_exception(show_locals=True)

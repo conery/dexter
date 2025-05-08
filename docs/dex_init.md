@@ -82,7 +82,7 @@ $ dex select --end 2025-01-31 --debit food --abbrev
 
 ### `parser`
 
-If we plan to use the `import` command to parse downloads for asset and liability accounts you need to speficy a name in the `parser` column.
+If you plan to use the `import` command to parse downloads for asset and liability accounts you need to speficy a name in the `parser` column.
 
 Parsers are defined in the configuration file.
 There will typically be one parser for each data source.

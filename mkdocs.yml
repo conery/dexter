@@ -30,11 +30,11 @@ nav:
     - "Philosophy": philosophy.md
     - "Workflow": workflow.md
   - "Running the Scripts":
-    - "Command Line Application": dex.md
+    - "Shell Command": dex.md
     - "Installation": dex_install.md
     - "Command Line Options": dex_options.md
-    - "Initialize a Database": dex_init.md
     - "Configuration": dex_config.md
+    - "Initialize a Database": dex_init.md
     - "Importing CSV Files": dex_import.md
     - "Pairing": dex_pair.md
     - "Review Unpaired Postings": dex_review.md

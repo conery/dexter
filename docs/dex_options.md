@@ -63,7 +63,9 @@ If a subcommand has options they are specified after the command name.
 
 For example, the `select` command has options to speficy attributes of transactions to search for.
 These include the start and end dates, descriptions, amounts, and so on.
-This command prints car expenses (transactions that debit the `car` account) with dates before Jan 31 2025:
+This command searches the database named `dev` to find car expenses (transactions that debit the `car` account) with dates before Jan 31 2025:
 ```shell
 $ dex --db dev select --end 2025-01-31 --debit car
 ```
+
+> _**Important:** Notice how the `--db` option, which is common to all `dex` subcommands, comes before the command name, while the `--end` and `--debit` options for `select` are after the command name._

@@ -96,29 +96,39 @@ class Config:
         logging.debug(f'config: fullname: {Config.fullname}')
 
     @staticmethod
+    def find_toml_file(fn):
+        '''
+        Helper function for Config.init.  Locate the config
+        file to use.  Either raises an exception or returns
+        a file path.
+        '''
+        p = fn or os.getenv('DEX_CONFIG')
+        if p is not None:
+            config_path = Path(p)
+            if not config_path.is_file():
+                raise FileNotFoundError(f'init_config: no such file: {config_path}')
+            return config_path
+        
+        config_path = Path.cwd() / 'dex.toml'
+        if config_path.is_file():
+            return config_path
+        
+        project_dir = Path(__file__).parent
+        config_path = project_dir / 'dex.toml'
+        if not config_path.is_file():
+            raise ModuleNotFoundError(f'no config file in distribution?')
+        return config_path
+
+    @staticmethod
     def load_toml_file(fn):
         '''
-        Helper function for Config.init.  Locates the config file to
-        use, reads the contents, returns a dict with config settings.
+        Helper function for Config.init.  Reads the contents of the config
+        file, returns a dict with config settings.
         '''
-        if fn is not None:
-            config_path = Path(fn)
-            if not config_path.is_file():
-                raise ValueError(f'init_config: no such file: {fn}')
-        elif fn := os.getenv('DEX_CONFIG'):
-            project_dir = Path(__file__).parent
-            config_path = project_dir / 'dex.toml'
-            if not config_path.is_file():
-                raise ValueError(f'init_config: no such file: {fn}')
-        else:
-            config_path = Path.cwd() / 'dex.toml'
-            if not config_path.is_file():
-                config_path = Config.path_to_default
-        logging.debug(f'config: reading {config_path}')
-
-        with open(config_path, 'rb') as f:
+        path = Config.find_toml_file(fn)
+        logging.debug(f'config: reading configuration from {path}')
+        with open(path, 'rb') as f:
             res = tomllib.load(f)
-
         return res
     
     @staticmethod

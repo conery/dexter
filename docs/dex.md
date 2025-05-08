@@ -11,7 +11,7 @@ We recommend setting up a directory to use when running Dexter.
 The directory will have a configuration file, one or more files with account names and other data, and a folder for saving downloaded CSVs:
 ```
 Finances
-├── accounts.journal
+├── accounts.csv
 ├── dex.toml
 ├── Downloads
 │   ├── chase.visa.csv
@@ -20,7 +20,7 @@ Finances
 └── regexp.csv
 ```
 
-A typical session with Dexter then starts with going to this folder and running various commands:
+A typical session with Dexter starts with going to this folder and running various commands:
 ```shell
 $ cd Finances
 $ dex report --audit
