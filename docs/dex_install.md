@@ -1,6 +1,6 @@
 # Installation
 
-> [!NOTE] OS Versions
+> [!note] OS Versions
 > These instructions are for macOS and should work on Linux.
 > Instructions for Powershell are planned.
 
