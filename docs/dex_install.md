@@ -31,6 +31,11 @@ If you type this command your new environment will always be activated whenver y
 $ pyenv local dexter
 ```
 
+Run `pip` to download and install Dexter:
+```shell
+$ pip install git+https://github.com/conery/dexter.git
+```
+
 ### Help Messages
 
 To test the installation ask `dex` to print a help message.

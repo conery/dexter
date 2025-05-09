@@ -55,7 +55,7 @@ By default it looks for a file named `dex.toml` in the current directory or a fi
 
 Use the `config` option to specify an alternative file.
 
-> _**Note**: You will need to create a configuration file if you are going to import data from CSV files because the configuration file is where Dexter gets the specification of which fields to use in each CSV file.  See [Configuration](dex_config.md) for more information._
+<!-- > _**Note**: You will need to create a configuration file if you are going to import data from CSV files because the configuration file is where Dexter gets the specification of which fields to use in each CSV file.  See [Configuration](dex_config.md) for more information._ -->
 
 ### Subcommand Options
 
