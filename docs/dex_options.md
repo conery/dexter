@@ -69,3 +69,29 @@ $ dex --db dev select --end 2025-01-31 --debit car
 ```
 
 > _**Important:** Notice how the `--db` option, which is common to all `dex` subcommands, comes before the command name, while the `--end` and `--debit` options for `select` are after the command name._
+
+### Date Range Options
+
+Several subcommands have `--start_date`, `--end_date`, and `--month` options.
+
+For `--start_date` and `--end_date` you can specify dates with a variety of formats.
+If the format includes spaces or slashes make sure you put quotes around the date.
+All of these are ways of specifying an end date of Jan 31, 2025:
+```plain
+--end_date 2025-01-31
+--end_date 'Jan 31, 2025'
+--end_date '1/31/2025'
+--end_date '1/31'
+```
+(for the last example, the year is inferred from the current date).
+
+> _If the day number is 12 or less a date is ambiguous.  Is 1/7 Jan 7 or Jul 1?  For dates with slashes Dexter uses the American convention that the month number precedes the day number._
+
+The `--month` option is a shorthand for specifying both a starting and ending date.
+The argument should be a 3-letter month abbreviation, from `jan`, `feb`, _etc_ up to `dec`.
+Dexter will convert the month name into a pair of dates within the last year.
+
+Suppose today's date is May 5, 2025.
+
+* If you specify `--mon apr` the start date will be Apr 1, 2025 and the end date Apr 30, 2025.
+* If you specify `--mon sep` you will get a starting date of Sep 1, 2024 and an ending date of Sep 30, 2024.

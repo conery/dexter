@@ -5,7 +5,7 @@ The `init` command initializes a new database using descriptions of accounts in 
 #### Usage
 
 ```
-$ dex init [-h] --file F [--force]
+$ dex init --file F [--force]
 ```
 
 Specify the name of the file with `--file`.
@@ -76,8 +76,9 @@ Otherwise put the account type in the `category` column.
 
 ### `abbrev`
 
-The optional abbreviated account name is a name that can be used in reports.
+There are two reasons to define an optional abbreviated name for an account.
 
+One use is to define a short name for an expense account so it can be used in reports.
 For example, suppose we want to print a table showing all food expenses before Jan 31, 2025:
 ```plain
 $ dex select --end 2025-01-31 --debit food
@@ -100,6 +101,12 @@ $ dex select --end 2025-01-31 --debit food --abbrev
 2025-01-14  chase:visa       restaurant      $40.12  Pizza Palace
 ...
 ```
+
+The second reason is that when we download CSV files for assets and liability accounts we want to rename the file so the base name (the part before the extension) is the account name.
+For example, if we have two bank accounts, one for checking and one for savings, we will download the records for each account separately.
+Rename the file for the checking account to `checking.csv` and the file for the savings account to `savings.csv`.
+When we run `dex import` to import a file, it will use the file name to figure out which account to use for the new postings.
+
 
 ### `parser`
 
@@ -132,7 +139,7 @@ Write an `account` statement for each account you want to define.
 * the line starts with the word `account`
 * following that write the name of the account (what would go in the `fullname` column of a CSV file)
 * add a semicolon to start a comment
-* add the remaining data in the form of `tag: value` pairs separated by commas
+* add the remaining data, if any, in the form of `tag: value` pairs separated by commas
 
 This example shows how to define a checking account with an initial balance of $1000, a credit card account, and three expense categories (one with subaccounts):
 
