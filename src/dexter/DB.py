@@ -68,7 +68,7 @@ class Account(Document):
 class Entry(Document):
     uid = StringField(required=True, unique=True)
     date = DateField(required=True)
-    description = StringField(required=True)
+    description = StringField()
     account = StringField(required=True)
     column = EnumField(Column, required=True) 
     amount = FloatField(required=True)
@@ -153,6 +153,15 @@ class Transaction(Document):
         self.pamount = sum(e.amount for e in self.entries if e.column == Column.cr)
         self.pcredit = '/'.join(a.account for a in self.credits)
         self.pdebit = '/'.join(a.account for a in self.debits)
+
+    def save(self):
+        '''
+        Extend the base class save method.  Save each entry, then call
+        the base class method.
+        '''
+        for e in self.entries:
+            e.save()
+        super().save()
 
 class RegExp(Document):
     action = EnumField(Action, required=True) 

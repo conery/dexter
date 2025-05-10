@@ -95,6 +95,7 @@ def init_from_csv(fn: Path, preview: bool):
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
         reader = csv.DictReader(csvfile)
         accts = [ Account(name='equity', category='equity') ]
+        trans = []
         for rec in reader:
             if rec['fullname'] == 'equity':
                 continue
@@ -106,11 +107,14 @@ def init_from_csv(fn: Path, preview: bool):
                 parser = rec['parser']
             )
             accts.append(a)
+            if rec['balance']:
+                make_balance_transaction(rec, trans)
     if preview:
         print_records(accts)
+        print_records(trans)
     else:
         DB.erase_database()
-        for obj in accts:
+        for obj in accts + trans:
             try:
                 logging.debug(f'save {obj}')
                 obj.save()
@@ -118,6 +122,34 @@ def init_from_csv(fn: Path, preview: bool):
                 logging.error(f'import: error saving {obj}')
                 logging.error(err)
 
+def make_balance_transaction(rec, lst):
+    '''
+    Helper function for init_from_csv.  If a records has a
+    value in the balance column make a transaction that 
+    initializes the account balance.  Append the new transaction
+    to lst.
+    '''
+    if not rec['date']:
+        logging.error(f'init_database: missing date in {rec}')
+        return
+    debit = Entry(
+        date = rec['date'],
+        account = rec['fullname'],
+        column = 'debit',
+        amount = rec['balance'],
+    )
+    credit = Entry(
+        date = rec['date'],
+        account = 'equity',
+        column = 'credit',
+        amount = rec['balance'],
+    )
+    trans = Transaction(
+        description = 'initial balance',
+        entries = [debit,credit]
+    )
+    lst.append(trans)
+    
 def init_from_journal(fn: Path, preview: bool = False):
     '''
     Read accounts and transactions from a plain text accounting
@@ -166,12 +198,12 @@ class JournalParser:
         Initialize the data structures that will hold the records
         to insert.
         '''
-        self.accounts = []
+        self.accounts = [ Account(name = 'equity', category = 'equity')]
         self.entries = []
         self.transactions = []
 
         self.account_types = list(Category.__members__.keys())
-        self.account_names = set()
+        self.account_names = { 'equity' }
         self.transaction_date = None
         self.transaction_total = 0
 
@@ -180,58 +212,63 @@ class JournalParser:
     #     if parts[0] not in self.account_types:
     #         raise ValueError(f'unknown account type: {parts[0]}')
 
-    def new_account(self, cmnd, tokens):
+    def new_account(self, cmnd, comment=''):
         '''
         Helper function to create an Account document from the current line.
 
         Arguments:
            cmnd:  a string with the 'account' command followed by the account name
-           tokens:  list of strings with the remainder of the line
+           comment: the comment field from the line
 
         Expected format of the command part
            account N C
         where N is the account name and C is a category name
         '''
-        logging.debug(f'JournalParser.new_account: {cmnd} {tokens}')
+        logging.debug(f'JournalParser.new_account: {cmnd} {comment}')
         lst = cmnd.split()
         name = lst[1].strip()
+        if name == 'equity':
+            return
         assert name not in self.account_names, f'  (duplicate account name: {name})'
 
-        comment = tokens[0].strip() if tokens else ''
-        if m := re.search(r'(.*?)type: (\w+)', comment):
-            cat = m[2]
-        else:            
-            cat = name.split(':')[0]
+        tags = { }
+        for seg in comment.split(','):
+            if m := re.search(r'(\w+):(.*)', seg):
+                tags[m[1]] = m[2].strip()
+        if 'type' in tags:
+            tags['category'] = tags['type']
+        logging.debug(tags)
 
         acct = Account(
-            name=name, 
-            category=cat,
-            comment=comment,
+            name = name, 
+            category = tags.get('category') or name.split(':')[0],
+            abbrev = tags.get('abbrev'),
+            parser = tags.get('parser') 
         )
         self.accounts.append(acct)
         self.account_names.add(name)
 
-    def new_transaction(self, date, tokens):
+    def new_transaction(self, date, comment=''):
         '''
         Helper function to create a Transaction object from the current line.
 
         Arguments:
            date: the date from the front of the line
-           tokens:  list of strings with the remainder of the line
+           comment: the comment field from the line
         '''
-        logging.debug(f'JournalParser.new_transaction {date} {tokens}')
+        logging.debug(f'JournalParser.new_transaction {date} {comment}')
         m = re.match(r'(\d{4}-\d{2}-\d{2})(.*)', date)
         self.transaction_date = m.group(1)
         self.transaction_total = 0
         trans = Transaction(
             description = m.group(2).strip(),
         )
-        comment = tokens[0].strip() if tokens else ''
-        trans.comment = comment
+        # comment = tokens[0].strip() if tokens else ''
+        trans.comment = comment.strip()
         trans.tags = [f'#{s[:-1]}' for s in re.findall(r'\w+:', comment)]
         self.transactions.append(trans)
 
-    def new_entry(self, cmnd, tokens):
+    def new_entry(self, cmnd, desc=''):
         '''
         Helper function to create a new Entry object.  Appends the
         new object to the entries list of the most recent Transaction
@@ -239,9 +276,9 @@ class JournalParser:
 
         Arguments:
            cmnd: a string with the account name and amount
-           tokens:  list of strings with the remainder of the line
+           comment: the comment field from the line
         '''
-        logging.debug(f'JournalParser.new_entry {cmnd} {tokens}')
+        logging.debug(f'JournalParser.new_entry {cmnd} {desc}')
         parts = cmnd.strip().split()
         acct = parts[0]
         if acct not in self.account_names:
@@ -253,7 +290,7 @@ class JournalParser:
         else:
             amount = -self.transaction_total
 
-        desc = tokens[0].strip() if tokens else ''
+        # desc = tokens[0].strip() if tokens else ''
         tags = re.findall(r'\w+:', desc)
         col = 'credit' if amount < 0 else 'debit'
         trans = self.transactions[-1]
@@ -291,7 +328,7 @@ class JournalParser:
                 try:
                     for pat, func in patterns:
                         if re.match(pat,cmnd):
-                            func(cmnd,comment)
+                            func(cmnd, *comment)
                             break
                     else:
                         raise ValueError('unknown statement')
