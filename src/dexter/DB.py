@@ -44,16 +44,20 @@ class Action(Enum):
 class Account(Document):
     name = StringField(required=True)
     category = EnumField(Category, required=True)
+    abbrev = StringField()
+    parser = StringField()
     comment = StringField()
 
     def __str__(self):
-        return f'<Acct {self.name} {self.category}>'
+        return f'{self.abbrev or self.name} {self.category}'
     
     def row(self):
         return [
             'account',
             str(self.category),
-            self.name,
+            self.name.replace(':','.'),
+            self.abbrev,
+            self.parser,
             self.comment,
         ]
 

@@ -36,6 +36,12 @@ This option controls the amount of information printed on the terminal.
 
 Alternatives are `quiet` (don't print anything), `info` (the default), and `debug` (which prints a ton of stuff, intended for developers who are tracking down problems).
 
+Example:  initialize a new database but dont' print status messages.
+```shell
+$ dex --db foo --log quiet init ...
+```
+
+
 #### `preview`
 
 If this option is specified Dexter will print descriptions of data it will use but won't actually carry out the operation.

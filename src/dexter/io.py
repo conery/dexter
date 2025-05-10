@@ -83,17 +83,40 @@ def init_database(args):
         args: Namespace object with command line arguments.
     '''
     p = Path(args.file)
-    fmt = args.format or p.suffix[1:]
+    if not p.exists():
+        raise FileNotFoundError(f'init_database: no file named {p}')
+    fmt = p.suffix[1:]
     match fmt:
         case 'journal': init_from_journal(p, args.preview)
         case 'csv': init_from_csv(p, args.preview)
-        case _: logging.error(f'init_database: unknown file extension:{p.suffix}')
-    # if args.regexp and not args.preview:
-    #     import_regexp(args.regexp)
-
+        case _: logging.error(f'init_database: unknown file extension: {p.suffix}')
 
 def init_from_csv(fn: Path, preview: bool):
-    logging.error('init_from_csv: not implemented')
+    with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
+        reader = csv.DictReader(csvfile)
+        accts = [ Account(name='equity', category='equity') ]
+        for rec in reader:
+            if rec['fullname'] == 'equity':
+                continue
+            cat = rec['category'] or rec['fullname'].split(':')[0]
+            a = Account(
+                name = rec['fullname'],
+                category = cat,
+                abbrev = rec['abbrev'],
+                parser = rec['parser']
+            )
+            accts.append(a)
+    if preview:
+        print_records(accts)
+    else:
+        DB.erase_database()
+        for obj in accts:
+            try:
+                logging.debug(f'save {obj}')
+                obj.save()
+            except Exception as err:
+                logging.error(f'import: error saving {obj}')
+                logging.error(err)
 
 def init_from_journal(fn: Path, preview: bool = False):
     '''

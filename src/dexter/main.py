@@ -51,7 +51,6 @@ def init_cli():
     init_db_parser = subparsers.add_parser('init', help='initialize a database')
     init_db_parser.set_defaults(dispatch=init_database)
     init_db_parser.add_argument('--file', metavar='F', help='name of file with account definitions', required=True)
-    init_db_parser.add_argument('--format', metavar='C', choices=['journal','csv'], help='file format')
 
     import_parser = subparsers.add_parser('import', help='add new records from files')
     import_parser.set_defaults(dispatch=import_records)

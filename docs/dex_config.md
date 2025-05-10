@@ -37,6 +37,13 @@ To save the file in the default location (a file named `dex.toml` in your projec
 $ dex config > ./dex.toml
 ```
 
+The template defines two parsers.
+One is for my bank, Oregon Community Credit Union, which has a format that should be typical of the one used by most banks and should be easily adapted for your bank.
+The other is for Chase credit cards.
+You should be able to use this as is for your own Chase cards.
+
+> _**TBD:**  Parsers for other widely used credit cards (American Express, Citi, and Apple (Goldman Sachs)) will be added soon.  We also plan to add a section to the GitHub repo for user-contributed parsers._
+
 ## The Structure of a Configuration File
 
 As the filename extension `.toml` implies, configuration files use a standard format known as TOML.
@@ -59,23 +66,28 @@ All of Dexter's configuration settings will be simple numbers or strings.
 
 Our goal is to define a set of rules for extracting data from a CSV file downloaded from a financial institution.
 
-### Parser Name
+The first step is to find out what information we have to work with in each CSV file.
+The first line in a file is header, which is a list of column names, separated by commas.
 
-The first step is to give the parser a name.
-We suggest using a name that indicates the data source.
-For example, my bank is Oregon Community Credit Union, so I named the parser `occu`.
-I also have Chase credit cards, so I made another parser named `chase`.
+> _Note: some CSV files omit the header line and just contain data.  It's not likely you will get a file without column names from a financial institution, but if you do you'll need to edit the file and add a header._
 
-> _Both of these parsers are included in the default configuration file. If you have a Chase card you can use this parser. The `occu` parser is very generic and it's likely you can use this as the starting point for your own bank._
+This is the header on a file from OCCU:
+```
+"Transaction ID","Posting Date","Effective Date","Transaction Type","Amount","Check Number","Reference Number","Description","Transaction Category","Type","Balance","Memo","Extended Description"
+```
+and here is the header in a file from Chase:
+```
+Transaction Date,Post Date,Description,Category,Type,Amount,Memo
+```
 
-The reason for naming parsers for data sources is that there will often be several downloads from a single source.
-We might have separate CSVS for each bank account, or we might have multiple Chase credit cards.
+It doesn't matter whether the names are enclosed in quotes, or whether a column name is a single word or multiple words.
 
-When an define an account that has downloads (as described in [Initialize a Database](dex_init.md)) we will specify the name of the parser.
+The order doesn't matter, either.
+We just need to be able to figure out which columns we're interested in.
 
 ### Configuration Section
 
-Once you choose a name, add a new section to the configuration file.
+If you are writing a new parser the first step is to add a new section to the configuration file.
 For example, if you have American Express cards, you'll want to name the parser `amex`, and you'll add a new section named `[csv.amex]`.
 
 ### Rules
@@ -96,57 +108,36 @@ The name to the left of the equal sign is the attribute name, and the value on t
 The values on the right side of a setting are Python expressions.
 Even if you don't know Python you should be able to understand the expressions in the default configuration and generalize them to write your own expressions.
 
-Here are some guidelines:
+To explain the sorts of things that can go into a Python expression we'll use the rules in the example configuration, starting with the simplest and working up to more complex rules.
 
-* The name `rec` stands for "record".  It refers to the current line in the CSV file.
-* To access parts of a line write the column name in brackets right after `rec`.  For example, the transaction date in a CSV file downloaded from Chase is in a column named "Post Date", but in a file downloaded from OCCU it's in a field named "Posting Date".  So the Python expressions that access these columns are `rec["Post Date"]` and `rec["Posting Date"]`, respectively.
-* An expression can contain Python functions, like `abs` (absolute value) and `float` (converts a string into a number).
-* Expressions can also contain string methods, which are written after the string.  For example, if `rec['Amount']` is the string from the "Amount" column, the expression `rec['Amount'].startswith("-")` means "apply the `startswith` method to `rec["Amount"]`.  The result will be True if the amount field in the record starts with a minus sign.
+> _A more detailed description of what is allowed in Python expressions will be included in the Reference section [TBD](tbd.ml)_.
 
-### Column Names
-
-The first step in writing parser rules is to find out what information you have to work with in each CSV file.
-
-The first line in a file is header, which is a list of column names, separated by commas.
-
-> _Note: some CSV files omit the header line and just contain data.  It's not likely you will get a file without column names from a financial institution, but if you do you'll need to edit the file and add a header._
-
-This is the header on a file from OCCU:
-```
-"Transaction ID","Posting Date","Effective Date","Transaction Type","Amount","Check Number","Reference Number","Description","Transaction Category","Type","Balance","Memo","Extended Description"
-```
-and here is the header in a file from Chase:
-```
-Transaction Date,Post Date,Description,Category,Type,Amount,Memo
-```
-
-It doesn't matter whether the names are enclosed in quotes, or whether a column name is a single word or multiple words.
-
-The order doesn't matter, either.
-We just need to be able to figure out which columns we're interested in.
-
-### Examples
-
-To next four sections describe the expressions in the OCCU and Chase parsers as detailed examples of how to write a Parser.
-The complete set of rules is in [TBD](tbd.ml).
 
 #### `date`
 
-Both OCCU and Chase have two date columns.
-The simplest strategy is to choose one and write a rule that copies the value from that column.
+In the Python code the name `rec` (short for "record") refers to the current line in the CSV file.
+To access part of a line write the column name in brackets immediately after `rec`.  
 
-For OCCU:
+For example, the transaction date in an OCCU download is in a column named "Posting Date", so the Python expression that refers to the date column on the current line is `rec["Posting Date"]`.
+
+Here is the rule in the OCCU parser:
 ```
 date = 'rec["Posting Date"]'
 ```
-There is one detail worth mentioning.
-The expression on the right side of the rule has a string inside a string.
-The outer (single) quotes are needed to tell TOML that the value of the `date` attribute is a string, and the inner (double) quotes tell Python that "Posting Date" is a column name.
+That simply means "use the "Posting Date" column from the CSV file as the value of the date in the new posting that will be added to the database."
 
-The rule for Chase is similar:
+Notice an important detail: the expression on the right side of the rule has a string inside a string.
+The outer (single) quotes are needed to tell TOML that the attribute is a string, and the inner (double) quotes tell Python that "Posting Date" is string to use for the column name.
+
+In the Chase download the column has a slightly different name, using "Post" instead of "Posting".
+This is the rule in the Chase parser:
 ```
 date = 'rec["Post Date"]'
 ```
+
+<!-- One last note:  The file from OCCU has two columns with transaction dates, one called "Posting Date" and one called "Effective Date".
+The Chase file also has two dates, "Transaction Date" and "Post Date".
+In these situations you can choose which one to use. -->
 
 #### `description`
 
@@ -165,7 +156,7 @@ In Python, if `s` and `t` are strings, the expression `s + t` means "combine `s`
 
 What's going on here is that neither column, by itself, has enough useful information.
 In some transactions we'll want the "Description" column, and in others we'll want the "Extended Description".
-The solution is to combine both columns into one long string and save that in the posting.
+The solution is to combine both columns into one long string and save that in the database.
 
 That's going to lead to some pretty ugly looking descriptions.
 But keep in mind, the next step in the overall workflow, after importing records, is to run a script that applies regular expressions to postings, and those regular expressions will usually clean things up.
@@ -198,10 +189,11 @@ Transfer to PayPal/PAYPAL INSTANT TRANSFER - INST XFER
 
 The rule for the `amount` attribute needs to convert a string from the CSV file (all columns in a CSV file are strings) into a number, and to make sure the number is positive (all amounts on postings in our database are positive).
 
-Converting the string to a number is easy.
-Python's builtin `float` function does exactly that.
-To write the rule, just identify the column that has the transaction amount and pass that to `float`.
-Both OCCU and Chase use a column named "Amount" so the rule has this expression:
+Python's builtin `float` function is just what we need.
+If `s` is a string containing digits (and maybe a decimal point) the expression `float(s)` means "convert `s` into a number".
+
+To write the parser rule, just identify the column that has the transaction amount and pass that to `float`.
+Both OCCU and Chase use a column named "Amount" so the rule will have this expression:
 ```
 float(rec["Amount"])
 ```
@@ -212,7 +204,6 @@ The final rule is:
 ```
 amount = 'abs(float(rec["Amount"]))'
 ```
-
 > _**TBD**:  how to write a rule when a CSV file has separate columns for credit and debits._
 
 #### `credit`
@@ -222,25 +213,30 @@ The rule has this general form:
 ```
 credit = 'p(...)'
 ```
-where `p` is a "predicate", or in Python terminology, a boolean expression.
+where `p` is a "predicate", or in Python terminology, a Boolean expression.
 It the expression is True our new posting will be a credit, otherwise it will be a debit.
 
-If a CSV file is for an asset account, for example it comes from a bank and is for a checking or savings account, we want transactions that are withdrawals or purchases to become credits in our database.
+If a CSV file is for an asset account, for example it comes from a bank and is for a checking or savings account, we want transactions that are **withdrawals or purchases** to become **credits** in our database.
 These will eventually be paired with a debit to an expense account to form a complete transaction.
-On the other hand, CSV records for deposits should become debits.
+On the other hand, CSV records for **deposits** should become **debits**.
 
-The same thing is true for CSV files for credit cards and other liabilities.
-If a transaction is a purchase we want it to be a credit, but if it's a return or a card payment we want it to be a debit.
-
-In looking through the CSV files from both Chase and OCCU it's apparent they put negative numbers in the amount column for purchases/withdrawals and positive numbers for payments/deposits.
+In looking through a CSV file from OCCU it's apparent there are negative numbers in the amount column for purchases/withdrawals and positive numbers for deposits.
 So all we need to do is look at the sign in the "Amount" column.
 If there is a negative sign we want the new posting to be a credit.
+
+Python has a very useful string method named `startswith` that we can use for our rule.
+In Python, if `s` and `t` are strings, the expression `s.startswith(t)` is True if the letters in `t` occur at the beginning of the `s`.
+So to see if the amount column has a minus sign at the front the Python code is `rec['Amount'].startswith("-")` .
 
 In English, the rule would be "set `credit` to True if the first character in the Amount column is a minus sign".
 This is how to write it in Python:
 ```
 credit = 'rec["Amount"].startswith("-")'
 ```
+
+For the Chase parser the same logic applies.
+If a transaction is a purchase we want it to be a credit, but if it's a return or a card payment we want it to be a debit.
+The "Amount" column in this file also has minus signs for credits, so the rule is the same as the rule for the OCCU parser.
 
 ### Final Notes on Writing Parsers
 

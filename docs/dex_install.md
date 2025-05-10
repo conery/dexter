@@ -9,7 +9,7 @@
 Dexter depends on a several third-party libraries.
 We recommend setting up a new virtual environment for Dexter and its dependences.
 
-Start by typing a command that goes to your Finances folder:
+Start by typing a command that goes to your project directory, _e.g._:
 ```shell
 $ cd Finances
 ```
@@ -26,7 +26,7 @@ You can name it anything; this example makes an environment named `dexter`:
 $ pyenv virtualenv dexter
 ```
 
-If you type this command your new environment will always be activated whenver you `cd` to Finances:
+If you type this command your new environment will always be activated whenver you `cd` to your project directory:
 ```shell
 $ pyenv local dexter
 ```
@@ -67,13 +67,12 @@ subcommands:
 
 To print the help message for a subcommand, type the command name before typing `-h` or `--help`, _e.g._
 ```shell
-$ dex init -h
-usage: dex init [-h] --file F [--format C]
+$ dex init --help
+usage: dex init [-h] --file F
 
 options:
   -h, --help  show this help message and exit
   --file F    name of file with account definitions
-  --format C  file format
 ```
 
 ### Install MongoDB
