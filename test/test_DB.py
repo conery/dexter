@@ -29,7 +29,7 @@ class TestDB:
         Check the number of documents in each of the collections in the 
         test data.
         '''
-        assert db.command('count','account')['n'] == 16
+        assert db.command('count','account')['n'] == 15
         assert db.command('count','entry')['n'] == 40
         assert db.command('count','transaction')['n'] == 16
 
@@ -52,7 +52,7 @@ class TestDB:
         Test the method that separates names into parts
         '''
         names = DB.account_name_parts()
-        assert len(names) == 22
+        assert len(names) == 21
         assert 'yoyodyne' in names
         assert 'chase' in names
         assert 'visa' in names
@@ -63,7 +63,7 @@ class TestDB:
         in the account hierarchy
         '''
         dct = DB.full_names()
-        assert len(dct) == 22
+        assert len(dct) == 21
         assert dct['assets'] == ['assets:bank:checking', 'assets:bank:savings']
         assert len(dct['expenses']) == 10
 
@@ -165,7 +165,7 @@ class TestDB:
         assert lst[0].pamount > 100
 
         lst = DB.select(Transaction, start_date = date(2024,2,1), credit='visa')
-        assert len(lst) == 2
+        assert len(lst) == 3
         assert all('visa' in t.pcredit and t.pdate >= date(2024,2,1) for t in lst)
 
     def test_select_entries(self, db):

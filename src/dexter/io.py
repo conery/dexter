@@ -91,7 +91,7 @@ def init_database(args):
         case 'csv': init_from_csv(p, args.preview)
         case _: logging.error(f'init_database: unknown file extension: {p.suffix}')
 
-def init_from_csv(fn: Path, preview: bool):
+def init_from_csv(fn: Path, preview: bool = False):
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
         reader = csv.DictReader(csvfile)
         accts = [ Account(name='equity', category='equity') ]
@@ -298,7 +298,7 @@ class JournalParser:
             tags.append(Tag.B)
         entry = Entry(
             date = self.transaction_date,
-            description = desc,
+            description = desc.strip(),
             account = acct,
             column = col,
             amount = abs(amount),

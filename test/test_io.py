@@ -2,7 +2,7 @@
 
 import pytest
 
-from dexter.io import init_from_journal, add_records
+from dexter.io import init_from_journal
 from dexter.DB import DB
 
 @pytest.fixture

@@ -2,22 +2,20 @@
 ; transactions exported from finances.db
 ;
 
-account equity                    ; type: equity
-account assets:bank:checking             ; type: assets
-account assets:bank:savings             ; type: assets
-account expenses:car                       ; type: expenses
-account expenses:car:payment                       ; type: expenses
-account expenses:car:fuel                       ; type: expenses
-account expenses:food                       ; type: expenses
-account expenses:food:groceries                 ; type: expenses
-account expenses:food:restaurant                ; type: expenses
-account expenses:home                       ; type: expenses
-account expenses:home:household                 ; type: expenses
-account expenses:home:mortgage                  ; type: expenses
-account expenses:travel                    ; type: expenses
-account income:yoyodyne                  ; type: income
-account liabilities:amex                 ; type: liabilities
-account liabilities:chase:visa                ; type: liabilities
+account assets:bank:checking        ; category: assets, abbrev: checking, parser: occu
+account assets:bank:savings         ; category: assets, abbrev: savings, parser: occu
+account expenses:car                ; type: expenses
+account expenses:car:payment        ; type: expenses
+account expenses:car:fuel           ; type: expenses
+account expenses:food               ; type: expenses
+account expenses:food:groceries     ; type: expenses, abbrev: groceries
+account expenses:food:restaurant    ; type: expenses, abbrev: restaurant
+account expenses:home
+account expenses:home:household     ; type: expenses, abbrev: household
+account expenses:home:mortgage      ; type: expenses, abbrev: mortgage
+account expenses:travel             ; type: expenses
+account income:yoyodyne
+account liabilities:chase:visa      ; type: liabilities, abbrev: visa, parser: chase
 
 # Monthly paychecks and bucket fills
 
@@ -95,8 +93,8 @@ account liabilities:chase:visa                ; type: liabilities
 
 2024-03-10 Home Depot
     expenses:home:household      $50.00         ; paint
-    liabilities:amex               $-50.00
+    liabilities:chase:visa               $-50.00
 
 2024-03-12 Home Depot
     expenses:home:household     $-25.00        ; didn't use pink
-    liabilities:amex                $25.00
+    liabilities:chase:visa                $25.00
