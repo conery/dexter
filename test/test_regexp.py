@@ -2,8 +2,14 @@
 
 import pytest
 
+from typing import NamedTuple
+
 from dexter.io import init_from_journal, import_regexp
 from dexter.DB import DB, RegExp, Action
+
+class Args(NamedTuple):
+    files: list
+    preview: bool
 
 @pytest.fixture
 def redb(scope='session'):
@@ -13,7 +19,7 @@ def redb(scope='session'):
     DB.open('pytest', must_exist=False)
     DB.erase_database()
     init_from_journal('test/fixtures/mini.journal')
-    import_regexp('test/fixtures/regexp.csv')
+    import_regexp(Args(['test/fixtures/regexp.csv'], False))
     return DB.database
 
 @pytest.fixture
@@ -64,16 +70,14 @@ class TestRegExp:
         Test the regexp search, look for expected matches.
         '''
         for i, s in enumerate(descriptions):
-            lst = DB.find_regexp(s)
-            assert len(lst) == 1
-            e = lst[0]
+            e = DB.find_first_regexp(s)
             assert e.matches(s)
 
     def test_find_fail(self, redb):
         '''
         Verify a failed search returns an empty list.
         '''
-        assert len(DB.find_regexp('MegaBox Store')) == 0
+        assert DB.find_first_regexp('MegaBox Store') is None
 
     def test_apply(self, redb, descriptions):
         '''
@@ -89,7 +93,7 @@ class TestRegExp:
             ('Ferry Anacortes', Action.T, 'travel'),
         ]
         for i, s in enumerate(descriptions):
-            e = DB.find_regexp(s)[0]
+            e = DB.find_first_regexp(s)
             desc, action, acct = expected[i]
             assert e.apply(s) == desc
             assert e.action == action

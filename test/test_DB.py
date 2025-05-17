@@ -57,22 +57,30 @@ class TestDB:
         assert 'chase' in names
         assert 'visa' in names
 
-    def test_all_full_names(self, db):
+    def test_fullname(self, db):
+        '''
+        Test the fullname method
+        '''
+        assert DB.fullname('expenses:food:groceries') == 'expenses:food:groceries'
+        assert DB.fullname('groceries') == 'expenses:food:groceries'
+        assert DB.fullname('groc') is None
+
+    def test_all_account_names(self, db):
         '''
         Test the method that maps a partial name to the full name
         in the account hierarchy
         '''
-        dct = DB.full_names()
+        dct = DB.account_names()
         assert len(dct) == 21
         assert dct['assets'] == ['assets:bank:checking', 'assets:bank:savings']
         assert len(dct['expenses']) == 10
 
-    def test_full_names(self, db):
+    def test_account_names(self, db):
         '''
         Test the method that maps a partial name to the full name
         in the account hierarchy
         '''
-        dct = DB.full_names('expenses')
+        dct = DB.account_names('expenses')
         assert len(dct) == 11
         assert dct['car'] == ['expenses:car', 'expenses:car:payment', 'expenses:car:fuel']
 
