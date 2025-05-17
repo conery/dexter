@@ -23,32 +23,38 @@ def pair_entries(args):
     new_transactions = []
     credits = {}
     debits = {}
-    alternatives = []
+    # alternatives = []
     unmatched = []
 
     for entry in sorted(unpaired, key=lambda e: e.date):
-        if lst := DB.find_regexp(entry.description):
-            if len(lst) > 0:
-                alternatives.append(lst[1:])
-            regexp = lst[0]
+        logging.debug(f'pair: find regexp for {entry.description}')
+        if regexp := DB.find_first_regexp(entry.description):
             match regexp.action:
-                case Action.T: 
-                    new_transactions.append(matching_transaction(entry, regexp))
+                case Action.T:
+                    if trans := matching_transaction(entry, regexp):
+                        logging.debug(f'  new transaction: {trans.description}')
+                        new_transactions.append(trans)
+                    else:
+                        unmatched.append(entry)
                 case Action.X:
+                    logging.debug(f'  xfer part')
                     xfer_part(entry, regexp, credits, debits)
                 case _:
-                    logging.error(f'pair: unknown action {regexp.action} for {entry}')
+                    logging.error(f'  unknown action {regexp.action} for {entry}')
         else:
             unmatched.append(entry)
 
     xfers = combine_xfer_parts(credits, debits)
 
     if args.preview:
-        logging.info(f'{len(new_transactions)} Matched')
-        print_records(new_transactions)
-        logging.info(f'{len(xfers)} Transfers')
+        print(f'Matched {len(new_transactions)}:')
+        for t in new_transactions:
+            print(f'  {t.description}')
+        print('\nTransfers')
         print_records(xfers)
-        logging.info(f'{len(unmatched)} unmatched')
+        print(f'\nUnmatched {len(unmatched)}:')
+        for e in unmatched:
+            print(f'  {e.account}  {e.description}')
     else:
         logging.info(f'pair: {len(new_transactions)} matched')
         logging.info(f'pair: {len(xfers)} paired')
@@ -61,10 +67,14 @@ def matching_transaction(entry, regexp):
     A description from a CSV file matched a regular expression.  Use the match
     to create a new Entry and pair with the the existing one in a new Transaction.
     '''
+    acct = DB.fullname(regexp.acct)
+    if acct is None:
+        logging.error(f'pair: unknown account name {regexp.acct} in regexp')
+        return None
     new_entry = Entry(
         date = entry.date,
         description = "match " + entry.description,
-        account = regexp.acct,
+        account = acct,
         column = entry.column.opposite(),
         amount = entry.amount,
     )

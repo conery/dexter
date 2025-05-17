@@ -35,6 +35,7 @@ class Column(Enum):
         return Column.dr if self.value == 'credit' else Column.cr
     
 class Action(Enum):
+    A = 'apply'
     T = 'trans'
     X = 'xfer'
 
@@ -170,7 +171,7 @@ class RegExp(Document):
     acct = StringField(required=True)
 
     def __str__(self):
-        return f'<RE {self.action} {self.expr} {self.repl} ${self.acct}>'
+        return f'<RE {self.action} {self.expr} {self.repl} {self.acct}>'
 
     def row(self):
         return [
@@ -196,7 +197,7 @@ class RegExp(Document):
         Arguments:
             s: the string to match
         '''
-        return bool(re.match(self.expr, s, re.I))
+        return bool(re.search(self.expr, s, re.I))
 
     def apply(self, s: str):
         '''
@@ -208,7 +209,7 @@ class RegExp(Document):
         '''
         repl = None
 
-        if m := re.match(self.expr, s, re.I):
+        if m := re.search(self.expr, s, re.I):
             repl = self.repl
             for i, f in re.findall(RegExp.placeholder, self.repl, re.I):
                 if f:
@@ -230,7 +231,7 @@ class DB:
     dbname = None
 
     @staticmethod
-    def open(dbname: str, must_exist: bool):
+    def open(dbname: str, must_exist: bool = True):
         '''
         Connect to a MongoDB server and database.  Saves the connection
         and database in static variables that are accessible outside the
@@ -307,9 +308,9 @@ class DB:
 
     MAX_DUPS = 10
 
-    def save_records(recs):
+    def save_entries(recs):
         '''
-        Save new records from a CSV file in the database.  Handle duplicates in 
+        Save new Entry documents created by parsing a file.  Handle duplicates in 
         new records by modifying the description so the UID is different from the
         other copies.
 
@@ -349,6 +350,16 @@ class DB:
             uids.add(obj.hash)
 
     @staticmethod
+    def fullname(s: str):
+        '''
+        The argument s is an account name that could be a full name or abbreviated
+        name.  Return the full account name or None if the name isn't defined.
+        '''
+        if lst := Account.objects(name__exact=s) or Account.objects(abbrev__exact=s):
+            return lst[0].name
+        return None
+
+    @staticmethod
     def find_account(s: str):
         '''
         Return a list of account names that contain a string.
@@ -371,7 +382,7 @@ class DB:
         return res
     
     @staticmethod
-    def full_names(category=None):
+    def account_names(category=None):
         '''
         Return a dictionary that maps a partial account name to a list
         of full account names that contain that part.
@@ -441,13 +452,40 @@ class DB:
             kwargs['tag'] = Tag.B
             res -= sum(e.value for e in DB.select(Entry, **kwargs))
         return res
+    
+    # RegExp management -- delete old records so new ones can be
+    # imported
+
+    @staticmethod
+    def delete_regexps():
+        '''
+        Delete all the RegExp documents
+        '''
+        res = RegExp.objects.delete()
+        logging.debug(f'DB: deleted {res} existing regular expressions')
 
     # RegExp search.  The first version is a simple linear search.
     # TBD: implement an indexing scheme based on the first letter
     # in the string.
 
     @staticmethod
-    def find_regexp(s: str):
+    def find_first_regexp(s: str):
+        '''
+        Return the first RegExp with an X or T action that matches
+        a string.
+
+        Arguments:
+            s: the string to match.
+        '''
+        for e in RegExp.objects:
+            if e.action == Action.A:
+                continue
+            if e.matches(s):
+                return e
+        return None
+
+    @staticmethod
+    def find_all_regexp(s: str):
         '''
         Return a list of RegExp objects that match a string.
 

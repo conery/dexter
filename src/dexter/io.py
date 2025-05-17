@@ -166,7 +166,7 @@ def init_from_journal(fn: Path, preview: bool = False):
             print_records(lst)
     else:
         DB.erase_database()
-        DB.save_records(recs['entries'])
+        DB.save_entries(recs['entries'])
         for obj in recs['accounts'] + recs['transactions']:
             try:
                 logging.debug(f'save {obj}')
@@ -344,15 +344,6 @@ class JournalParser:
             'transactions': self.transactions,
         }
 
-# Read regular expression descriptions from a CSV file
-
-def import_regexp(fn):
-    with open(fn) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for rec in reader:
-            e = RegExp(**rec)
-            e.save()
-
 ###
 #
 # Top level method for parsing a file to import new records to a DB
@@ -361,10 +352,20 @@ def import_regexp(fn):
 def import_records(args):
     '''
     The top level function, called from main when the command 
-    is "import".  Parses one or more files to create new documents.
+    is "import".  Parses one or more CSV files to create new Entry
+    or Regexp documents
 
     Arguments:
         args: Namespace object with command line arguments.
+    '''
+    if args.regexp:
+        import_regexp(args)
+    else:
+        import_entries(args)
+
+def import_entries(args):
+    '''
+    Parse CSV files downloaded from financial institutions
     '''
     for path in args.files:
         if not path.is_file():
@@ -384,7 +385,7 @@ def import_records(args):
                 logging.error(f'import: ambiguous account name {basename}')
                 continue
             account = alist[0].name
-            parser = account.split(':')[0]
+            parser = alist[0].parser
             logging.debug(f'import_records: account {account} parser {parser}')
             if parser not in Config.colmaps.keys():
                 logging.error(f'import: no parser for {account}')
@@ -393,7 +394,23 @@ def import_records(args):
         if args.preview:
             print_records(recs)
         else:
-            DB.save_records(recs)
+            DB.save_entries(recs)
+
+def import_regexp(args):
+    '''
+    Import regular expression records from CSV files
+    '''
+    DB.delete_regexps()
+    for fn in args.files:
+        with open(fn) as csvfile:
+            reader = csv.DictReader(csvfile)
+            for rec in reader:
+                e = RegExp(**rec)
+                logging.debug(f'import: {e}')
+                if args.preview:
+                    print(e)
+                else:
+                    e.save()
 
 def import_from_journal(fn):
     logging.error(f'import:  journal format not implemented')

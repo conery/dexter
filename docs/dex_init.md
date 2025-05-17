@@ -4,15 +4,19 @@ The `init` command initializes a new database using descriptions of accounts in 
 
 #### Usage
 
-```
+<!-- ```
 $ dex init --file F [--force]
+``` -->
+
+```
+$ dex init --file F
 ```
 
 Specify the name of the file with `--file`.
 The format of the file will be inferred from the filename extension, either `.csv` or `.journal`.
 
-If the database exists already the command will print a warning and exit.
-To replace an existing database use `--force`.
+<!-- If the database exists already the command will print a warning and exit.
+To replace an existing database use `--force`. -->
 
 ## CSV File Format
 
@@ -21,11 +25,12 @@ The column names used by Dexter are:
 
 | column | definition | example |
 | --- | --- | --- |
-| `fullname` | the name of the account | `expenses:food:groceries` |
-| `category` | account category (optional, see below) | `expenses` |
-| `abbrev` | a short version of the column name (optional) | `groceries` |
+| `fullname` | the name of the account | assets:bank:checking |
+| `category` | account category (optional, see below) | assets |
+| `abbrev` | a short version of the column name (optional) | checking |
 | `parser` | rule set for parsing downloads (required if parsing CSVs) |
-| `balance` | the initial account balance (optional) |
+| `balance` | the initial account balance (optional) | 1,000.00 |
+| `date` | date for initial account balance (required if balance specified) | 2024-12-31 |
 
 Additional columns are allowed but will be ignored.
 
@@ -141,7 +146,7 @@ Write an `account` statement for each account you want to define.
 * add a semicolon to start a comment
 * add the remaining data, if any, in the form of `tag: value` pairs separated by commas
 
-This example shows how to define a checking account with an initial balance of $1000, a credit card account, and three expense categories (one with subaccounts):
+This example shows how to define a checking account, a credit card account, and three expense categories (one with subaccounts):
 
 ```plain
 account assets:bank:checking         ; abbrev: checking, balance: 1000.00, parser: bank
@@ -151,4 +156,13 @@ account expenses:food                ; abbrev: food
 account expenses:food:groceries      ; abbrev: groceries
 account expenses:food:restaurant     ; abbrev: restaurant
 account home                         ; type: expenses
+```
+
+Instead of putting a balance and date in a comment in the `account` command you can add a transaction.
+This is how to initialize the checking and savings account balances:
+```plain
+2024-12-31 initial balance
+    assets:bank:checking   $1,000.00
+    assets:bank:savings    $2,500.00
+    equity
 ```

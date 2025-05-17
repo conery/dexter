@@ -95,7 +95,7 @@ def review_unpaired(args):
     '''
     unpaired = DB.select(Entry, tag=Tag.U)
     accounts = list(DB.account_name_parts('expense') | DB.account_name_parts('income'))
-    fullnames = DB.full_names('expense') | DB.full_names('income')
+    account_names = DB.account_names('expense') | DB.full_names('income')
     readline.parse_and_bind('tab: complete')
     readline.set_completer(completer_function(accounts))
     row = 0
@@ -118,7 +118,7 @@ def review_unpaired(args):
                 case KEY.EDIT_DESC | KEY.EDIT_COMMENT | KEY.EDIT_TAGS:
                     edit_field(tlist[row], key)
                 case KEY.EDIT_ACCOUNT:
-                    edit_account(tlist[row], fullnames)
+                    edit_account(tlist[row], account_names)
                 case KEY.MOD_DESC:
                     modify_description(tlist[row])
                 case KEY.ACCEPT:
