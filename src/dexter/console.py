@@ -6,12 +6,12 @@ import csv
 import sys
 
 from .config import Config
-from .DB import Entry, Transaction, Column
+from .DB import Entry, Transaction
 
 from rich.console import Console
 from rich.theme import Theme
 from rich.style import Style
-from rich.table import Table
+from rich.table import Table, Column
 
 # Suggested colors for terminals with a light theme
 
@@ -173,3 +173,24 @@ def print_transaction_table(
     print()
     if not as_csv:
         console.print(t)
+
+def print_info_table(dct):
+    tbl = Table(
+        Column(header='name', width=12),
+        Column(header='account', justify='right'),        
+        Column(header='transaction', justify='right'),
+        Column(header='entry', justify='right'),        
+        Column(header='reg_exp', justify='right'),
+        title='Databases',
+        title_justify='left',
+        title_style='table_header',
+    )
+    for dbname, info in dct.items():
+        row = [dbname]
+        for col in ['account', 'transaction', 'entry', 'reg_exp']:
+            n = info.get(col) or 0
+            row.append(str(n))
+        tbl.add_row(*row)
+    print()
+    console.print(tbl)
+    

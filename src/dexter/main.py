@@ -13,7 +13,7 @@ from .console import console
 from .DB import DB
 from .util import setup_logging, parse_date, date_range
 
-from .io import init_database, save_records, restore_records, import_records, export_records
+from .io import print_info, init_database, save_records, restore_records, import_records, export_records
 from .pair import pair_entries
 from .report import print_audit_report, print_balance_report, print_expense_report
 from .review import review_unpaired
@@ -47,6 +47,9 @@ def init_cli():
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
     config_parser = subparsers.add_parser('config', help='print default config file')
+
+    info_parser = subparsers.add_parser('info', help='print DB status')
+    info_parser.set_defaults(dispatch=print_info)
 
     init_db_parser = subparsers.add_parser('init', help='initialize a database')
     init_db_parser.set_defaults(dispatch=init_database)

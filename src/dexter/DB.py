@@ -240,6 +240,21 @@ class DB:
     dbname = None
 
     @staticmethod
+    def info():
+        '''
+        Return information about the databases on the server.
+        '''
+        dct = {}
+        for db in DB.server.list_database_names():
+            if db not in DB.dexters:
+                continue
+            dct[db] = { }
+            for tbl in DB.server[db].list_collection_names():
+                n = DB.server[db][tbl].count_documents({})
+                dct[db][tbl] = n
+        return dct
+
+    @staticmethod
     def init():
         '''
         Connect to the MongoDB server, make a list of Dexter databases.

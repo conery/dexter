@@ -7,8 +7,25 @@ import re
 
 from .DB import DB, Account, Entry, Transaction, RegExp, Category, Tag
 from .config import Config
-from .console import print_records
+from .console import print_records, print_info_table
 from .util import parse_date
+
+###
+#
+# Top level method for the info command
+#
+
+def print_info(args):
+    '''
+    The top level function, called from main when the command 
+    is "info".  Get database descriptions from the server, print
+    it in a table.
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    recs = DB.info()
+    print_info_table(recs)
 
 ###
 #
