@@ -7,14 +7,8 @@ To create the database for the tutorial project simply type
 $ dex init --file accounts.csv
 ```
 
-Dexter will find the name for the new database in the configuration file, create the new 
+Dexter will find the name for the new database in the configuration file, create the new database, and add the accounts.
 
-Specify the name of the file with `--file`.
-The format of the file will be inferred from the filename extension, either `.csv` or `.journal`.
+> _Note:_  You can use `accounts.journal` instead of `accounts,csv`.  They have the same definitions, just in different formats.  Dexter will figure out which format to use based on the file name extension.
 
-<!-- If the database exists already the command will print a warning and exit.
-To replace an existing database use `--force`. -->
 
-#### Example
-
-To create a new database named `dev`...

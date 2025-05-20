@@ -51,6 +51,7 @@ def init_cli():
     init_db_parser = subparsers.add_parser('init', help='initialize a database')
     init_db_parser.set_defaults(dispatch=init_database)
     init_db_parser.add_argument('--file', metavar='F', help='name of file with account definitions', required=True)
+    init_db_parser.add_argument('--force', action='store_true', help='replace an existing database')
 
     import_parser = subparsers.add_parser('import', help='add new records from files')
     import_parser.set_defaults(dispatch=import_records)
@@ -170,13 +171,10 @@ def main():
     args = init_cli()
     try:
         Config.init(args.config)
-        DB.open(args.dbname, args.command not in ['init','restore'])
+        DB.init()
+        # DB.open(args.dbname, args.command not in ['init','restore'])
         args.dispatch(args)
     except (ValueError, FileNotFoundError, ModuleNotFoundError) as err:
         logging.error(err)
-    # except FileNotFoundError as err:
-    #     logging.error(err)
-    # except ModuleNotFoundError as err:
-    #     logging.error(err)
     except Exception as err:
         console.print_exception(show_locals=True)

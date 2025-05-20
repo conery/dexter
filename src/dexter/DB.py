@@ -1,6 +1,7 @@
 # Database schema and API
 
 from enum import Enum
+from datetime import datetime
 from hashlib import md5
 import logging
 import os
@@ -41,6 +42,12 @@ class Action(Enum):
 
     def __str__(self):
         return self.value
+
+class Dexter(Document):
+    date = DateField(required=True)
+
+    def __str__(self):
+        return f'<DB created {self.date}>'
 
 class Account(Document):
     name = StringField(required=True)
@@ -226,55 +233,88 @@ class DB:
     the database.
     '''
 
-    client = None
+    dexters = set()
+    server = None
+    connection = None
     database = None
     dbname = None
 
     @staticmethod
-    def open(dbname: str, must_exist: bool = True):
+    def init():
         '''
-        Connect to a MongoDB server and database.  Saves the connection
-        and database in static variables that are accessible outside the
+        Connect to the MongoDB server, make a list of Dexter databases.
+        '''
+        pm = connect(alias = 'pm')
+        for dbname in pm.list_database_names():
+            if 'dexter' in pm[dbname].list_collection_names():
+                coll = pm[dbname].dexter
+                n = coll.count_documents({})
+                obj = coll.find_one()
+                if n == 1 and 'date' in obj:
+                    DB.dexters.add(dbname)
+        DB.server = pm
+
+    @staticmethod
+    def exists(dbname):
+        '''
+        Return True if dbname is the name of a Dexter database on the server.
+        '''
+        return dbname in DB.dexters
+    
+    @staticmethod
+    def open(dbname: str):
+        '''
+        Connect to a Dexter database, making sure the database exists.  Saves 
+        the connection info in static variables that are accessible outside the
         class.
 
         If `dbname` is None use the name in the envionment variable DEX_DB.
 
         Arguments:
             dbname:  name of the database
-            must_exist:  if True make sure the database exists and is a Dexter database  
         '''
         dbname = dbname or os.getenv('DEX_DB')
         if dbname is None:
-            raise ValueError('DB.open: specify a database name with --db or DEX_DB')           
+            raise ValueError('DB.open: specify a database name with --db or DEX_DB')   
+        if dbname not in DB.dexters:
+            raise ValueError(f'DB.open: no Dexter database named {dbname} on the server')
         logging.debug(f'DB: open {dbname}')
 
-        disconnect()
-        DB.client = connect()
-        dblist = DB.client.list_database_names()
-        if must_exist and dbname not in dblist:
-            raise ValueError(f'DB.open: no database named {dbname}')
-        
-        disconnect()
-        DB.client = connect(dbname, UuidRepresentation='standard')
-        DB.database = DB.client[dbname]
+        DB.connection = connect(dbname, UuidRepresentation='standard')
+        DB.database = DB.connection[dbname]
 
         clist = [x['name'] for x in DB.database.list_collections()]
         logging.debug(f'DB.open: collections: {clist}')
 
-        if must_exist:
-            if not all(cls in clist for cls in ['account','entry','transaction']):
-                raise ValueError(f'DB.open: database missing Dexter collections')
+        if not all(cls in clist for cls in ['account','entry','transaction']):
+            raise ValueError(f'DB.open: database missing Dexter collections')
 
         DB.dbname = dbname
         DB.models = [cls for cls in Document.__subclasses__() if hasattr(cls, 'objects')]
         DB.collections = { cls._meta["collection"]: cls for cls in DB.models }
 
     @staticmethod
+    def create(dbname: str):
+        ''''
+        Open a connection to a new database.  
+
+        Arguments:
+            dbname:  name of the database
+        '''
+        DB.connection = connect(dbname, UuidRepresentation='standard')
+        if dbname in DB.dexters:
+            DB.connection.drop_database(dbname)
+        DB.database = DB.connection[dbname]
+
+        rec = Dexter(date = datetime.now())
+        rec.save()
+
+    @staticmethod
     def erase_database():
         '''
         Erase the database.
         '''
-        DB.client.drop_database(DB.dbname)
+        DB.connection.drop_database(DB.dbname)
 
     @staticmethod
     def restore_from_json(collection: str, doc: str):

@@ -21,6 +21,7 @@ def select_transactions(args):
       --total will print the total amount of all items
       --csv will print items in CSV format
    '''
+   DB.open(args.dbname)
 
    if args.entry:
       dct = DB.entry_constraints

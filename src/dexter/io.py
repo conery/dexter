@@ -82,6 +82,10 @@ def init_database(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
+    if DB.exists(args.dbname) and not args.force:
+        raise ValueError(f'init: database {args.dbname} exists; use --force to replace it')
+    DB.create(args.dbname)    
+
     p = Path(args.file)
     if not p.exists():
         raise FileNotFoundError(f'init_database: no file named {p}')
@@ -113,7 +117,6 @@ def init_from_csv(fn: Path, preview: bool = False):
         print_records(accts)
         print_records(trans)
     else:
-        DB.erase_database()
         for obj in accts + trans:
             try:
                 logging.debug(f'save {obj}')
@@ -165,7 +168,6 @@ def init_from_journal(fn: Path, preview: bool = False):
         for lst in recs.values():
             print_records(lst)
     else:
-        DB.erase_database()
         DB.save_entries(recs['entries'])
         for obj in recs['accounts'] + recs['transactions']:
             try:
