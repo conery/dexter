@@ -431,7 +431,8 @@ def parse_file(fn, pname, account, starting, ending, previous):
     Returns:
         a list of Entry objects
     '''
-    logging.debug(f'parsing {fn} {pname} {account} {starting} {ending}')
+    logging.info(f'Parsing {fn}')
+    logging.debug(f'  arguments: {pname} {account} {starting} {ending}')
     res = []
     cmap = Config.colmaps[pname]
     logging.debug(f'parser {pname} colmap {cmap}')

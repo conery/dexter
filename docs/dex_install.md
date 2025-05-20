@@ -4,20 +4,33 @@
 > These instructions are for macOS and should work on Linux.
 > Instructions for Powershell are planned.
 
-### Install Dexter
+## Overview
+
+Dexter is a command line application.
+The shell command to run it has the general form of
+```shell
+$ dex CMND [OPTIONS]
+```
+where CMND is the name of an operation (initialize new database, import CSVs, _etc_) and OPTIONS vary from one command to another.
+
+A typical session with Dexter starts with going to the folder where you work on your finances and running Dexter commands to carry out your expense tracking workflow:
+```shell
+$ cd Finances
+$ dex report --audit
+$ dex import Downloads/*.csv
+$ dex pair
+...
+```
+
+## Virtual Environment
 
 Dexter depends on a several third-party libraries.
 We recommend setting up a new virtual environment for Dexter and its dependences.
 
-Start by typing a command that goes to your project directory, _e.g._:
-```shell
-$ cd Finances
-```
-
-Choose a Python version.
+Start by choosing a Python version.
 Dexter was developed using 3.13.1 but any version newer than 3.11 should work:
 ```shell
-$ pyenv local 3.13.1
+$ pyenv shell 3.13.1
 ```
 
 Make a new environment based on the selected Python.
@@ -26,20 +39,14 @@ You can name it anything; this example makes an environment named `dexter`:
 $ pyenv virtualenv dexter
 ```
 
-If you type this command your new environment will always be activated whenver you `cd` to your project directory:
-```shell
-$ pyenv local dexter
-```
-
 Run `pip` to download and install Dexter:
 ```shell
 $ pip install git+https://github.com/conery/dexter.git
 ```
 
-### Help Messages
+## Help Messages
 
 To test the installation ask `dex` to print a help message.
-
 If you run `dex` with no arguments you'll see an abbreviated help message:
 ```shell
 $ dex
@@ -74,19 +81,3 @@ options:
   -h, --help  show this help message and exit
   --file F    name of file with account definitions
 ```
-
-### Install MongoDB
-
-The easiest way to install MongoDB is to use Homebrew:
-```shell
-$ brew tap mongodb/brew
-$ brew install mongodb-community
-```
-
-Then start the server:
-```shell
-$ brew services start mongodb-community
-```
-
-The server should run automatically every time you restart your computer.
-

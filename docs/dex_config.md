@@ -1,7 +1,7 @@
 # Configuration
 
 Dexter uses a configuration file to define settings used by various scripts.
-Most of these are cosmetic, for example colors to use when printing tables on the terminal.
+Many of these are cosmetic, for example colors to use when printing tables on the terminal.
 
 But there is one important part of the configuration that you need to define as soon as you can:
 the **parsers** that extract data from CSV files downloaded from banks, credit card companies, and other financial institutions.
@@ -248,8 +248,8 @@ These are automatically generated and are often helpful.
 For example, if a business is known to be a restaurant, the category column might have "Food & Drink".
 
 A potential strategy for coming up with categories for purchases might be to save these columns as part of the description, maybe at the end, after a special character:
-```
-IZAKAYA JAPANESE RESTAURANT #Food & Drink
+```plain
+IZAKAYA JAPANESE RESTAURANT / Food & Drink
 ```
 Then when you write the regular expressions used by the `pair` command (described in [Regular Expressions](dex_pair.md)) you can write a rule that debits your `restaurant` account when it sees this credit.
 

@@ -55,7 +55,7 @@ def init_cli():
     import_parser = subparsers.add_parser('import', help='add new records from files')
     import_parser.set_defaults(dispatch=import_records)
     import_parser.add_argument('files', metavar='F', nargs='+', type=Path, help='name(s) of file(s) with records to add')
-    import_parser.add_argument('--account', metavar='A', help='process only this account')
+    import_parser.add_argument('--account', metavar='A', help='account name')
     import_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     import_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     import_parser.add_argument('--month', metavar='D', choices=months, help='add records only for this month')
