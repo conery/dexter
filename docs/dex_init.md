@@ -8,11 +8,14 @@ See [Defining Accounts](accounts.md) for details on how to define account attrib
 
 
 ```
-$ dex init --file F
+$ dex init --file F [--force]
 ```
 
 Specify the name of the file with `--file`.
 The format of the file will be inferred from the filename extension, either `.csv` or `.journal`.
+
+If there is already a database with that name Dexter prints a warning and exits.
+Use `--force` if you want Dexter to erase the old database and replace it with the new one.
 
 ### Database Name
 
@@ -23,9 +26,6 @@ Dexter looks for the name to use for the new database in the following locations
 * the name defined in the configuration file
 
 If no name is found Dexter prints an error message and exits.
-
-<!-- If the database exists already the command will print a warning and exit.
-To replace an existing database use `--force`. -->
 
 #### Example
 
