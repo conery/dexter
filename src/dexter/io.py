@@ -7,7 +7,7 @@ import re
 
 from .DB import DB, Account, Entry, Transaction, RegExp, Category, Tag
 from .config import Config
-from .console import print_records, print_info_table
+from .console import print_records, print_grid, print_info_table
 from .util import parse_date
 
 ###
@@ -99,9 +99,10 @@ def init_database(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    if DB.exists(args.dbname) and not args.force:
-        raise ValueError(f'init: database {args.dbname} exists; use --force to replace it')
-    DB.create(args.dbname)    
+    if not args.preview:
+        if DB.exists(args.dbname) and not args.force:
+            raise ValueError(f'init: database {args.dbname} exists; use --force to replace it')
+        DB.create(args.dbname)    
 
     p = Path(args.file)
     if not p.exists():
@@ -132,7 +133,9 @@ def init_from_csv(fn: Path, preview: bool = False):
                 make_balance_transaction(rec, trans)
     if preview:
         print_records(accts)
-        print_records(trans)
+        # print_records(trans)
+        any(t.clean() for t in trans)
+        print_grid([[t.description,str(t.pdate),str(t.pamount)] for t in trans])
     else:
         for obj in accts + trans:
             try:
@@ -183,7 +186,10 @@ def init_from_journal(fn: Path, preview: bool = False):
     recs = JournalParser().parse_file(fn)
     if preview:
         for lst in recs.values():
-            print_records(lst)
+            # print_records(lst)
+            for obj in lst:
+                obj.clean()
+                print(obj)
     else:
         DB.save_entries(recs['entries'])
         for obj in recs['accounts'] + recs['transactions']:
@@ -377,6 +383,7 @@ def import_records(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
+    DB.open(args.dbname)
     if args.regexp:
         import_regexp(args)
     else:

@@ -1,83 +1,122 @@
-# Importing CSV Files
+# Import CSV Files
 
-The `import` command parses one or more CSV files and adds new Postings to the database.
+Now that we have the database set up with account names we're ready to import some data.
 
-#### Usage
-
+The first step in your monthly workflow will be to connect to your banks and other financial institutions and download all of your transactions.
+We have some sample data to use for this tutorial in the `Downloads` section of the project folder:
+```plain
+Finances
+...
+├── Downloads
+│   ├── apr
+│   │   ├── chase.csv
+│   │   ├── checking.csv
+│   │   └── savings.csv
+│   └── may
+│       ├── chase.csv
+│       ├── checking.csv
+│       └── savings.csv
 ```
-$ dex import F [F ...] [--account A] [--start_date D] [--end_date D] [--month D] 
+
+The subfolder named `apr` has transactions for a single month, April 2024.
+
+The subfolder for `may` has the same three files, but now the transactions are for two months, April and May of 2024.
+The idea is to illustrate how Dexter avoids importing duplicate transactions, and to provide an example of the process we suggest for managing downloads:
+
+* connect to the financial institution's web site
+
+* select an account, download all transactions, using the "year to date" option
+
+* find the file in your Downloads folder, rename it, and move it to the downloads section of your project folder
+
+Selecting "year to date" is simpler than specifying a date range (and remembering which transactions you have already downloaded).
+But the main benefit is having a full record of all downloads in a single file that is always up to date for each account.
+
+## Preview the April Transactions
+
+The general form of the `import` command is
+```bash
+$ dex import F1 F2 ...
 ```
+where the names following `import` are the names of the files to import.
 
-> _See [Date Range Options](dex_options.md#date-range-options) for an explanation of the date options._
+In our case, the April data is all in one folder, and we want to import all of the files, so we can just type `Downloads/apr/*`.
 
-## Import a Single CSV File
+As a first step we recommend running the command in preview mode.
+Dexter will parse the files and print the records it will import on the terminal.
+It's a good way to make sure you're getting the data you expect and to work out any problems with file names or other issues.
 
-To import a single file just specify the file name and use the `--account` option to tell Dexter which account to use for the new postings.
-
-Suppose you log in to your bank and download the transactions for your checking account.
-The bank web site will give the file a name that may or may not include the account name.
-Let's suppose it's simply "Download.csv" and your browser puts it in your main Downloads folder.
-This command will import those records as postings to the your checking account in the database:
+Here it the command to preview the CSV files for April:
 ```shell
-$ dex import ~/Downloads/Download.csv --account checking
+$ dex --pre --db dev import Downloads/apr/*
 ```
 
-The `--account` option tells Dexter to look up the account with the abbreviated name `checking`, and to use the parser associated with that account to process every record in the file.
+## Verify the Output
 
-If the file name is the same as the abbreviated name you can omit the `--account` option.
-For example, if you download the CSV file, then move it to the Downloads folder in your project directory and rename it with the account name, you don't need to specify the name with `--account`:
-```
-$ mv ~/Downloads/Download.csv ./Downloads/checking.csv
-$ dex import Downloads/checking.csv
-```
-
-## Import Multiple CSV Files
-
-It's often more efficient to do a "bulk import" of several CSV files.
-In order to do this each file needs to have the name of an account.
-You can't use `--account` because the files belong to different accounts.
-
-For example, if your project's Download folder has files named `checking.csv` and `savings.csv` you can use one command to import them both:
-```
-$ dex import Downloads/checking.csv Downloads/savings.csv
+The output will be shown in sections, one for each input file.
+A section will start with a log message that looks like this, with the name of the file that will be processed:
+```plain
+INFO     Parsing Downloads/apr/chase.csv
 ```
 
-If all the CSV files in Downloads are named for accounts you can also just type
-```
-$ dex import Downloads/*.csv
-```
-
-## Is Bulk Import Really More Efficient?
-
-It takes a bit of work to organize downloads before a bulk import.
-This is a common situation:
-
-* log in to the bank web site, download files from each account
-* the bank gives them all the same name (`Download.csv`) so your browser puts them in your main Downloads with a generic name like `Download.csv`
-* the files have to be renamed and moved to your project Download folder, _e.g._
-```
-$ mv ~/Downloads/Download.csv ./Downloads/checking.csv
+Next are a series of lines, with one line for each CSV record:
+```plain
+entry  2024-05-02           $10.00  liabilities:chase:visa  ESSENTIAL PHYSICAL THERAP  [<Tag.U: '#unpaired'>]
+entry  2024-04-30           $25.75  liabilities:chase:visa  SP GIST YARN &amp; FIBER   [<Tag.U: '#unpaired'>]
+...
 ```
 
-Although that seems like a lot of work it is probably worth the effort, for several reasons.
+Each of these lines will be saved in the database as a posting.
+The important information to look for is the date, amount, account, and description.
+The account shown here will be the full account name.  Dexter uses the name of the file (in this case, `visa.csv`) to figure out which account to use (`visa` is the abbreviation for `liabilities:chase:visa`).
 
-1. If you don't rename the files you can accumulate a lot of duplicate names like `Download (1).csv`, `Download (2).csv`, _etc_, depending on how many accounts you have at the bank.
-1. You'll have to remember which file goes with which account in order to give the right name with the `--account` option wheh you import them one at a time.
-1. If you get into a pattern of download, move, download the next, move, ... it's easier to get the names correct.
+**Note:**  When you define your own parser you will be making heavy use of preview mode.
+This is where you will be able to make sure your parser is extracting the right information from the CSV file.
 
-And finally, if you select the "year to date" option at the bank web site your CSV file will contain all the transactions for that account.
-Dexter checks to make sure it doesn't re-import a record, so it's OK to import a file that has all records for the year.
-Now you'll have CSV files, with names that reflect the account they came from, that can be used for other purposes as well.
+## Import the April Transactions
 
-## TBD: Working with Aggregators
+When everything looks OK, run the same shell command, but without the `--preview` option:
+```shell
+$ dex --db dev import Downloads/apr/*
+INFO     Parsing Downloads/apr/chase.csv
+INFO     Parsing Downloads/apr/checking.csv
+INFO     Parsing Downloads/apr/savings.csv 
+```
 
-There are several web sites that serve as "aggregators".
-They can connect to your banks and credit card companies and download all of your records for you.
-Then you just need to log in to the aggregator and do one download to get those records.
+Printing the status of the database should show the new data have been added:
+```shell
+$ dex info
 
-The two that I have tried (Mint and Empower) worked fairly well but had enough drawbacks that I stopped using them.
-There were often "gaps" in the data that caused me to lose several days worth of records.
-These sites also did too much "preprocessing" and filtered out columns from the original records that I wanted to use.
+Databases                                                 
+┏━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓
+┃ name         ┃ account ┃ transaction ┃ entry ┃ reg_exp ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━┩
+│ dev          │      26 │           2 │    62 │       0 │
+└──────────────┴─────────┴─────────────┴───────┴─────────┘
+```
+Before there were 4 postings, now there are 62.
 
-Recently several new services have started up, all using Plaid.
-I'm looking forward to trying them out.
+#### Save May for Later
+
+If you want you can repeat the steps above for the data in the folder for May.
+But we recommend waiting until you have worked through the complete tutorial.
+You'll have a smaller and more manageable set of data for each step if you use only the April data the first time through.
+
+## CSV Transactions Are Saved As Postings
+
+The output from the `info` command brings up an important point about terminology.
+
+From the financial institution's perspective, the word "transaction" means "an event that updated the balance of your account", such as a purchase or a deposit.
+The web site will show a table of transactions, and most likely the command to save them has a name like "download transactions".
+
+Each transaction from the financial institution will become a single line in the CSV file.
+So when we wrote above "Preview the April Transactions" we meant "preview the records in the CSV download for April."
+
+From Dexter's perspective, however, the word "transaction" has the meaning used in double entry bookkeeping.
+A transaction is a transfer of money between two (or more) accounts.
+Each CSV record becomes a **posting** in the database.
+So from now on, when we refer to the data we just imported, we will use the DEB terminology and call these items postings.
+
+The next step in the expense tracking workflow is to create transactions by pairing the new postings.
+
+

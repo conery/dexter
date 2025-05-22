@@ -92,12 +92,11 @@ class Entry(Document):
         amt = f'${self.amount:.02f}'
         style = '[red]' if self.column == Column.cr else ""
         return [
-            'entry',
             str(self.date),
             f'{style}{amt:>15s}',
-            f'{self.account:20}',
+            f'{DB.abbrev(self.account)}',
             self.description[:50],
-            str(self.tags),
+            ', '.join(t.value for t in self.tags),
         ]
 
     @property
@@ -127,13 +126,25 @@ class Transaction(Document):
         return f'<Tr {self.pdate} {self.pcredit} -> {self.pdebit} ${self.pamount} {self.description} {self.tags}>'
 
     def row(self):
+        accts = []
+        for lst in [self.credits, self.debits]:
+            if len(lst) == 0:
+                accts.append('')
+            elif len(lst) > 1:
+                accts.append('multiple')
+            else:
+                accts.append(DB.abbrev(lst[0].account))
+        amt = f'${self.pamount:.02f}' if self.pamount else ''
         return [
-            'transaction',
+            # 'transaction',
             str(self.pdate),
-            f'{self.pcredit} -> {self.pdebit}',
+            # f'{self.pcredit} -> {self.pdebit}',
+            f'{accts[0]}',
+            f'{accts[1]}',
+            f'{amt:>15s}',
             self.description,
-            self.comment,
-            str(self.tags),
+            # self.comment,
+            ', '.join(self.tags),
         ]
 
     @property
@@ -414,6 +425,22 @@ class DB:
             return lst[0].name
         return None
 
+    @staticmethod
+    def abbrev(s: str):
+        '''
+        The argument s is a full account name.  Return the account's abbreviation if
+        it has one, otherwise return the full name.
+
+        Should only be called in contexts where s is known to be a valid account name
+        (e.g. a report generator).
+        '''
+        try:
+            acct = Account.objects.get(name=s)
+            res = acct.abbrev
+        except Account.DoesNotExist:
+            res = s
+        return res
+    
     @staticmethod
     def find_account(s: str):
         '''

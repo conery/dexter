@@ -84,7 +84,7 @@ entry_header_format = {
     'tags':    {'width': 5, 'justify': 'center'},
 }
 
-def print_records(docs):
+def print_records(docs, name=None, count=0):
     '''
     Print a grid containing descriptions of documents.  Each document
     class has its own `row` method that has the information it wants
@@ -93,19 +93,33 @@ def print_records(docs):
     Arguments:
         docs:  a list of documents
     '''
-    dct = {}
-    for obj in docs:
-        lst = obj.row()
-        a = dct.setdefault(lst[0], [])
-        a.append(lst)
-    
-    for tbl, lst in dct.items():
-        n = len(lst[0])
-        grid = Table.grid(""*n, padding=[0,2,0,2])
-        for row in lst:
-            grid.add_row(*row)
-        console.print(grid)
-        console.print()
+    # dct = {}
+    # for obj in docs:
+    #     lst = obj.row()
+    #     a = dct.setdefault(lst[0], [])
+    #     a.append(lst)
+
+    # for tbl, lst in dct.items():
+    #     n = len(lst[0])
+    #     grid = Table.grid(""*n, padding=[0,2,0,2])
+    #     for row in lst:
+    #         grid.add_row(*row)
+    #     console.print(grid)
+    #     console.print()
+
+    if name:
+        title = f'[bold blue]{name}'
+        if count:
+            title += f' ({count})'
+        console.print(title)
+
+    lst = [obj.row() for obj in docs]
+    n = len(lst[0])
+    grid = Table.grid(""*n, padding=[0,3,0,3])
+    for row in lst:
+        grid.add_row(*row)
+    console.print(grid)
+    console.print()
 
 def tag_strings(rec):
     '''
@@ -194,3 +208,15 @@ def print_info_table(dct):
     print()
     console.print(tbl)
     
+def print_grid(recs: list, name: str = None, count: int = 0):
+    n = len(recs[0])
+    grid = Table.grid(""*n, padding=[0,2,0,2])
+    for row in recs:
+        grid.add_row(*row)
+    if name:
+        title = f'[bold blue]{name}'
+        if count:
+            title += f' ({count})'
+        console.print(title)
+    console.print(grid)
+    console.print()

@@ -5,7 +5,7 @@ import re
 
 from .DB import DB, Transaction, Entry, Action, Column
 from .config import Config, Tag
-from .console import print_records
+from .console import print_records, print_grid
 
 def pair_entries(args):
     '''
@@ -15,7 +15,7 @@ def pair_entries(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    logging.info(f'Finding matches for unpaired entries')
+    DB.open(args.dbname)
     logging.debug(f'pair {vars(args)}')
 
     unpaired = DB.select(Entry, tag=Tag.U)
@@ -23,10 +23,9 @@ def pair_entries(args):
     new_transactions = []
     credits = {}
     debits = {}
-    # alternatives = []
     unmatched = []
 
-    for entry in sorted(unpaired, key=lambda e: e.date):
+    for entry in unpaired:
         logging.debug(f'pair: find regexp for {entry.description}')
         if regexp := DB.find_first_regexp(entry.description):
             match regexp.action:
@@ -47,20 +46,26 @@ def pair_entries(args):
     xfers = combine_xfer_parts(credits, debits)
 
     if args.preview:
-        print(f'Matched {len(new_transactions)}:')
-        for t in new_transactions:
-            print(f'  {t.description}')
-        print('\nTransfers')
-        print_records(xfers)
-        print(f'\nUnmatched {len(unmatched)}:')
-        for e in unmatched:
-            print(f'  {e.account}  {e.description}')
+        preview_transactions(new_transactions)
+        preview_transfers(xfers)
+        preview_unmatched(unmatched)
     else:
         logging.info(f'pair: {len(new_transactions)} matched')
         logging.info(f'pair: {len(xfers)} paired')
         logging.info(f'pair: {len(unmatched)} unmatched')
         save_matched_transactions(new_transactions)
         save_xfers(xfers)
+
+def preview_transactions(lst):
+    any(t.clean() for t in lst)
+    print_records(lst, name='Matched', count=len(lst))
+
+def preview_transfers(lst):
+    any(t.clean() for t in lst)
+    print_records(lst, name='Transfers', count=len(lst))
+
+def preview_unmatched(lst):
+    print_grid([[DB.abbrev(e.account), e.description] for e in lst], name='Unmatched', count=len(lst))
 
 def matching_transaction(entry, regexp):
     '''
@@ -137,7 +142,7 @@ def combine_xfer_parts(credits, debits):
                 e1 = clist.pop(0)
                 e2 = dlist.pop(0)
                 logging.debug('(%s %s) paired with (%s %s)', e1.account, e1.description, e2.account, e2.description)
-                t = Transaction(description=f'{e1.note} {e1.account} ⧓ {e2.account}')
+                t = Transaction(description=f'{e1.note}')
                 t.entries += [e1,e2]
                 res.append(t)
     return res
