@@ -135,12 +135,11 @@ def tag_strings(rec):
 
 def print_transaction_table(
         lst, 
-        as_csv=False, 
         name=None, 
-        original=False, 
         styles={},
         order_by=None,
         abbrev=False,
+        as_csv=False,
     ):
     if order_by:
         lst = lst.order_by(order_by)
@@ -195,6 +194,28 @@ def print_transaction_table(
     print()
     if not as_csv:
         console.print(t)
+
+def print_journal_transactions(lst, abbrev=False, order_by=None):
+    '''
+    Print transactions in Journal format.
+
+    Arguments:
+        lst: a list of Transaction objects
+    '''
+    if order_by:
+        lst = lst.order_by(order_by)
+
+    for obj in lst:
+        line = f'{obj.pdate}   {obj.description}'
+        if obj.comment:
+            line += f'   ; {obj.comment}'
+        console.print(line)
+        for e in obj.entries:
+            acct = DB.abbrev(e.account) if abbrev else e.account
+            amt = format_amount(e.value, dollar_sign=True)
+            line = f'    {acct:20s} {amt:>15s}'
+            console.print(line)
+        console.print()
 
 def print_info_table(dct):
     tbl = Table(

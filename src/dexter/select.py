@@ -4,7 +4,7 @@ import logging
 
 from .DB import DB, Transaction, Entry
 from .config import Config
-from .console import print_transaction_table
+from .console import print_transaction_table, print_journal_transactions
 
 def select_transactions(args):
    '''
@@ -43,11 +43,23 @@ def select_transactions(args):
    if 'start_date' not in kwargs:
       kwargs['start_date'] = Config.start_date
    
-   print_transaction_table(
-      DB.select(cls, **kwargs), 
-      as_csv=args.csv, 
-      name='Entries' if args.entry else 'Transactions',
-      order_by = order[args.order_by],
-      abbrev = not args.fullname,
-   )
+   recs = DB.select(cls, **kwargs)
+
+   if args.journal:
+      if args.entry:
+         logging.error("select:  journal format not valid for entries")
+         return
+      print_journal_transactions(
+         recs,
+         abbrev = not args.fullname,
+         order_by = order[args.order_by],
+      )
+   else:
+      print_transaction_table(
+         recs, 
+         name='Entries' if args.entry else 'Transactions',
+         order_by = order[args.order_by],
+         abbrev = not args.fullname,
+         as_csv = args.csv,
+      )
 
