@@ -37,6 +37,7 @@ def init_cli():
         a Namespace object with values of the command line arguments. 
     """
     months = [ m[:3].lower() for m in calendar.month_name[1:] ]
+    columns = list(DB.transaction_order.keys())
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--dbname', metavar='X', help='database name')
@@ -134,7 +135,10 @@ def init_cli():
     select_parser.add_argument('--amount', metavar='N', type=float, help='amount')
     select_parser.add_argument('--min_amount', metavar='N', type=float, help='minimum amount')
     select_parser.add_argument('--max_amount', metavar='N', type=float, help='maximum amount')
+    select_parser.add_argument('--fullname', action='store_true', help='print full account names')
     select_parser.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
+    select_parser.add_argument('--journal', action='store_true', help='print in Journal format')
+    select_parser.add_argument('--order_by', metavar='C', choices=columns, default='date', help='sort order')
     select_parser.add_argument('--total', action='store_true', help='print total amount of selected transactions')
     select_parser.add_argument('--update', metavar='F V', nargs=2, help='update fields')
 

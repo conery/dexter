@@ -299,7 +299,7 @@ class DB:
         Arguments:
             dbname:  name of the database
         '''
-        dbname = dbname or os.getenv('DEX_DB')
+        dbname = dbname or os.getenv('DEX_DB') or Config.dbname
         if dbname is None:
             raise ValueError('DB.open: specify a database name with --db or DEX_DB')   
         if dbname not in DB.dexters:
@@ -603,6 +603,12 @@ class DB:
         'tag': 'tags',
     }
 
+    entry_order = {
+        'description': 'description',
+        'date':  'date',
+        'amount':  'amount',
+    }
+
     transaction_constraints = {
         'description': 'description__iregex',
         'comment': 'comment__iregex',
@@ -615,6 +621,14 @@ class DB:
         'debit': 'pdebit__iregex',
         'credit': 'pcredit__iregex',
         'tag': 'tags',
+    }
+
+    transaction_order = {
+        'description': 'description',
+        'date':  'pdate',
+        'amount':  'pamount',
+        'debit': 'pdebit',
+        'credit': 'pcredit',
     }
 
     @staticmethod

@@ -61,7 +61,7 @@ INFO     Parsing Downloads/apr/chase.csv
 
 Next are a series of lines, with one line for each CSV record:
 ```plain
-entry  2024-05-02           $10.00  liabilities:chase:visa  ESSENTIAL PHYSICAL THERAP  [<Tag.U: '#unpaired'>]
+entry  2024-04-30           $10.00  liabilities:chase:visa  ESSENTIAL PHYSICAL THERAP  [<Tag.U: '#unpaired'>]
 entry  2024-04-30           $25.75  liabilities:chase:visa  SP GIST YARN &amp; FIBER   [<Tag.U: '#unpaired'>]
 ...
 ```

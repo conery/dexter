@@ -3,6 +3,7 @@
 import logging
 
 from .DB import DB, Transaction, Entry
+from .config import Config
 from .console import print_transaction_table
 
 def select_transactions(args):
@@ -25,9 +26,11 @@ def select_transactions(args):
 
    if args.entry:
       dct = DB.entry_constraints
+      order = DB.entry_order
       cls = Entry
    else:
       dct = DB.transaction_constraints
+      order = DB.transaction_order
       cls = Transaction
    logging.debug(f'select {cls}')
 
@@ -36,10 +39,15 @@ def select_transactions(args):
       if val := vars(args).get(name):
          kwargs[name] = val
          logging.debug(f'  {name} = {val}')
+
+   if 'start_date' not in kwargs:
+      kwargs['start_date'] = Config.start_date
    
    print_transaction_table(
       DB.select(cls, **kwargs), 
       as_csv=args.csv, 
       name='Entries' if args.entry else 'Transactions',
+      order_by = order[args.order_by],
+      abbrev = not args.fullname,
    )
 

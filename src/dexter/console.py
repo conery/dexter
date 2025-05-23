@@ -3,10 +3,11 @@
 #
 
 import csv
+import logging
 import sys
 
 from .config import Config
-from .DB import Entry, Transaction
+from .DB import DB, Entry, Transaction
 
 from rich.console import Console
 from rich.theme import Theme
@@ -137,8 +138,12 @@ def print_transaction_table(
         as_csv=False, 
         name=None, 
         original=False, 
-        styles={}
+        styles={},
+        order_by=None,
+        abbrev=False,
     ):
+    if order_by:
+        lst = lst.order_by(order_by)
 
     if lst and isinstance(lst[0],Entry):
         header = dict(entry_header_format)
@@ -165,16 +170,19 @@ def print_transaction_table(
     for rec in lst:
         row = []
         if row_type == 'entry':
+            acct = DB.abbrev(rec.account) if abbrev else rec.account
             row.append(str(rec.date))
-            row.append(rec.account)
+            row.append(acc)
             row.append(format_amount(rec.amount, dollar_sign=True))
             row.append(str(rec.column))
             row.append(rec.description)
             row.append(tag_strings(rec))
         else:
+            cr = DB.abbrev(rec.pcredit) if abbrev else rec.pcredit
+            dr = DB.abbrev(rec.pdebit) if abbrev else rec.pdebit
             row.append(str(rec.pdate))
-            row.append(rec.pcredit)
-            row.append(rec.pdebit)
+            row.append(cr)
+            row.append(dr)
             row.append(format_amount(rec.pamount, dollar_sign=True))
             row.append(rec.description)
             row.append(rec.comment)

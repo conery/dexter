@@ -58,6 +58,9 @@ class Config:
     colmaps = { }
     fullname = { }
 
+    dbname = 'dexter'
+    start_date = '1970-01-01'
+
     @staticmethod
     def print_default():
         with open(Config.path_to_default) as f:
@@ -90,6 +93,10 @@ class Config:
             for fmt, spec in cd.items():
                 logging.debug(f'fmt {fmt} spec {spec}')
                 Config.compile_specs(fmt, spec)
+
+        if dd := config.get('database'):
+            Config.dbname = dd.get('dbname')
+            Config.start_date = dd.get('start_date')
 
         # logging.debug(f'config: parsers: {Config.parsers}')
         logging.debug(f'config: colmaps: {Config.colmaps}')

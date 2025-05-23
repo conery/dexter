@@ -8,7 +8,7 @@ To do that we'll use Dexter's `pair` command.
 As an example of what we want that command to do, consider the posting created by importing the first record in `chase.csv`:
 The posting for the first record from the credit card account looks like this:
 ```plain
-entry  2024-05-02           -$10.00  liabilities:chase:visa  ESSENTIAL PHYSICAL THERAP  [<Tag.U: '#unpaired'>]
+entry  2024-04-30           -$10.00  liabilities:chase:visa  ESSENTIAL PHYSICAL THERAP  [<Tag.U: '#unpaired'>]
 ```
 In our hypothetical data set, that's a payment Alice made to her physical therapist.
 The minus sign in the amount means it is a credit to the `visa` account.

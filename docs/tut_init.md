@@ -9,7 +9,7 @@ $ dex init --file accounts.csv
 
 Dexter will find the name for the new database in the configuration file, create the new database, and add the accounts.
 
-> _Note:_  You can use `accounts.journal` instead of `accounts,csv`.  They have the same definitions, just in different formats.  Dexter will figure out which format to use based on the file name extension.
+> _Note:_  You can use `accounts.journal` instead of `accounts.csv`.  They have the same definitions, just in different formats.  Dexter will figure out which format to use based on the file name extension.
 
 You can use the `info` command to verify the database was created:
 ```shell
