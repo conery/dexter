@@ -2,6 +2,9 @@
 ; transactions exported from finances.db
 ;
 
+; note: the abbreviation for the restaurant account is for a unit
+; test that makes sure abbreviations are included.
+
 account assets:bank:checking        ; category: assets, abbrev: checking, parser: occu
 account assets:bank:savings         ; category: assets, abbrev: savings, parser: occu
 account expenses:car                ; type: expenses
@@ -9,7 +12,7 @@ account expenses:car:payment        ; type: expenses
 account expenses:car:fuel           ; type: expenses
 account expenses:food               ; type: expenses
 account expenses:food:groceries     ; type: expenses, abbrev: groceries
-account expenses:food:restaurant    ; type: expenses, abbrev: restaurant
+account expenses:food:restaurant    ; type: expenses, abbrev: dining
 account expenses:home
 account expenses:home:household     ; type: expenses, abbrev: household
 account expenses:home:mortgage      ; type: expenses, abbrev: mortgage

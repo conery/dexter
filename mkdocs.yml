@@ -40,7 +40,7 @@ nav:
     - "Import CSV Files": tut_import.md
     - "Import Regular Expressions": tut_regexp.md
     - "Pair Transactions": tut_pair.md
-    - "Select Transactions": tut_select.md
+    # - "Select Transactions": tut_select.md
     - "Review Unpaired Transactions": dex_review.md
     - "Add New Transaction": dex_add.md
     - "Reports": dex_report.md

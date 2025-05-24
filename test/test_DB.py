@@ -1,7 +1,7 @@
 # Unit tests for the DB module
 
 from datetime import date
-from dexter.DB import DB, Document, Account, Entry, Transaction, Column
+from dexter.DB import DB, Document, Account, Category, Entry, Transaction, Column
 
 class TestDB:
     '''
@@ -21,8 +21,8 @@ class TestDB:
         database and the collections it contains.
         '''
         assert DB.dbname == 'pytest'
-        assert len(DB.models) == 4
-        assert set(DB.collections.keys()) == {'account', 'entry', 'transaction', 'reg_exp'}
+        assert len(DB.models) == 5
+        assert set(DB.collections.keys()) == {'dexter', 'account', 'entry', 'transaction', 'reg_exp'}
 
     def test_import(self, db):
         '''
@@ -40,6 +40,21 @@ class TestDB:
         uids = DB.uids()
         assert len(uids) == db.command('count','entry')['n']
 
+    def test_fullname(self, db):
+        '''
+        Test the fullname method
+        '''
+        assert DB.fullname('expenses:food:groceries') == 'expenses:food:groceries'
+        assert DB.fullname('groceries') == 'expenses:food:groceries'
+        assert DB.fullname('groc') is None
+
+    def test_abbrev(self, db):
+        '''
+        Test the abbrev method
+        '''
+        assert DB.abbrev('expenses:food:groceries') == 'groceries'
+        assert DB.abbrev('expenses:car:payment') == 'expenses:car:payment'
+
     def test_find_one_account(self, db):
         '''
         Call find_account with a string that matches one name
@@ -47,7 +62,7 @@ class TestDB:
         lst = DB.find_account("yoyo")
         assert len(lst) == 1 and lst[0].name == 'income:yoyodyne'
 
-    def test_name_parts(self, db):
+    def test_all_name_parts(self, db):
         '''
         Test the method that separates names into parts
         '''
@@ -57,13 +72,14 @@ class TestDB:
         assert 'chase' in names
         assert 'visa' in names
 
-    def test_fullname(self, db):
+    def test_name_parts(self, db):
         '''
-        Test the fullname method
+        Test the method that separates names into parts
         '''
-        assert DB.fullname('expenses:food:groceries') == 'expenses:food:groceries'
-        assert DB.fullname('groceries') == 'expenses:food:groceries'
-        assert DB.fullname('groc') is None
+        names = DB.account_name_parts(Category.A)
+        assert len(names) == 4
+        assert 'checking' in names
+        assert 'savings' in names
 
     def test_all_account_names(self, db):
         '''
@@ -71,8 +87,8 @@ class TestDB:
         in the account hierarchy
         '''
         dct = DB.account_names()
-        assert len(dct) == 21
-        assert dct['assets'] == ['assets:bank:checking', 'assets:bank:savings']
+        assert len(dct) == 36
+        assert dct['assets'] == {'assets:bank:checking', 'assets:bank:savings'}
         assert len(dct['expenses']) == 10
 
     def test_account_names(self, db):
@@ -80,9 +96,16 @@ class TestDB:
         Test the method that maps a partial name to the full name
         in the account hierarchy
         '''
-        dct = DB.account_names('expenses')
-        assert len(dct) == 11
-        assert dct['car'] == ['expenses:car', 'expenses:car:payment', 'expenses:car:fuel']
+        dct = DB.account_names(Category.E)
+        assert len(dct) == 22
+        assert dct['car'] == {'expenses:car', 'expenses:car:payment', 'expenses:car:fuel'}
+
+    def test_account_name_abbrev(self, db):
+        '''
+        Make sure abbreviations are included in account name map
+        '''
+        dct = DB.account_names(Category.E)
+        assert dct['dining'] == {'expenses:food:restaurant'}
 
     def test_account_groups(self, db):
         '''

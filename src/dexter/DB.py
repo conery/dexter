@@ -36,7 +36,8 @@ class Column(Enum):
         return Column.dr if self.value == 'credit' else Column.cr
     
 class Action(Enum):
-    A = 'apply'
+    F = 'fill'
+    S = 'sub'
     T = 'trans'
     X = 'xfer'
 
@@ -309,12 +310,6 @@ class DB:
         DB.connection = connect(dbname, UuidRepresentation='standard')
         DB.database = DB.connection[dbname]
 
-        clist = [x['name'] for x in DB.database.list_collections()]
-        logging.debug(f'DB.open: collections: {clist}')
-
-        if not all(cls in clist for cls in ['account','entry','transaction']):
-            raise ValueError(f'DB.open: database missing Dexter collections')
-
         DB.dbname = dbname
         DB.models = [cls for cls in Document.__subclasses__() if hasattr(cls, 'objects')]
         DB.collections = { cls._meta["collection"]: cls for cls in DB.models }
@@ -322,7 +317,9 @@ class DB:
     @staticmethod
     def create(dbname: str):
         ''''
-        Open a connection to a new database.  
+        Open a connection to a new database.  If there is already a Dexter
+        database with this name erase it.  After creating the new database
+        call DB.open to initialize the module attributes.
 
         Arguments:
             dbname:  name of the database
@@ -334,6 +331,10 @@ class DB:
 
         rec = Dexter(date = datetime.now())
         rec.save()
+        DB.dexters.add(dbname)
+
+        disconnect()
+        DB.open(dbname)
 
     @staticmethod
     def erase_database():
@@ -436,9 +437,9 @@ class DB:
         '''
         try:
             acct = Account.objects.get(name=s)
-            res = acct.abbrev
+            res = acct.abbrev or s
         except Account.DoesNotExist:
-            res = s
+            res = None
         return res
     
     @staticmethod
@@ -458,7 +459,7 @@ class DB:
         '''
         res = set()
         for acct in Account.objects:
-            if category and acct.category.value != category:
+            if category and acct.category != category:
                 continue
             res |= set(acct.name.split(':'))
         return res
@@ -467,15 +468,22 @@ class DB:
     def account_names(category=None):
         '''
         Return a dictionary that maps a partial account name to a list
-        of full account names that contain that part.
+        of full account names that contain that part.  The dictionary
+        wiil also map abbreviations to a full name and a full name
+        maps to itself.
         '''
         dct = {}
         for acct in Account.objects:
-            if category and acct.category.value != category:
+            if category and acct.category != category:
                 continue
-            for part in acct.name.split(':'):
-                lst = dct.setdefault(part, [])
-                lst.append(acct.name)
+            dct[acct.name] = { acct.name }
+            parts = []
+            if acct.abbrev:
+                parts.append(acct.abbrev)
+            parts += acct.name.split(':')
+            for p in parts:
+                grp = dct.setdefault(p, set())
+                grp.add(acct.name)
         return dct
 
     @staticmethod
@@ -551,30 +559,33 @@ class DB:
     # in the string.
 
     @staticmethod
-    def find_first_regexp(s: str):
+    def find_first_regexp(s: str, a: Action):
         '''
-        Return the first RegExp with an X or T action that matches
+        Return the first RegExp with action type a that matches
         a string.
 
         Arguments:
-            s: the string to match.
+            s: the string to match
+            a: the action category
         '''
-        for e in RegExp.objects:
-            if e.action == Action.A:
-                continue
+        for e in RegExp.objects(action=a):
             if e.matches(s):
                 return e
         return None
 
     @staticmethod
-    def find_all_regexp(s: str):
+    def apply_all_regexp(s: str):
         '''
-        Return a list of RegExp objects that match a string.
+        Apply all of the regexp with action = sub to the string s.
 
         Arguments:
             s: the string to match.
         '''
-        return [e for e in RegExp.objects if e.matches(s)]
+        for e in RegExp.objects(action=Action.S):
+            logging.debug(f'apply_all_regexp "{s}" {e}')
+            if r := e.apply(s):
+                s = r
+        return s
 
     # Methods used when adding new records to make sure we don't
     # have duplicates

@@ -27,19 +27,15 @@ def pair_entries(args):
 
     for entry in unpaired:
         logging.debug(f'pair: find regexp for {entry.description}')
-        if regexp := DB.find_first_regexp(entry.description):
-            match regexp.action:
-                case Action.T:
-                    if trans := matching_transaction(entry, regexp):
-                        logging.debug(f'  new transaction: {trans.description}')
-                        new_transactions.append(trans)
-                    else:
-                        unmatched.append(entry)
-                case Action.X:
-                    logging.debug(f'  xfer part')
-                    xfer_part(entry, regexp, credits, debits)
-                case _:
-                    logging.error(f'  unknown action {regexp.action} for {entry}')
+        if regexp := DB.find_first_regexp(entry.description, Action.T):
+            if trans := matching_transaction(entry, regexp):
+                logging.debug(f'  new transaction: {trans.description}')
+                new_transactions.append(trans)
+            else:
+                unmatched.append(entry)
+        elif regexp := DB.find_first_regexp(entry.description, Action.X):
+            logging.debug(f'  xfer part')
+            xfer_part(entry, regexp, credits, debits)
         else:
             unmatched.append(entry)
 

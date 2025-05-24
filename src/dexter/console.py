@@ -7,12 +7,12 @@ import logging
 import sys
 
 from .config import Config
-from .DB import DB, Entry, Transaction
+from .DB import DB, Entry, Column
 
 from rich.console import Console
 from rich.theme import Theme
 from rich.style import Style
-from rich.table import Table, Column
+from rich.table import Table, Column as TableColumn
 
 # Suggested colors for terminals with a light theme
 
@@ -51,8 +51,8 @@ dark_terminal = Theme({
     ),
 })
 
-# console = Console(theme=dark_terminal)
-console = Console(theme=light_terminal)
+console = Console(theme=dark_terminal)
+# console = Console(theme=light_terminal)
 
 def format_amount(n, dollar_sign=False):
     '''
@@ -82,7 +82,8 @@ entry_header_format = {
     'amount':  {'width': 15, 'justify': 'right'},
     'column':  {'width': 10, 'justify': 'center'},
     'description':  {'width': 30, 'no_wrap': True},
-    'tags':    {'width': 5, 'justify': 'center'},
+    # 'tags':    {'width': 5, 'justify': 'center'},
+    'tags':    {'width': 15},
 }
 
 def print_records(docs, name=None, count=0):
@@ -171,11 +172,11 @@ def print_transaction_table(
         if row_type == 'entry':
             acct = DB.abbrev(rec.account) if abbrev else rec.account
             row.append(str(rec.date))
-            row.append(acc)
+            row.append(acct)
             row.append(format_amount(rec.amount, dollar_sign=True))
-            row.append(str(rec.column))
+            row.append(rec.column.value)
             row.append(rec.description)
-            row.append(tag_strings(rec))
+            row.append(", ".join([f'{s.value}' for s in rec.tags]))
         else:
             cr = DB.abbrev(rec.pcredit) if abbrev else rec.pcredit
             dr = DB.abbrev(rec.pdebit) if abbrev else rec.pdebit
@@ -219,11 +220,11 @@ def print_journal_transactions(lst, abbrev=False, order_by=None):
 
 def print_info_table(dct):
     tbl = Table(
-        Column(header='name', width=12),
-        Column(header='account', justify='right'),        
-        Column(header='transaction', justify='right'),
-        Column(header='entry', justify='right'),        
-        Column(header='reg_exp', justify='right'),
+        TableColumn(header='name', width=12),
+        TableColumn(header='account', justify='right'),        
+        TableColumn(header='transaction', justify='right'),
+        TableColumn(header='entry', justify='right'),        
+        TableColumn(header='reg_exp', justify='right'),
         title='Databases',
         title_justify='left',
         title_style='table_header',

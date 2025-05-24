@@ -10,8 +10,8 @@ def iodb(scope='module'):
     '''
     Create a new database for the IO tests 
     '''
-    DB.open('pytest', must_exist=False)
-    DB.erase_database()
+    DB.init()
+    DB.create('pytest')
     init_from_journal('test/fixtures/mini.journal')
     return DB.database
 

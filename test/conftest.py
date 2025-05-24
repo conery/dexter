@@ -11,8 +11,8 @@ def db(scope='session'):
     Connect to the MongoDB server running on localhost, initialize a
     database named "pytest", load the example data into the DB.
     '''
-    DB.open('pytest', must_exist=False)
-    DB.erase_database()
+    DB.init()
+    DB.create('pytest')
     init_from_journal('test/fixtures/mini.journal')
     return DB.database
 

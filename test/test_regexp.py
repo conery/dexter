@@ -16,8 +16,8 @@ def redb(scope='session'):
     '''
     Create a new database for the regular expression tests 
     '''
-    DB.open('pytest', must_exist=False)
-    DB.erase_database()
+    DB.init()
+    DB.create('pytest')
     init_from_journal('test/fixtures/mini.journal')
     import_regexp(Args(['test/fixtures/regexp.csv'], False))
     return DB.database
@@ -70,14 +70,14 @@ class TestRegExp:
         Test the regexp search, look for expected matches.
         '''
         for i, s in enumerate(descriptions):
-            e = DB.find_first_regexp(s)
+            e = DB.find_first_regexp(s, Action.T)
             assert e.matches(s)
 
     def test_find_fail(self, redb):
         '''
         Verify a failed search returns an empty list.
         '''
-        assert DB.find_first_regexp('MegaBox Store') is None
+        assert DB.find_first_regexp('MegaBox Store', Action.T) is None
 
     def test_apply(self, redb, descriptions):
         '''
@@ -93,7 +93,7 @@ class TestRegExp:
             ('Ferry Anacortes', Action.T, 'travel'),
         ]
         for i, s in enumerate(descriptions):
-            e = DB.find_first_regexp(s)
+            e = DB.find_first_regexp(s, Action.T)
             desc, action, acct = expected[i]
             assert e.apply(s) == desc
             assert e.action == action

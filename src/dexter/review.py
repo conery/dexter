@@ -2,58 +2,21 @@
 
 import click
 from curses.ascii import ESC, ctrl, unctrl
+import logging
 import readline
 import re
 import string
 import sys
 
-from rich.text import Text
-from rich.table import Table
-from rich.panel import Panel
 from rich.console import Group
+from rich.panel import Panel
+from rich.pretty import pprint
+from rich.text import Text
 
-from .DB import DB, Transaction, Entry
+from .DB import DB, Transaction, Entry, Account, Category, Action
 from .config import Tag
 from .console import console, format_amount
 from .util import debugging
-
-# class TPanel(Panel):
-
-#     def __init__(self, transaction):
-#         self.transaction = transaction
-#         self.entry = transaction.entries[0]
-#         # save attributes used to compose panel (both editable and not)
-#         super().__init__(
-#             Group(self.tline(), self.eline(), self.xline()),
-#             width=100, 
-#             padding=1, 
-#             title='New Transaction', 
-#             title_align="left"
-#         )
-#         # self.set_eline()
-
-#     def tline(self):
-#         # return Text(f'{self.date} [white on grey39]{self.desc} ; # ')
-#         desc = self.transaction.description or ' ^P description           '
-#         comm = self.transaction.comment or ' ^N comment    '
-#         tags = self.transaction.tags or ' ^G tags '
-#         line = Text(str(self.entry.date))
-#         line += Text('  ')
-#         line += Text(desc, style='editable')
-#         line += Text('  ; ')
-#         line += Text(comm, style='editable')
-#         line += Text('  # ')
-#         line += Text(tags, style='editable')
-#         return line
-
-#     def eline(self):
-#         acct = f'    {self.entry.account:<30s}'
-#         amt = format_amount(self.entry.amount, dollar_sign=True)
-#         return Text(acct) + Text(amt)
-
-#     def xline(self):
-#         acct = self.transaction.entries[1].account or ' ^A account '
-#         return Text('    ') + Text(acct, style='editable')
 
 # Key combinations used to trigger updates
 
@@ -66,7 +29,6 @@ class KEY:
     EDIT_ACCOUNT = ctrl('T')          # mnemonic:  "to"
     EDIT_REGEXP = ctrl('E')
     FILL_DESC = ctrl('F')
-    MOD_DESC = ctrl('L')              # mnemonic:  "lambda"
     ACCEPT = ctrl('A')
 
 cmnd_keys = { x[1] for x in vars(KEY).items() if not x[0].startswith('__') }
@@ -77,7 +39,6 @@ field_names = {
     KEY.EDIT_DESC: 'description',
     KEY.EDIT_COMMENT: 'comment',
     KEY.EDIT_TAGS: 'tags',
-    KEY.MOD_DESC: 'description',
 }
 
 ###
@@ -93,13 +54,19 @@ def review_unpaired(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    unpaired = DB.select(Entry, tag=Tag.U)
-    accounts = list(DB.account_name_parts('expense') | DB.account_name_parts('income'))
-    account_names = DB.account_names('expense') | DB.full_names('income')
+    DB.open(args.dbname)
+    unpaired = DB.select(Entry, tag=Tag.U).order_by('date')
+    account_parts = list(DB.account_name_parts(Category.E) | DB.account_name_parts(Category.I))
+    account_names = DB.account_names(Category.E) | DB.account_names(Category.I)
+    if debugging():
+        print('account parts:')
+        pprint(account_parts)
+        print('account names:')
+        pprint(account_names)
     readline.parse_and_bind('tab: complete')
-    readline.set_completer(completer_function(accounts))
+    readline.set_completer(completer_function(account_parts))
     row = 0
-    tlist = [make_candidate(e) for e in unpaired]
+    tlist = [make_candidate(e, args.fill_mode) for e in unpaired]
     try:
         if not debugging():
             console.set_alt_screen(True)
@@ -114,13 +81,11 @@ def review_unpaired(args):
                 case KEY.NEXT:
                     row = (row + 1) % len(tlist)
                 case KEY.FILL_DESC:
-                    fill_description(tlist[row])
+                    tlist[row].mode = (tlist[row].mode + 1) % 3
                 case KEY.EDIT_DESC | KEY.EDIT_COMMENT | KEY.EDIT_TAGS:
                     edit_field(tlist[row], key)
                 case KEY.EDIT_ACCOUNT:
                     edit_account(tlist[row], account_names)
-                case KEY.MOD_DESC:
-                    modify_description(tlist[row])
                 case KEY.ACCEPT:
                     if verify_and_save_transaction(tlist[row]):
                         del tlist[row]
@@ -135,6 +100,22 @@ def review_unpaired(args):
     
     console.set_alt_screen(False)
 
+
+PANEL_WIDTH = 120
+DESC_WIDTH = 65
+COMMENT_WIDTH = 20
+TAGS_WIDTH = 15
+ACCT_WIDTH = 30
+
+def padded(s, w):
+    '''
+    Adjust s so it is n chars long, either by truncating strings
+    longer than n or by add spaces to the end 
+    '''
+    if len(s) > w:
+        return s[:w]
+    else:
+        return s + ' '*(w-len(s))
 
 def make_panel(trans):
     '''
@@ -156,20 +137,22 @@ def make_panel(trans):
         acct = f'{e.account:<35s}'
         amt = format_amount(e.amount, dollar_sign=True)
         line = indent
-        line += Text(acct)
+        line += Text(padded(acct,ACCT_WIDTH))
         line += Text(amt)
         line += Text(' ; ')
-        line += Text(e.description)
+        line += Text(e.description[:DESC_WIDTH])
         return line
     
     def a2line():
         return indent + text['account']
     
+    desc = trans.description or suggested(trans)
+
     text = {
-        'description': Text(trans.description or (' ⌃P description     ')),
-        'comment': Text(trans.comment or (' ⌃N comment  ')),
-        'tags': Text(trans.tags or ' ⌃G tags '),
-        'account': Text(trans.entries[1].account or ' ⌃A account ')
+        'description': Text(padded(desc,DESC_WIDTH)),
+        'comment': Text(padded(trans.comment or ' comment ', COMMENT_WIDTH)),
+        'tags': Text(padded(trans.tags or ' tags ', TAGS_WIDTH)),
+        'account': Text(padded(trans.entries[1].account or ' account ', ACCT_WIDTH))
     }
 
     for f, t in text.items():
@@ -177,7 +160,7 @@ def make_panel(trans):
 
     indent = Text('    ')
     grp = Group(tline(), a1line(), a2line())
-    return Panel(grp, width=100, padding=1, title='New Transaction', title_align="left")
+    return Panel(grp, width=PANEL_WIDTH, padding=1, title='New Transaction', title_align="left")
 
 # Set up command line completion
 
@@ -204,13 +187,14 @@ def display_row(trans):
     messages.clear()
     console.print()
 
-def make_candidate(e):
+def make_candidate(e, n):
     '''
     Create a suggested Entry object to pair with the current Entry and
     a Transaction for the pair.
 
     Arguments:
         e:  an Entry object derived from a line in a CSV file
+        n:  default fill mode (int from 0 to 2)
 
     Returns:
         the new Transaction
@@ -225,14 +209,35 @@ def make_candidate(e):
     new_transaction.entries.append(e) 
     new_transaction.entries.append(new_entry)
     new_transaction.edited = set()
+    new_transaction.mode = n
     return new_transaction
 
-def fill_description(trans):
+def suggested(trans):
     '''
-    Copy the description from the entry to the transaction
+    Use the transaction's fill mode to create a string to display
+    in the description box
     '''
-    trans.description = trans.entries[0].description
-    trans.edited.add('description')
+    match trans.mode:
+        case 0:  
+            desc = ' description '
+        case 1:  
+            desc = trans.entries[0].description
+        case 2:  
+            desc = apply_regexp(trans.entries[0].description)
+    return desc
+
+def apply_regexp(desc):
+    '''
+    If one of "fill" regexps matches this description use it, otherwise
+    apply all of the "sub" regexps.
+    '''
+    if e := DB.find_first_regexp(desc, Action.F):
+        logging.debug(f'review: apply F {e} "{desc}"')
+        desc = e.apply(desc)
+    else:
+        logging.debug(f'review: apply S "{desc}"')
+        desc = DB.apply_all_regexp(desc)
+    return desc
 
 def edit_field(trans, key):
     '''
@@ -244,12 +249,16 @@ def edit_field(trans, key):
         key: the keystroke that triggered the edit (specifies the field)
     '''
     field = field_names[key]
-    s = trans[field] or ""
+    alt = suggested(trans) if field == 'description' else ""
+    s = trans[field] or alt
     h = lambda: readline.insert_text(s)
     readline.set_startup_hook(h)
     text = input(field + '> ')
     trans[field] = text
-    trans.edited.add(field)
+    if text:
+        trans.edited.add(field)
+    else:
+        trans.edited.discard(field)
 
 def edit_account(trans, names):
     '''
@@ -266,33 +275,16 @@ def edit_account(trans, names):
     h = lambda: readline.insert_text(s)
     readline.set_startup_hook(h)
     text = input('account> ')
+    logging.debug(f'"{text}"')
     if accts := names.get(text):
+        logging.debug(accts)
         if len(accts) > 1:
             messages.append(f'ambiguous, choose from {accts}')
         else:
-            entry.account = accts[0]
+            entry.account = accts.pop()
             trans.edited.add('account')
     else:
         messages.append(f'unknown account: {text}')
-
-
-def modify_description(rec):
-    '''
-    Get a second keystroke, use it to specify a function to apply to the
-    description field.
-    '''
-
-    abbrevs_and_articles = {
-        '&amp;': '&',
-        'And': 'and',
-        'For': 'for',
-        'In': 'in',
-        'Of': 'of',
-        'Or': 'or',
-        'The': 'the',
-    }
-
-    pass
 
 def verify_and_save_transaction(trans):
     '''
@@ -303,24 +295,18 @@ def verify_and_save_transaction(trans):
     Arguments:
         trans:  the transaction to save
     '''
-    # If no fields are filled in assume the user wants to skip the
-    # transaction and work on it later, OK to delete from list
-    if len(trans.edited) == 0:
-        return True
-    
-    # If the user filled in some fields but not the account make sure
-    # they want to delete the record (nothing will be saved)
-    if 'account' not in trans.edited:
-        console.print(f'[red]Warning: no account specified.')
-        console.print('Discard changes? [yN]', end='')
-        key = click.getchar()
-        return key in 'Yy'
-    
-    # If the description wasn't edited copy the description from the
-    # CSV file
+    missing = []
     if 'description' not in trans.edited:
-        trans.description = trans.entries[0].description
-
+        if trans.mode > 0:
+            trans.description = suggested(trans)
+        else:
+            missing.append('description')
+    if 'account' not in trans.edited:
+        missing.append('account')
+    if missing:
+        messages.append(f'[red]Missing required fields: {", ".join(missing)}')
+        return False
+    
     # Convert the tag string to a list, adding #'s if necessary
     if 'tags' in trans.edited:
         trans.tags = [s if s.startswith('#') else f'#{s}' for s in trans.tags.split()]
