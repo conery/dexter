@@ -63,6 +63,11 @@ The sample data has a transfer from checking to savings each month.
 
 In each case -- card payments and bank transfers -- the pairing rules should have patterns that tell Dexter how to identify the two halves of a transfer so it can pair them to make a new transaction.
 
+## `fill` and `sub` Rules
+
+The CSV file can have two other kinds of rules, called "fill" and "sub" (short for "substitution") rules.
+These are used by the `review` command, so we won't discuss them until that section of the tutorial.
+
 ## The `regexp.csv` File
 
 Pairing rules need to be saved in a CSV file and then loaded into the database.

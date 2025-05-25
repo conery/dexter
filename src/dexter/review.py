@@ -37,6 +37,7 @@ all_keys = cmnd_keys | digit_keys | { '?' }
 
 field_names = {
     KEY.EDIT_DESC: 'description',
+    KEY.EDIT_ACCOUNT: 'account',
     KEY.EDIT_COMMENT: 'comment',
     KEY.EDIT_TAGS: 'tags',
 }
@@ -76,6 +77,9 @@ def review_unpaired(args):
             if key not in all_keys:
                 continue
             match key:
+                case '?':
+                    show_help(all_keys)
+                    continue
                 case KEY.PREV:
                     row = (row - 1) % len(tlist)
                 case KEY.NEXT:
@@ -100,6 +104,12 @@ def review_unpaired(args):
     
     console.set_alt_screen(False)
 
+def show_help(keys):
+    messages.append('\n editing commands:')
+    for key, field in field_names.items():
+        if key not in keys:
+            continue
+        messages.append(f'   {unctrl(key)} {field}')
 
 PANEL_WIDTH = 120
 DESC_WIDTH = 65
@@ -249,7 +259,7 @@ def edit_field(trans, key):
         key: the keystroke that triggered the edit (specifies the field)
     '''
     field = field_names[key]
-    alt = suggested(trans) if field == 'description' else ""
+    alt = suggested(trans) if (field == 'description' and trans.mode) else ""
     s = trans[field] or alt
     h = lambda: readline.insert_text(s)
     readline.set_startup_hook(h)
@@ -275,13 +285,19 @@ def edit_account(trans, names):
     h = lambda: readline.insert_text(s)
     readline.set_startup_hook(h)
     text = input('account> ')
-    logging.debug(f'"{text}"')
+
+    if len(text) == 0:
+        entry.account = text
+        trans.edited.discard('account')
+        return
+    
+    # messages.append(f'"{text}" in {names}')
     if accts := names.get(text):
-        logging.debug(accts)
+        # messages.append(f'{accts}')
         if len(accts) > 1:
             messages.append(f'ambiguous, choose from {accts}')
         else:
-            entry.account = accts.pop()
+            entry.account = list(accts)[0]
             trans.edited.add('account')
     else:
         messages.append(f'unknown account: {text}')
@@ -309,7 +325,7 @@ def verify_and_save_transaction(trans):
     
     # Convert the tag string to a list, adding #'s if necessary
     if 'tags' in trans.edited:
-        trans.tags = [s if s.startswith('#') else f'#{s}' for s in trans.tags.split()]
+        trans.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', trans.tags)]
 
     # Save the entries and the transaction
     trans.entries[0].tags.remove(Tag.U)
