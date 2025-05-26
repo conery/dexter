@@ -99,19 +99,20 @@ def init_database(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
+    accts = Path(args.file)
+    if not accts.exists():
+        raise FileNotFoundError(f'init_database: no file named {accts}')
+    
     if not args.preview:
         if DB.exists(args.dbname) and not args.force:
             raise ValueError(f'init: database {args.dbname} exists; use --force to replace it')
         DB.create(args.dbname)    
 
-    p = Path(args.file)
-    if not p.exists():
-        raise FileNotFoundError(f'init_database: no file named {p}')
-    fmt = p.suffix[1:]
+    fmt = accts.suffix[1:]
     match fmt:
-        case 'journal': init_from_journal(p, args.preview)
-        case 'csv': init_from_csv(p, args.preview)
-        case _: logging.error(f'init_database: unknown file extension: {p.suffix}')
+        case 'journal': init_from_journal(accts, args.preview)
+        case 'csv': init_from_csv(accts, args.preview)
+        case _: logging.error(f'init_database: unknown file extension: {accts.suffix}')
 
 def init_from_csv(fn: Path, preview: bool = False):
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:

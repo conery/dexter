@@ -13,6 +13,7 @@ from rich.console import Console
 from rich.theme import Theme
 from rich.style import Style
 from rich.table import Table, Column as TableColumn
+from rich.markup import escape
 
 # Suggested colors for terminals with a light theme
 
@@ -210,13 +211,13 @@ def print_journal_transactions(lst, abbrev=False, order_by=None):
         line = f'{obj.pdate}   {obj.description}'
         if obj.comment:
             line += f'   ; {obj.comment}'
-        console.print(line)
+        print(line)
         for e in obj.entries:
             acct = DB.abbrev(e.account) if abbrev else e.account
             amt = format_amount(e.value, dollar_sign=True)
             line = f'    {acct:20s} {amt:>15s}'
-            console.print(line)
-        console.print()
+            print(line)
+        print()
 
 def print_info_table(dct):
     tbl = Table(

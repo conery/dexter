@@ -33,27 +33,29 @@ nav:
     - "Dexter": dex_install.md
     - "Database Server": db_server.md
   - "Tutorial":
-    - "Example Data": folder.md
+    - "Create Your Project Directory": folder.md
     - "Shell Command": dex.md
-    - "Defining Accounts": accounts.md
+    # - "Accounts": tut_accounts.md
     - "Initialize the Database": tut_init.md
     - "Import CSV Files": tut_import.md
     - "Import Regular Expressions": tut_regexp.md
     - "Pair Entries": tut_pair.md
-    # - "Select Transactions": tut_select.md
     - "Review Unpaired Entries": tut_review.md
-    - "Add New Transaction": dex_add.md
-    - "Reports": dex_report.md
-    - "Back Up the Database": dex_save_restore.md
+    - "Select Transactions": tut_select.md
   - "User Documentation":
     - "Configuration": config.md
     - "Command Line Options": options.md
+    - "Defining Accounts": accounts.md
     - "Regular Expressions": regexp.md
-    - "dex import": dex_import.md
     - "dex init": dex_init.md
+    - "dex import": dex_import.md
     - "dex pair": dex_pair.md
     - "dex review": dex_review.md
     - "dex select": dex_select.md
+    - "dex add": dex_add.md
+    - "dex report": dex_report.md
+    - "dex save": dex_save.md
+    - "dex restore": dex_restore.md
   - "The Budget Model":
     - "Envelope Budgeting with Dexter": envelopes_dex.md
     - "Account Balances": balances.md

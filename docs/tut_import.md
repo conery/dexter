@@ -3,7 +3,7 @@
 Now that we have the database set up with account names we're ready to import some data.
 
 The first step in your monthly workflow will be to connect to your banks and other financial institutions and download all of your transactions.
-We have some sample data to use for this tutorial in the `Downloads` section of the project folder:
+The sample data for this tutorial in the `Downloads` section of the project folder:
 ```plain
 Finances
 ...
@@ -18,9 +18,16 @@ Finances
 │       └── savings.csv
 ```
 
-The subfolder named `apr` has transactions for a single month, April 2024.
+The general form of the `import` command is
+```bash
+$ dex import F1 F2 ...
+```
+where the names following `import` are the names of the files to import.
 
-The subfolder for `may` has the same three files, but now the transactions are for two months, April and May of 2024.
+In our case, the April data is all in one folder, and we want to import all of the files, so we can just type `Downloads/apr/*`.
+
+
+<!-- The subfolder for `may` has the same three files, but now the transactions are for two months, April and May of 2024.
 The idea is to illustrate how Dexter avoids importing duplicate transactions, and to provide an example of the process we suggest for managing downloads:
 
 * connect to the financial institution's web site
@@ -30,17 +37,31 @@ The idea is to illustrate how Dexter avoids importing duplicate transactions, an
 * find the file in your Downloads folder, rename it, and move it to the downloads section of your project folder
 
 Selecting "year to date" is simpler than specifying a date range (and remembering which transactions you have already downloaded).
-But the main benefit is having a full record of all downloads in a single file that is always up to date for each account.
+But the main benefit is having a full record of all downloads in a single file that is always up to date for each account. -->
+
+## File Names
+
+An important detail to note here is that the base name of each CSV file matches the abbreviated name of one of the accounts.
+That's how Dexter knows which account name to use for the new postings it is about to create:  records in `chase.csv` will be assigned to `liabilities:visa:chase`, and so on.
+
+Your typical monthly workflow will probably be something like this:
+
+* connect to a financial institution's web site
+
+* select an account, download all transactions
+
+* find the file in your Downloads folder, rename it, and move it to the downloads section of your project folder
+
+It is possible to use a different naming convention, but then files need to be imported one at a time, using the `-account` option to tell Dexter which account to use, _e.g._
+
+```bash
+$ dex import --account chase ~/Downloads/ChaseXXXX_Activity20240101_20240525_20240525.CSV
+```
+
+> _**Note**_: an item high on our TO DO list is to import CSV files downloaded from an aggregator, in which case the account name must be one of the columns in the data file.
 
 ## Preview the April Transactions
 
-The general form of the `import` command is
-```bash
-$ dex import F1 F2 ...
-```
-where the names following `import` are the names of the files to import.
-
-In our case, the April data is all in one folder, and we want to import all of the files, so we can just type `Downloads/apr/*`.
 
 As a first step we recommend running the command in preview mode.
 Dexter will parse the files and print the records it will import on the terminal.
@@ -61,8 +82,9 @@ INFO     Parsing Downloads/apr/chase.csv
 
 Next are a series of lines, with one line for each CSV record:
 ```plain
-entry  2024-04-30           $10.00  liabilities:chase:visa  ESSENTIAL PHYSICAL THERAP  [<Tag.U: '#unpaired'>]
-entry  2024-04-30           $25.75  liabilities:chase:visa  SP GIST YARN &amp; FIBER   [<Tag.U: '#unpaired'>]
+2024-04-26            $15.00   visa   LONGS MEAT MARKET           #unpaired
+2024-04-24            $15.00   visa   NEWMAN'S FISH COMPANY       #unpaired
+2024-04-23           $100.00   visa   EUGENE WATER AND ELECTRIC   #unpaired
 ...
 ```
 
@@ -91,10 +113,10 @@ Databases
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓
 ┃ name         ┃ account ┃ transaction ┃ entry ┃ reg_exp ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━┩
-│ dev          │      26 │           2 │    62 │       0 │
+│ dev          │      18 │           2 │    32 │       0 │
 └──────────────┴─────────┴─────────────┴───────┴─────────┘
 ```
-Before there were 4 postings, now there are 62.
+Before there were 4 postings, now there are 32.
 
 #### Save May for Later
 

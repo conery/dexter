@@ -2,7 +2,7 @@
 
 After importing a batch of CSV files, the `pair` command will automatically generate matches for most of the new postings, but there will probably be several more that need to be processed by hand.
 
-The `select` command (described in more detail below) has a set of options that will print a table showing all the unpaired entries:
+The `select` command (described in more detail in [Select Transactions](tut_select.md)) has a set of options that will print a table showing all the unpaired entries:
 ```
 $ dex select --entry --tag '#unpaired'
 
@@ -10,11 +10,10 @@ Entries
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
 ┃ date         ┃ account                   ┃          amount ┃   column   ┃ description                    ┃ tags            ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
-│ 2024-04-01   │ checking                  │         $300.00 │   credit   │ Check # 152: Completed/Check … │ #unpaired       │
-│ 2024-04-01   │ visa                      │           $3.00 │   credit   │ WASH-IT EXPRESS                │ #unpaired       │
-│ 2024-04-03   │ checking                  │         $203.00 │   credit   │ KAYENTA CHEV-XX6444 JUNCTION … │ #unpaired       │
-│ 2024-04-03   │ checking                  │         $503.00 │   credit   │ HIGHWAY 160 HIGHWAY 160 Kayen… │ #unpaired       │
-│ 2024-04-05   │ checking                  │          $21.58 │   credit   │ Best Buy/NST BEST BUY #226  0… │ #unpaired       │
+│ 2024-04-01   │ checking                  │          $35.00 │   credit   │ Check # 153: Completed/Check … │ #unpaired       │
+│ 2024-04-02   │ visa                      │           $5.00 │   credit   │ WASH-IT EXPRESS                │ #unpaired       │
+│ 2024-04-03   │ checking                  │          $50.00 │   credit   │ KAYENTA CHEV-XX6444 JUNCTION … │ #unpaired       │
+│ 2024-04-05   │ checking                  │          $25.00 │   credit   │ Best Buy/NST BEST BUY #226  0… │ #unpaired       │
 ...
 ```
 
@@ -149,10 +148,10 @@ This is where another traditional command line editing feature will be very usef
 You can type part of a command name and then hit the tab key.
 If the part you typed is sufficient to distinguish the account from all the other accounts Dexter will fill in the rest of the name for you.
 
-Suppose this transaction is something that should go in the household expenses category, `expense:home:household`.
-That account has an abbreviation of "household".
-Type "house" and hit the tab key.
-Dexter will fill in the rest, and the line will show "household".
+This transaction is something that should go in the restaurant expenses category, `expense:food:restaurant`.
+That account has an abbreviation of "restaurant".
+Type "re" and hit the tab key.
+Dexter will fill in the rest, and the line will show "restaurant".
 Now hit the return key, and you can see Dexter has expanded the abbreviation into the full account name:
 
 ![Review Final](images/review.final.png)
@@ -162,7 +161,8 @@ Now hit the return key, and you can see Dexter has expanded the abbreviation int
 If you're entering a string and hit the tab key and nothing happens it probably you didn't type enough to disambiguate the account you want from other accounts.
 Hit the tab key a second time and Dexter will show you all the accounts that start with the text you typed.
 
-For example, if you just type "ho" and hit tab nothing happens.
+For example, suppose you wanted to classify the Glenwood transaction as a household expense and want to assign `expenses:home:household` as the account.
+If you just type "ho" and hit tab nothing happens.
 Hit tab again and this is that you'll see:
 
 ![Review Ambiguous Accounts](images/review.ambiguous.png)
@@ -171,7 +171,7 @@ Dexter is saying there are two accounts that start with "ho":  "home" and "house
 At this point just continue typing.
 Since we want "household" in this case just typing "u" and tab is enough.
 
-> **Note:**  The other reason you won't see anything happen when you hit the tab key is that you misspelled an account name.  For example, if you type "hoo" you can hit the tab key as often as you want.  Dexter is telling you no account starts "hoo".
+> **Note:**  Another reason you won't see anything happen when you hit the tab key is that you misspelled an account name.  For example, if you type "hoo" you can hit the tab key as often as you want.  Dexter is telling you no account starts "hoo". If you really meant "hou" hit the delete key to erase the "o", then type "u" and tab.
 
 ## Accept Changes
 
@@ -214,10 +214,16 @@ This message will be displayed:
 
 ## Fill in the Second Transaction
 
-The next transaction was a purchase at a car wash.
+The next transaction was a purchase at a car wash.  We want to assign `expenses:car` as the account.
 
-Type &#8963;T to edit the account, and enter `expenses:car` for the account.
-You can type "ex" and tab, and the line will expand to "expenses".
+If you type &#8963;T to edit the account, type "car", and hit return you'll see an error message:
+
+![Review Help](images/review.multiple.png)
+
+The problem here is that we defined three accounts with the string "car" in the name.
+To fix this problem you need to type the full account name.
+But completion can still help save keystrokes.
+Type "ex" and tab, and the line will expand to "expenses".
 Now type a colon and "ca" and tab again, and the line will show "expenses:car".
 
 Hit return to enter that name in the transaction box.
@@ -237,10 +243,41 @@ Note that the word "description" in the box is a placeholder that means "the des
 
 ## Fill in the Third Transaction
 
+The next transaction is from a posting with the description "Transfer from Venmo".
+It was sent by our friend, who is paying her half of the lunch at Glenwood.
+
+In the CSV file this record shows it was a deposit into the checking account.
+Your first inclination might be to classify this as miscellaneous income.
+But a much better idea is to assign it to the restaurant expense account.
+For one thing, it's a more accurate description of what occurred:  the original expense was a "flow" from checking to the restaurant account, and this transaction should just be the reverse, from restaurant to checking.
+
+Another good reason to set the account to restaurant is for budgeting purposes.
+The first transaction took $70 out of the restaurant envelope, and if we set the account to `expenses:food:restaurant` here it will automatically put $35 back into the envelope.
+
+Here's an efficient way to clean up the description so it simply reads "Transfer from Venmo":
+
+* Hit &#8963;P, and the suggested description is displayed on the terminal, with the cursor at the end of the line.
+* Type ESC-B to times to move the cursor back two words, then hit the left arrow key to move back one more character
+* Type &#8963;K to erase all the characters to the right of the curosr, then hit the return key
+
+Set the account to `restaurant`, the same as you did for the check earlier:  &#8963;T to edit the account, then "re" and tab and return.
+
+Finally, let's add a comment to remind ourselves of what this payment was for.
+Hit &#8963;N (the "N" is a mnemonic for "note") and enter "Reiumbursement from Kate".
+
+The filled in transaction will look like this:
+
+![Review Help](images/review.venmo.png)
+
+Type &#8963;A to accept the changes and move on to the next transaction.
+
+## Fill in the Fourth Transaction
+
 The next transaction was at a gas station in Kayenta, Arizona.
 
 Edit the description field.
 Hit &#8963;P, and the suggested description is displayed on the terminal, with the cursor at the end of the line.
+Here is a way to edit that line with minimal keystrokes:
 
 * type &#8963;A to move the cursor to the front of the line
 * type ESC F twice to move the cursor right after the "v" in "Chev"
@@ -256,21 +293,24 @@ Here &#8963;A meant "move the cursor to the front of the line", but in the main 
 The reason for this is that field editing is controlled by the GNU readline library and it uses its own meanings for keys.
 If you're used to editing shell commands the keys will be familiar and it won't be any trouble caused by different meanings when editing a line.
 
-The next step is to enter an expense category using &#8963;T to edit the account field.
-The first inclination is to choose "fuel".
+Enter an expense category using &#8963;T to edit the account field, type "fu" and tab to complete the line to "fuel", and hit return.
 
-But this gas purchase was part of a trip to the Southwest, so a better choice might be the travel envelope.
-Type "tr" and tab and the account is expanded to "travel", and that will be converted to the full "expenses:travel" account name.
+This gas purchase was part of a trip to the Southwest.
+With a more realistic set of expense categories we would probably have an account named `expenses:travel`, maybe even with subcategories for `air`, `hotel`, _etc_.
 
-> _If you had already entered "fuel" it's easy to change.  When you hit &#8963;T the line will show the current setting, "expenses:car:fuel", with the cursor at the end of the line.  Type &#8963;U to delete the entire line, then type "tr" and tab to change it to "travel".
-
-Finally, suppose we want to keep track of all expenses related to this trip.
-That's where tags are useful.
+But even without that travel category we can keep track of trip expenses using tags.
 Choose a short but descriptive tag name, like "swrt", short for "southwest road trip".
-We can add this tag to any transaction, not just those in the travel category, and later we can make a report that shows all transactions tagged "swrt" to see what we spent on the trip.
-
-To add a tag, type &#8963;G to bring up the line editor.
+To add the tag, type &#8963;G to bring up the line editor.
 Type "swrt" and hit return.
+
+We can add this tag to any transaction, and later we can make a report that shows all transactions tagged "swrt" to see what we spent on the trip.
+
+![Review Help](images/review.kayenta.png)
+
+<!-- > _If you had already entered "fuel" it's easy to change.  When you hit &#8963;T the line will show the current setting, "expenses:car:fuel", with the cursor at the end of the line.  Type &#8963;U to delete the entire line, then type "tr" and tab to change it to "travel". -->
+
+Type &#8963;A to accept the changes and move on to the next transaction.
+
 
 #### Tag Syntax
 
@@ -283,8 +323,21 @@ The hash symbol is optional (Dexter adds it for you), and you can enter multiple
 
 ## Complete the Remaining Transactions
 
-The table below shows the remaining unpaired transactions.
-We leave it as an exercise for you to continue using the loop in the `review` command to update the transactions.
+The table below shows the complete list of unpaired transactions.
+We leave it as an exercise for you to continue using the loop in the `review` command to update the remaining transactions.
 
-If you want to take a shortcut, you can download a file named `apr.2024.docs` from the GitHub repo and use it for the remaining steps in the tutorial.
+If you want to take a shortcut, the database in the file named `apr.2024.docs` (available on the GitHub repo) has these transaction filled in already.
+
+| date   | amount | original            | desc                 | account    | extra   |
+| ------ | ------ | ------------------- | -------------------- | ---------- | ------- |
+| Apr 1  | $70    | Check               | Check #153: Glenwood | restaurant |         |
+| Apr 2  | $5     | WASH-IT EXPRESS     | Wash-It              | car        |         |
+| Apr 3  | $35    | Transfer from Venmo | Venmo                | restaurant | comment |
+| Apr 3  | $50    | KAYENTA CHEV-XX6444 | Kayenta Chevron      | car        | tg      |
+| Apr 5  | $25    | Best Buy/NST        | Best Buy Lubbock     | household  |         |
+| Apr 12 | $65    | HATCH CHILE         | Hatch Chile Market   | groceries  |         |
+| Apr 15 | $25    | AMZN Mktp           | Amazon Marketplace   | household  |         |
+| Apr 15 | $15    | AMZN Mktp           | Amazon Marketplace   | household  |         |
+| Apr 21 | $50    | JERRYS HOME         | Jerry's              | household  |         |
+| Apr 22 | $20    | JERRYS HOME         | Jerry's              | household  | return  |
 

@@ -5,18 +5,17 @@ To do that we'll use Dexter's `pair` command.
 
 ## A Pairing Example
 
-As an example of what we want that command to do, consider the posting created by importing the first record in `chase.csv`:
-The posting for the first record from the credit card account looks like this:
+As an example of what we want that command to do, consider one of the postings created by importing the checking account data:
 ```plain
-entry  2024-04-30           -$10.00  liabilities:chase:visa  ESSENTIAL PHYSICAL THERAP  [<Tag.U: '#unpaired'>]
+2024-04-24     -$15.00   visa   NEWMAN'S FISH COMPANY       #unpaired
 ```
-In our hypothetical data set, that's a payment Alice made to her physical therapist.
-The minus sign in the amount means it is a credit to the `visa` account.
+The minus sign in the amount means it is a credit (withdrawal) to the checking account.
 
-> _Note: the terminal output shows credits/negative numbers in red, without the minus sign._
+> _**Note:** the terminal output shows credits/negative numbers in red, without the minus sign._
 
-That's something that we expect to see often.
-Our monthly financial workflow would be more efficient if Dexter could automatically create a new transaction for us:  whenever it sees a credit with a description that matches "ESSENTIAL PHYSICAL" it should create a debit to `expenses:medical`, the expense category Alice and Bob use for PT sessions, and then create a new transaction using the two postings.
+If we regularly shop at this store that we will see this kind of posting again in the future.
+Our monthly financial workflow would be more efficient if Dexter could automatically create a new transaction for us:  whenever it sees a credit with a description that matches "NEWMAN" it should create a debit to `expenses:food:groceries`.
+It could then create a new transaction using the two postings.
 
 ## Pairing Rules
 
@@ -32,14 +31,14 @@ The parts of a rule are:
 
 As an example, here is the rule for the physical therapy session:
 ```plain
-trans,ESSENTIAL PHYSICAL THERAP,Essential Phyiscal Therapy,medical
+trans,NEWMAN,Newman's Fish,groceries
 ```
 The parts are:
 
 * `trans` is the action to take -- it means "make a new transaction"
-* "ESSENTIAL PHYSICAL THERAP" is the pattern
-* "Essential Phyiscal Therapy" is the description that will go in the new transaction
-* "medical" is the abbreviated account name to use in the new posting
+* "NEWMAN" is the pattern
+* "Newman's Fish" is the description that will go in the new transaction
+* the last column is the account name to use in the new posting
 
 The pattern and new description in this example are pretty boring -- all the rule is doing is turning the all-uppercase input into a more readable mixed case.
 In other cases, however, the pattern matching rules can be very helpful.
@@ -56,7 +55,7 @@ The `\w+` in the pattern means "any string of letters" and the `{0}` in the new 
 
 The `xfer` in the rule shown above for the Chase payment is a second type of action the `pair` script can take.
 Here the goal isn't to create a new posting but to try to find two complementary postings that already exist.
-In this case, if there is a payment made from the checking account, there should be a matching deposit in the credit card account.
+In this case, if there is a card payment made from the checking account, there should be a matching deposit in the credit card account.
 
 Transfer rules are also used for transactions that move money between bank accounts.
 The sample data has a transfer from checking to savings each month.
@@ -77,10 +76,10 @@ Simply add the `--regexp` option to tell Dexter that the file being imported has
 The rules for the sample data are in a file named `regexp.csv`.
 Type this command to add them to the `dev` database:
 ```shell
-$ dex --db dev import --regexp regexp.csv
+$ dex import --regexp regexp.csv
 ```
 
-Run the `info` command again, and now you will see the pairing rules have been added (the count in the `reg_exp` column changes from 0 to 40):
+Run the `info` command again, and now you will see the pairing rules have been added (the count in the `reg_exp` column changes from 0 to 29):
 ```shell
 $ dex info
 
@@ -88,12 +87,6 @@ Databases
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓
 ┃ name         ┃ account ┃ transaction ┃ entry ┃ reg_exp ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━┩
-│ dev          │      26 │           2 │    62 │      40 │
+│ dev          │      18 │           2 │    32 │      29 │
 └──────────────┴─────────┴─────────────┴───────┴─────────┘
 ```
-
-
-
-
-
-

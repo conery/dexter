@@ -324,6 +324,10 @@ class DB:
         Arguments:
             dbname:  name of the database
         '''
+        dbname = dbname or os.getenv('DEX_DB') or Config.dbname
+        if dbname is None:
+            raise ValueError(f'DB.create: specify a database name')
+
         DB.connection = connect(dbname, UuidRepresentation='standard')
         if dbname in DB.dexters:
             DB.connection.drop_database(dbname)

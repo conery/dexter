@@ -17,9 +17,9 @@ Transactions
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
 ┃ date         ┃ credit               ┃ debit                ┃       amount ┃ description                    ┃ comment         ┃ tags            ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
-│ 2024-04-02   │ checking             │ bob                  │      $118.99 │ Downtown Athletic Club         │                 │                 │
-│ 2024-04-02   │ checking             │ medical              │      $232.03 │ Medical Insurance              │                 │                 │
-│ 2024-04-02   │ checking             │ mortgage             │    $1,037.24 │ Rocket Mortgage                │                 │                 │
+│ 2024-04-01   │ checking             │ restaurant           │       $70.00 │ Check #153: Glenwood           │                 │                 │
+│ 2024-04-02   │ checking             │ mortgage             │    $1,000.00 │ Mortgage                       │                 │                 │
+│ 2024-04-02   │ visa                 │ expenses:car         │        $5.00 │ Wash-it Express                │                 │                 │
 ...
 ```
 
@@ -30,16 +30,18 @@ In this section we'll just show a few that will be useful for exploring our init
 
 Use `--start_date` or `--end_date` (or both) to limit the set of results to a particular range of dates.
 ```shell
-$ dex select --start_date 2024-04-07 --end_date 2024-04-13
+$ dex select --start_date 2024-04-21 --end_date 2024-04-22
 
 Transactions                                                                                                                                      
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
 ┃ date         ┃ credit               ┃ debit                ┃       amount ┃ description                    ┃ comment         ┃ tags            ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
-│ 2024-04-08   │ checking             │ medical              │       $15.08 │ CSV                            │                 │                 │
-│ 2024-04-09   │ checking             │ visa                 │    $2,344.50 │ Chase Payment                  │                 │                 │
-│ 2024-04-10   │ visa                 │ shared               │       $39.95 │ Cooks Illustrated              │                 │                 │
-│ 2024-04-13   │ visa                 │ shared               │       $15.99 │ Prime Video                    │                 │                 │
+│ 2024-04-21   │ visa                 │ household            │       $50.00 │ Jerry's Home Eugene            │                 │                 │
+│ 2024-04-22   │ visa                 │ restaurant           │       $50.00 │ Hey Neighbor                   │                 │                 │
+│ 2024-04-22   │ visa                 │ yard                 │      $100.00 │ Lane Forest Products           │                 │                 │
+│ 2024-04-22   │ yoyodyne             │ checking             │    $3,000.00 │ Yoyodyne                       │                 │                 │
+│ 2024-04-22   │ checking             │ utility              │      $100.00 │ AT&T                           │                 │                 │
+│ 2024-04-22   │ household            │ visa                 │       $20.00 │ Jerry's Home Eugene            │ return          │                 │
 └──────────────┴──────────────────────┴──────────────────────┴──────────────┴────────────────────────────────┴─────────────────┴─────────────────┘
 ```
 
@@ -53,10 +55,10 @@ Transactions
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
 ┃ date         ┃ credit               ┃ debit                ┃       amount ┃ description                    ┃ comment         ┃ tags            ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
-│ 2024-04-05   │ visa                 │ shared               │        $7.00 │ Disney Plus                    │                 │                 │
-│ 2024-04-06   │ visa                 │ alice                │        $3.00 │ Wikimedia                      │                 │                 │
-│ 2024-04-22   │ checking             │ charity              │        $5.00 │ OPB                            │                 │                 │
-...
+│ 2024-04-02   │ visa                 │ expenses:car         │        $5.00 │ Wash-it Express                │                 │                 │
+│ 2024-04-30   │ interest             │ checking             │        $0.68 │ Interest                       │                 │                 │
+│ 2024-04-30   │ interest             │ savings              │        $1.59 │ Interest                       │                 │                 │
+└──────────────┴──────────────────────┴──────────────────────┴──────────────┴────────────────────────────────┴─────────────────┴─────────────────┘
 ```
 
 ## Accounts
@@ -65,17 +67,23 @@ TBD
 
 ## Entries
 
+The `--entry` option tells Dexter to print individual postings instead of transactions.
+Most of the other options, for dates, amounts, _etc_, are make sense for postings.
+
 ```shell
-$ dex select --entry --tag '#unpaired'
+$ dex select --entry --account food --full
 
 Entries                                                                                                                       
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
 ┃ date         ┃ account                   ┃          amount ┃   column   ┃ description                    ┃ tags            ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
-│ 2024-04-01   │ checking                  │         $300.00 │   credit   │ Check # 152: Completed/Check … │ #unpaired       │
-│ 2024-04-01   │ visa                      │           $3.00 │   credit   │ WASH-IT EXPRESS                │ #unpaired       │
-│ 2024-04-03   │ checking                  │         $203.00 │   credit   │ KAYENTA CHEV-XX6444 JUNCTION … │ #unpaired       │
-│ 2024-04-03   │ checking                  │         $503.00 │   credit   │ HIGHWAY 160 HIGHWAY 160 Kayen… │ #unpaired       │
-...
+│ 2024-04-01   │ expenses:food:restaurant  │          $70.00 │   debit    │ repl Check # 153: Completed/C… │                 │
+│ 2024-04-03   │ expenses:food:restaurant  │          $35.00 │   credit   │ repl Transfer from Venmo/VENM… │                 │
+│ 2024-04-12   │ expenses:food:groceries   │          $65.00 │   debit    │ repl HATCH CHILE MARKET        │                 │
+│ 2024-04-22   │ expenses:food:restaurant  │          $50.00 │   debit    │ match TST* HEY NEIGHBOR - TBD  │                 │
+│ 2024-04-23   │ expenses:food:groceries   │          $15.00 │   debit    │ match Everyone's Market/EVERY… │                 │
+│ 2024-04-24   │ expenses:food:groceries   │          $15.00 │   debit    │ match NEWMAN'S FISH COMPANY    │                 │
+│ 2024-04-26   │ expenses:food:groceries   │          $15.00 │   debit    │ match LONGS MEAT MARKET        │                 │
+└──────────────┴───────────────────────────┴─────────────────┴────────────┴────────────────────────────────┴─────────────────┘
 ```
 
