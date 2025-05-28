@@ -110,7 +110,7 @@ def init_cli():
     balance_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     balance_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
 
-    report_parser = subparsers.add_parser('ie', help='print income and expense report')
+    report_parser = subparsers.add_parser('ier', help='print income and expense report')
     report_parser.set_defaults(dispatch=print_expense_report)
     report_parser.add_argument('accts', metavar='A', nargs='*', help='accounts')
     report_parser.add_argument('--budget', action='store_true', help='include budget transactions')

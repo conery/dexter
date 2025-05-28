@@ -494,45 +494,83 @@ class DB:
                 grp.add(acct.name)
         return dct
 
-    @staticmethod
-    def account_groups(specs=[]):
-        '''
-        Convert a list of account name specs from the command line into
-        a list of account groups to use in reports.  
+    # @staticmethod
+    # def account_groups(specs=[]):
+    #     '''
+    #     Convert a list of account name specs from the command line into
+    #     a list of account groups to use in reports.  
         
-        Specs are strings that correspond to nodes in the account hierarchy,
-        optionally followed by a colon and level number.
+    #     Specs are strings that correspond to nodes in the account hierarchy,
+    #     optionally followed by a colon and level number.
 
-        Arguments:
-            specs:  the list of strings from the command line
+    #     Arguments:
+    #         specs:  the list of strings from the command line
+    #     '''
+    #     if len(specs) == 0:
+    #         res = [a.name for a in Account.objects]
+    #     else:
+    #         res = []
+    #         for s in specs:
+    #             grp = []
+    #             parts = s.split(':')
+    #             logging.debug(f'account_groups: {parts}')
+    #             if re.match(r'\d+', parts[-1]):
+    #                 level = int(parts[-1])
+    #                 pre = ':'.join(parts[:-1])
+    #                 logging.debug(f'account groups: find accounts that start with "{pre}"')
+    #                 for acct in Account.objects(name__startswith=pre):
+    #                     if len(acct.name.split(':')) < level:
+    #                         grp.append(acct.name)
+    #                     elif len(acct.name.split(':')) == level:
+    #                         grp.append(f'{acct.name}.*')
+    #                 logging.debug(f'account groups: found {grp}')
+    #                 if len(grp) == 0:
+    #                      grp.append(f'{pre}.*')
+    #                     logging.debug(f'account groups: grp = {grp}')
+    #             else:
+    #                 logging.debug(f'account_groups: find all accounts below {s}')
+    #                 grp += [a.name for a in Account.objects(name__startswith=s)]
+    #             res += grp
+    #     return res
+   
+    @staticmethod
+    def account_glob(spec):
         '''
-        if len(specs) == 0:
-            res = [a.name for a in Account.objects]
-        else:
-            res = []
-            for s in specs:
-                grp = []
-                parts = s.split(':')
-                logging.debug(f'account_groups: {parts}')
-                if re.match(r'\d+', parts[-1]):
-                    level = int(parts[-1])
-                    pre = ':'.join(parts[:-1])
-                    logging.debug(f'account groups: find accounts that start with "{pre}"')
-                    for acct in Account.objects(name__startswith=pre):
-                        if len(acct.name.split(':')) < level:
-                            grp.append(acct.name)
-                        elif len(acct.name.split(':')) == level:
-                            grp.append(f'{acct.name}.*')
-                    logging.debug(f'account groups: found {grp}')
-                    if len(grp) == 0:
-                        grp.append(f'{pre}.*')
-                        logging.debug(f'account groups: grp = {grp}')
-                else:
-                    logging.debug(f'account_groups: find all accounts below {s}')
-                    grp += [a.name for a in Account.objects(name__startswith=s)]
-                res += grp
+        Turn an account spec from the command line into a list of account
+        names.
+
+        Returns:  list of strings or None
+        '''
+        match spec:
+            case spec if spec.startswith('@'):
+                name = DB.fullname(spec[1:])
+                res = [spec] if name else None
+            case spec if spec.endswith(':'):
+                name = DB.fullname(spec[:-1])
+                res = [spec] if name else None
+            case spec if re.match(r'.*:\d+', spec):
+                res = DB.expand_node(spec)
+            case _:
+                name = DB.fullname(spec)
+                res = [name] if name else None
         return res
     
+    @staticmethod
+    def expand_node(spec):
+        '''
+        A command line argument had an account name and level.  Return the
+        list of accounts below to the specified level.
+        '''
+        node, n = re.match(r'(.*):(\d+)',spec).groups()
+        level = int(n)
+        res = []
+        for acct in Account.objects(name__startswith=node):
+            name = acct.name
+            tail = name[len(node):]
+            if tail.count(':') <= level:
+                res.append(name)
+        return res
+
     @staticmethod
     def balance(acct, ending=None, budgets=True):
         '''

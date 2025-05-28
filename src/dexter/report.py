@@ -13,15 +13,14 @@ from .config import Config, Tag
 
 def print_expense_report(args):
     '''
-    Top level function for the 'expenses' command.  
+    Top level function for the 'ie' (income and expense report)
+    command.  
     
     Arguments:
         args:  command line arguments
     '''
     DB.open(args.dbname)
     logging.debug(f'expense report {vars(args)}')
-
-    logging.error(f'to do: if accts empty use I and E types')
     
     if args.details:
         print_expense_details(args)
