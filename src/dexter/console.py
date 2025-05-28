@@ -52,7 +52,7 @@ dark_terminal = Theme({
     ),
 })
 
-console = Console(theme=dark_terminal)
+console = Console(theme=dark_terminal, emoji=None)
 # console = Console(theme=light_terminal)
 
 def format_amount(n, dollar_sign=False):
@@ -116,12 +116,13 @@ def print_records(docs, name=None, count=0):
             title += f' ({count})'
         console.print(title)
 
-    lst = [obj.row() for obj in docs]
-    n = len(lst[0])
-    grid = Table.grid(""*n, padding=[0,3,0,3])
-    for row in lst:
-        grid.add_row(*row)
-    console.print(grid)
+    if len(docs) > 0:
+        lst = [obj.row() for obj in docs]
+        n = len(lst[0])
+        grid = Table.grid(""*n, padding=[0,3,0,3])
+        for row in lst:
+            grid.add_row(*row)
+        console.print(grid)
     console.print()
 
 def tag_strings(rec):
@@ -240,14 +241,15 @@ def print_info_table(dct):
     console.print(tbl)
     
 def print_grid(recs: list, name: str = None, count: int = 0):
-    n = len(recs[0])
-    grid = Table.grid(""*n, padding=[0,2,0,2])
-    for row in recs:
-        grid.add_row(*row)
     if name:
         title = f'[bold blue]{name}'
         if count:
             title += f' ({count})'
         console.print(title)
-    console.print(grid)
+    if len(recs) > 0:
+        n = len(recs[0])
+        grid = Table.grid(""*n, padding=[0,2,0,2])
+        for row in recs:
+            grid.add_row(*row)
+        console.print(grid)
     console.print()

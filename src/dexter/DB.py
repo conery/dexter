@@ -82,6 +82,7 @@ class Entry(Document):
     column = EnumField(Column, required=True) 
     amount = FloatField(required=True)
     tags = ListField(EnumField(Tag))
+    tref = ReferenceField('Transaction')
 
     meta = {'strict': False}
 
@@ -110,8 +111,9 @@ class Entry(Document):
         return md5(bytes(s, 'utf-8')).hexdigest()
     
     def clean(self):
-        logging.debug(f'uid: {self.hash}')
-        self.uid = self.hash
+        if self.uid is None:
+            logging.debug(f'uid: {self.hash}')
+            self.uid = self.hash
 
 class Transaction(Document):
     description = StringField(required=True)
@@ -377,36 +379,39 @@ class DB:
                 print(f'{collection}: {obj.to_json()}', file=f)
 
 
+    @staticmethod
+    def save_records(lst):
+        '''
+        Save records in the database.  Makes two passes.  On the first pass 
+        every object is saved.  On the second pass, the Entry objects in any
+        Transactions found in the first pass are updated to refer to the
+        Transaction.
+        '''
+        tlist = []
+        for obj in lst:
+            logging.debug(f'DB.save_records: saving {obj}')
+            obj.save()
+            if isinstance(obj, Transaction):
+                tlist.append(obj)
+        for t in tlist:
+            for e in t.entries:
+                logging.debug(f'DB.save_records: updating {e}')
+                e.tref = t
+                e.save()
+
     MAX_DUPS = 10
 
-    def save_entries(recs):
+    def assign_uids(recs):
         '''
-        Save new Entry documents created by parsing a file.  Handle duplicates in 
-        new records by modifying the description so the UID is different from the
-        other copies.
+        Handle duplicates in new records by modifying the description so the 
+        UID is different from the other copies.
 
         Arguments:
             recs:  a list of Entry objects
         '''
-        # for obj in recs:
-        #     logging.debug(f'save {obj}')
-        #     desc = obj.description
-        #     obj.tags.append(Tag.U)
-        #     n = 0
-        #     while n < DB.MAX_DUPS:
-        #         try:
-        #             obj.save()
-        #             break
-        #         except NotUniqueError:
-        #             n += 1
-        #             obj.description = f'{desc} ({n})'
-        #             logging.debug(f'add: dup ({n}) for {obj}')
-        #     else:
-        #         logging.error(f'add: max {DB.MAX_DUPS} copies exceeded for {obj}')
-
         uids = set()
         for obj in recs:
-            logging.debug(f'save {obj}')
+            logging.debug(f'assign UID to {obj}')
             desc = obj.description
             n = 0
             while obj.hash in uids:
@@ -416,8 +421,7 @@ class DB:
                     raise ValueError(f'save_records: no uid: {obj}')
                 obj.description = f'{desc} ({n})'
                 logging.debug(f'  {obj.description}')
-            # obj.tags.append(Tag.U)
-            obj.save()
+            # obj.save()
             uids.add(obj.hash)
 
     @staticmethod

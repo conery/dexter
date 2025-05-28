@@ -133,6 +133,15 @@ class TestDB:
         assert t.pcredit == 'assets:bank:checking'
         assert t.pdebit == 'expenses:food:groceries'
         assert t.pamount == 75.00
+
+    def test_transaction_links(self, db):
+        '''
+        The tref attribute of each entry in a transaction should be a
+        reference to the transaction.
+        '''
+        for t in Transaction.objects:
+            for e in t.entries:
+                assert e.tref == t
     
     def test_select_transactions(self, db):
         '''

@@ -8,7 +8,7 @@ from rich.table import Table, Column
 
 from .DB import DB, Transaction, Entry
 from .console import console, format_amount
-from .config import Tag
+from .config import Config, Tag
 
 
 def print_expense_report(args):
@@ -18,7 +18,11 @@ def print_expense_report(args):
     Arguments:
         args:  command line arguments
     '''
+    DB.open(args.dbname)
     logging.debug(f'expense report {vars(args)}')
+
+    logging.error(f'to do: if accts empty use I and E types')
+    
     if args.details:
         print_expense_details(args)
     else:
@@ -28,45 +32,47 @@ def print_expense_summary(args):
     '''
     Print a one-line summary of the balance of each account.
     '''
+    start = args.start_date or Config.start_date
+    end = args.end_date or datetime.date.today()
+
     accts = []
     starts = []
     ends = []
     for group in DB.account_groups(args.accts):
         accts.append(group)
         dct = {'account': group}
-        if args.start_date and args.end_date:
-            starts.append(DB.balance(group, ending=args.start_date, budgets=args.budget))
-            ends.append(DB.balance(group, ending=args.end_date, budgets=args.budget))
-        elif date := (args.start_date or args.end_date):
-            starts.append(DB.balance(group, ending=date, budgets=args.budget))
-        else:
-            starts.append(DB.balance(group, budgets=args.budget))
+        # if args.start_date and args.end_date:
+        #     starts.append(DB.balance(group, ending=args.start_date, budgets=args.budget))
+        #     ends.append(DB.balance(group, ending=args.end_date, budgets=args.budget))
+        # elif date := (args.start_date or args.end_date):
+        #     starts.append(DB.balance(group, ending=date, budgets=args.budget))
+        # else:
+        #     starts.append(DB.balance(group, budgets=args.budget))
+        starts.append(DB.balance(group, ending=start, budgets=args.budget))
+        ends.append(DB.balance(group, ending=end, budgets=args.budget))
     print_summary_table(accts, args, starts, ends)
 
-def print_summary_table(accts, args, bal1, bal2):
+def print_summary_table(accts, args, start_bal, end_bal):
     '''
     Helper function for `print_expense_summary`.  Prints a table with
     one or two budget columns, depending on the combination of date
     options from the command line.
     '''
-    logging.debug(f'print_detail_table {accts} {bal1} {bal2}')
+    logging.debug(f'print_detail_table {accts} {start_bal} {end_bal}')
     title = 'Account Balance'
-    match (args.start_date, args.end_date):
-        case (start, end) if start and end:
-            title += f'  {start} to {end}'
-        case (start, None):
-            title += f'  from {start}'
-        case (None, end):
-            title += f'  to {end}'
-        case _:
-            pass
+
+    if args.start_date and args.end_date:
+        title += f'  {args.start_date} to {args.end_date}'
+    elif args.start_date:
+        title += f'  from {args.start_date}'
+    elif args.end_date:
+        title += f'  through {args.end_date}'
 
     t = Table(
         Column(header='account', width=30),
         title=title,
         title_justify='left',
         title_style='table_header',
-        # show_header=False
     )
     if args.start_date and args.end_date:
         t.add_column('starting', width=12, justify='right')
@@ -74,12 +80,14 @@ def print_summary_table(accts, args, bal1, bal2):
         t.add_column('difference', width=12, justify='right')
     else:
         t.add_column('balance', width=12, justify='right')
+
     for i in range(len(accts)):
         row = [accts[i]]
-        row.append(format_amount(bal1[i], dollar_sign=True))
         if args.start_date and args.end_date:
-            row.append(format_amount(bal2[i], dollar_sign=True))
-            row.append(format_amount(bal2[i]-bal1[i], dollar_sign=True))
+            row.append(format_amount(end_bal[i], dollar_sign=True))
+            row.append(format_amount(end_bal[i]-start_bal[i], dollar_sign=True))
+        else:
+            row.append(format_amount(end_bal[i], dollar_sign=True))
         t.add_row(*row)
     console.print()
     console.print(t)

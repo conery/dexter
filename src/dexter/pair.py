@@ -94,14 +94,17 @@ def save_matched_transactions(lst):
     Arguments:
         lst: a list of new Transaction objects
     '''
+    # for obj in lst:
+    #     try:
+    #         obj.entries[0].tags.remove(Tag.U)
+    #         obj.entries[0].save()
+    #         obj.entries[1].save()
+    #         obj.save()
+    #     except Exception as err:
+    #         logging.error(f'pair: error while saving transaction: {err}')
     for obj in lst:
-        try:
-            obj.entries[0].tags.remove(Tag.U)
-            obj.entries[0].save()
-            obj.entries[1].save()
-            obj.save()
-        except Exception as err:
-            logging.error(f'pair: error while saving transaction: {err}')
+        obj.entries[0].tags.remove(Tag.U)
+    DB.save_records(lst)
 
 def xfer_part(entry, regexp, credits, debits):
     '''

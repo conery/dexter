@@ -138,13 +138,19 @@ def init_from_csv(fn: Path, preview: bool = False):
         any(t.clean() for t in trans)
         print_grid([[t.description,str(t.pdate),str(t.pamount)] for t in trans])
     else:
-        for obj in accts + trans:
-            try:
-                logging.debug(f'save {obj}')
-                obj.save()
-            except Exception as err:
-                logging.error(f'import: error saving {obj}')
-                logging.error(err)
+        # for obj in accts + trans:
+        #     try:
+        #         logging.debug(f'save {obj}')
+        #         obj.save()
+        #     except Exception as err:
+        #         logging.error(f'import: error saving {obj}')
+        #         logging.error(err)
+        # for t in trans:
+        #     for e in t.entries:
+        #         e.tref = t
+        #         e.save()
+        DB.save_records(accts)
+        DB.save_records(trans)
 
 def make_balance_transaction(rec, lst):
     '''
@@ -192,14 +198,17 @@ def init_from_journal(fn: Path, preview: bool = False):
                 obj.clean()
                 print(obj)
     else:
-        DB.save_entries(recs['entries'])
-        for obj in recs['accounts'] + recs['transactions']:
-            try:
-                logging.debug(f'save {obj}')
-                obj.save()
-            except Exception as err:
-                logging.error(f'import: error saving {obj}')
-                logging.error(err)
+        # DB.save_entries(recs['entries'])
+        # for obj in recs['accounts'] + recs['transactions']:
+        #     try:
+        #         logging.debug(f'save {obj}')
+        #         obj.save()
+        #     except Exception as err:
+        #         logging.error(f'import: error saving {obj}')
+        #         logging.error(err)
+        DB.assign_uids(recs['entries'])
+        for lst in recs.values():
+            DB.save_records(lst)
 
 def parse_amount(s):
     '''
@@ -421,7 +430,10 @@ def import_entries(args):
         if args.preview:
             print_records(recs)
         else:
-            DB.save_entries(recs)
+            DB.assign_uids(recs)
+            # for e in recs:
+            #     e.save()
+            DB.save_records(recs)
 
 def import_regexp(args):
     '''
@@ -429,15 +441,17 @@ def import_regexp(args):
     '''
     DB.delete_regexps()
     for fn in args.files:
+        lst = []
         with open(fn) as csvfile:
             reader = csv.DictReader(csvfile)
             for rec in reader:
                 e = RegExp(**rec)
-                logging.debug(f'import: {e}')
-                if args.preview:
-                    print(e)
-                else:
-                    e.save()
+                lst.append(e)
+        if args.preview:
+            for e in lst:
+                print(e)
+        else:
+            DB.save_records(lst)
 
 def import_from_journal(fn):
     logging.error(f'import:  journal format not implemented')

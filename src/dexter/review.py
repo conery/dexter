@@ -329,7 +329,8 @@ def verify_and_save_transaction(trans):
 
     # Save the entries and the transaction
     trans.entries[0].tags.remove(Tag.U)
-    for e in trans.entries:
-        e.save()
-    trans.save()  
+    # for e in trans.entries:
+    #     e.save()
+    # trans.save()  
+    DB.save_records([trans])
     return True
