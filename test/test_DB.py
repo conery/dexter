@@ -107,18 +107,44 @@ class TestDB:
         dct = DB.account_names(Category.E)
         assert dct['dining'] == {'expenses:food:restaurant'}
 
-    def test_account_groups(self, db):
+    def test_account_glob(self, db):
         '''
-        Test the account_groups method.
+        Test the account_glob method.  Adds some new Account objects with
+        extra name parts to test the pattern that has levels.
         '''
-        grp = DB.account_groups()
-        assert len(grp) == len(Account.objects)
+        Account(name='expenses:car:fuel:gas', category=Category.E).save()
+        Account(name='expenses:car:fuel:electric', category=Category.E).save()
 
-        # !! Add more tests after adding new accounts to test fixture
+        # An account globs to itself
+        assert DB.account_glob('expenses:car') == ['expenses:car']
 
-        # grp = DB.account_groups(['expenses'])
-        # assert len(grp) == 6
-        # assert all(lambda s: s.startswith('expenses') for s in grp)
+        # An abbrev globs to the full name
+        assert DB.account_glob('groceries') == ['expenses:food:groceries']
+
+        # A pattern that will apps will use to find all accounts below a node
+        assert DB.account_glob('expenses:car:') == ['expenses:car:']
+
+        # An interior node without any of its descendants
+        level0 = ['expenses:car']
+        assert DB.account_glob('expenses:car:0') == level0
+
+        # An interior node and its immediate descendants
+        level1 = ['expenses:car:payment', 'expenses:car:fuel']
+        assert DB.account_glob('expenses:car:1') == level0 + level1
+
+        # An interior node and two levels down
+        level2 = ['expenses:car:fuel:gas', 'expenses:car:fuel:electric']
+        assert DB.account_glob('expenses:car:2') == level0 + level1 + level2
+
+        # A name pattern
+        assert DB.account_glob('@car') == ['@car']
+
+        # If a name is not in the DB return None
+        assert DB.account_glob('carp') is None
+        assert DB.account_glob('expenses:carp') is None
+        assert DB.account_glob('expenses:carp:') is None
+        assert DB.account_glob('expenses:carp:1') == []
+        assert DB.account_glob('@carp') is None
 
     def test_transaction_attributes(self, db):
         '''

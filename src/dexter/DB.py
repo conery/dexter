@@ -543,8 +543,7 @@ class DB:
         '''
         match spec:
             case spec if spec.startswith('@'):
-                name = DB.fullname(spec[1:])
-                res = [spec] if name else None
+                res = [spec] if spec[1:] in DB.account_name_parts() else None
             case spec if spec.endswith(':'):
                 name = DB.fullname(spec[:-1])
                 res = [spec] if name else None
