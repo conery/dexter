@@ -329,6 +329,7 @@ class DB:
         dbname = dbname or os.getenv('DEX_DB') or Config.dbname
         if dbname is None:
             raise ValueError(f'DB.create: specify a database name')
+        logging.debug(f'DB: create {dbname}')
 
         DB.connection = connect(dbname, UuidRepresentation='standard')
         if dbname in DB.dexters:
@@ -555,6 +556,20 @@ class DB:
         return res
     
     @staticmethod
+    def account_args(s):
+        '''
+        Helper methods used by balance and select to turn a name pattern
+        created by account_glob into a regular expression to use in a query
+        '''
+        if s.startswith('@'):
+            res = { 'account__regex': f'\\b{s[1:]}\\b' }
+        elif s.endswith(':'):
+            res = { 'account__regex': f'^{s[:-1]}.*$' }
+        else:
+            res = { 'account__regex': f'^{s}$'}
+        return res
+    
+    @staticmethod
     def expand_node(spec):
         '''
         A command line argument had an account name and level.  Return the
@@ -571,7 +586,7 @@ class DB:
         return res
 
     @staticmethod
-    def balance(acct, ending=None, budgets=True):
+    def balance(acct, ending=None, nobudget=False):
         '''
         Compute the balance of an account, with or without budget transactions.
 
@@ -579,13 +594,15 @@ class DB:
             acct: the name of the account
             budgets: if False ignore budget transactions
         '''
-        kwargs = {'account': acct}
+        # kwargs = {'account': acct}
+        kwargs = DB.account_args(acct)
         if ending:
-            kwargs['end_date'] = ending
-        res = sum(e.value for e in DB.select(Entry, **kwargs))
-        if not budgets:
-            kwargs['tag'] = Tag.B
-            res -= sum(e.value for e in DB.select(Entry, **kwargs))
+            kwargs['date__lte'] = ending
+        res = Entry.objects(**kwargs).sum('amount')
+        if nobudget:
+            logging.error('--nobudget not implemented in DB.balance')
+            # kwargs['tag'] = Tag.B
+            # res -= Entry.objects(**kwargs).sum('amount')
         return res
     
     # RegExp management -- delete old records so new ones can be

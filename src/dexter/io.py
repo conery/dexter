@@ -43,6 +43,8 @@ def save_records(args):
     '''
     logging.info(f'Saving to {args.file}')
     logging.debug(f'save {vars(args)}')
+    DB.open(args.dbname)
+
     try:
         mode = 'w' if args.force else 'x'
         with open(args.file, mode) as f:
@@ -67,6 +69,11 @@ def restore_records(args):
         args: Namespace object with command line arguments.
     '''
     logging.debug(f'restore {vars(args)}')
+    
+    if not args.preview:
+        if DB.exists(args.dbname) and not args.force:
+            raise ValueError(f'init: database {args.dbname} exists; use --force to replace it')
+        DB.create(args.dbname)    
 
     fn = Path(args.file)
     logging.info(f'DB:restoring docs file:{fn}')

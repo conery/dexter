@@ -13,7 +13,7 @@ from .config import Config, Tag
 
 def print_expense_report(args):
     '''
-    Top level function for the 'ie' (income and expense report)
+    Top level function for the 'ier' (income and expense report)
     command.  
     
     Arguments:
@@ -37,18 +37,15 @@ def print_expense_summary(args):
     accts = []
     starts = []
     ends = []
-    for group in DB.account_groups(args.accts):
-        accts.append(group)
-        dct = {'account': group}
-        # if args.start_date and args.end_date:
-        #     starts.append(DB.balance(group, ending=args.start_date, budgets=args.budget))
-        #     ends.append(DB.balance(group, ending=args.end_date, budgets=args.budget))
-        # elif date := (args.start_date or args.end_date):
-        #     starts.append(DB.balance(group, ending=date, budgets=args.budget))
-        # else:
-        #     starts.append(DB.balance(group, budgets=args.budget))
-        starts.append(DB.balance(group, ending=start, budgets=args.budget))
-        ends.append(DB.balance(group, ending=end, budgets=args.budget))
+    for spec in args.accts:
+        if alist := DB.account_glob(spec):
+            for aname in alist:
+                logging.debug(f'ier:  balances for {aname}')
+                accts.append(aname)
+                starts.append(DB.balance(aname, ending=start, nobudget=args.nobudget))
+                ends.append(DB.balance(aname, ending=end, nobudget=args.nobudget))
+        else:
+            logging.error(f'ier: bad spec: {spec}')
     print_summary_table(accts, args, starts, ends)
 
 def print_summary_table(accts, args, start_bal, end_bal):
