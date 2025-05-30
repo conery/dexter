@@ -83,8 +83,8 @@ entry_header_format = {
     'amount':  {'width': 15, 'justify': 'right'},
     'column':  {'width': 10, 'justify': 'center'},
     'description':  {'width': 30, 'no_wrap': True},
-    # 'tags':    {'width': 5, 'justify': 'center'},
     'tags':    {'width': 15},
+    # 'tref':    {'width': 12},
 }
 
 def print_records(docs, name=None, count=0):
@@ -179,6 +179,7 @@ def print_transaction_table(
             row.append(rec.column.value)
             row.append(rec.description)
             row.append(", ".join([f'{s.value}' for s in rec.tags]))
+            # row.append(str(rec.tref)[:10])
         else:
             cr = DB.abbrev(rec.pcredit) if abbrev else rec.pcredit
             dr = DB.abbrev(rec.pdebit) if abbrev else rec.pdebit

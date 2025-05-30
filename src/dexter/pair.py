@@ -154,10 +154,6 @@ def save_xfers(lst):
         lst: the list of transactions
     '''
     for obj in lst:
-        try:
-            for e in obj.entries:
-                e.tags.remove(Tag.U)
-                e.save()
-            obj.save()
-        except Exception as err:
-            logging.error(f'pair: error saving transfer: {obj}')
+        for e in obj.entries:
+            e.tags.remove(Tag.U)
+    DB.save_records(lst)

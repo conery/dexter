@@ -98,7 +98,8 @@ class Entry(Document):
             f'{style}{amt:>15s}',
             f'{DB.abbrev(self.account)}',
             self.description[:50],
-            ', '.join(t.value for t in self.tags),
+            # ', '.join(t.value for t in self.tags),
+            self.tref
         ]
 
     @property
@@ -434,7 +435,21 @@ class DB:
         if lst := Account.objects(name__exact=s) or Account.objects(abbrev__exact=s):
             return lst[0].name
         return None
+    
+    @staticmethod
+    def display_name(s: str, markdown=False):
+        '''
+        Translate an account name into a string to use in tables.
 
+        Arguments:
+            s:  the name to translate
+        '''
+        if '/' in s:
+            return "[italic]multiple" if markdown else "multiple"
+        else:
+            parts = s.split(':')
+            return ':'.join(parts[1:])
+        
     @staticmethod
     def abbrev(s: str):
         '''
@@ -495,54 +510,17 @@ class DB:
                 grp.add(acct.name)
         return dct
 
-    # @staticmethod
-    # def account_groups(specs=[]):
-    #     '''
-    #     Convert a list of account name specs from the command line into
-    #     a list of account groups to use in reports.  
-        
-    #     Specs are strings that correspond to nodes in the account hierarchy,
-    #     optionally followed by a colon and level number.
-
-    #     Arguments:
-    #         specs:  the list of strings from the command line
-    #     '''
-    #     if len(specs) == 0:
-    #         res = [a.name for a in Account.objects]
-    #     else:
-    #         res = []
-    #         for s in specs:
-    #             grp = []
-    #             parts = s.split(':')
-    #             logging.debug(f'account_groups: {parts}')
-    #             if re.match(r'\d+', parts[-1]):
-    #                 level = int(parts[-1])
-    #                 pre = ':'.join(parts[:-1])
-    #                 logging.debug(f'account groups: find accounts that start with "{pre}"')
-    #                 for acct in Account.objects(name__startswith=pre):
-    #                     if len(acct.name.split(':')) < level:
-    #                         grp.append(acct.name)
-    #                     elif len(acct.name.split(':')) == level:
-    #                         grp.append(f'{acct.name}.*')
-    #                 logging.debug(f'account groups: found {grp}')
-    #                 if len(grp) == 0:
-    #                      grp.append(f'{pre}.*')
-    #                     logging.debug(f'account groups: grp = {grp}')
-    #             else:
-    #                 logging.debug(f'account_groups: find all accounts below {s}')
-    #                 grp += [a.name for a in Account.objects(name__startswith=s)]
-    #             res += grp
-    #     return res
-   
     @staticmethod
-    def account_glob(spec):
+    def account_glob(spec=None):
         '''
         Turn an account spec from the command line into a list of account
-        names.
+        names.  If no specification return a list of all account names.
 
         Returns:  list of strings or None
         '''
         match spec:
+            case None:
+                res = [acct.name for acct in Account.objects]
             case spec if spec.startswith('@'):
                 res = [spec] if spec[1:] in DB.account_name_parts() else None
             case spec if spec.endswith(':'):
@@ -598,7 +576,14 @@ class DB:
         kwargs = DB.account_args(acct)
         if ending:
             kwargs['date__lte'] = ending
-        res = Entry.objects(**kwargs).sum('amount')
+
+        cr_args = kwargs | {'column': 'credit'}
+        credits = Entry.objects(**cr_args).sum('amount')
+        dr_args = kwargs | {'column': 'debit'}
+        debits = Entry.objects(**dr_args).sum('amount')
+
+        res = debits - credits
+
         if nobudget:
             logging.error('--nobudget not implemented in DB.balance')
             # kwargs['tag'] = Tag.B
@@ -716,12 +701,16 @@ class DB:
         logging.debug(f'select: {constraints}')
         if collection not in [Entry, Transaction]:
             raise ValueError('select: collection must be Entry or Transaction')
+        
         mapping = DB.transaction_constraints if collection == Transaction else DB.entry_constraints
         dct = {}
         for field, value in constraints.items():
             if field not in mapping:
                 raise ValueError(f'select: unknown constraint: {field}')
-            dct[mapping[field]] = value
+            if field in {'account', 'credit', 'debit'}:
+                dct |= DB.account_args(value)
+            else:
+                dct[mapping[field]] = value
         return collection.objects(Q(**dct))
 
 
