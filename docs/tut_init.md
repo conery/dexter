@@ -7,6 +7,8 @@ $ dex init --file accounts.csv
 
 Dexter will find the name for the new database in the configuration file, create the  database, and add the accounts.
 
+> _If you get a "database exists" error see below._
+
 > _Note:_  You can use `accounts.journal` instead of `accounts.csv`.  They have the same definitions, just in different formats.  Dexter will figure out which format to use based on the file name extension.
 
 You can use the `info` command to verify the database was created:
@@ -45,3 +47,21 @@ Transactions
 
 > _**Note:** The initial balances are defined with the account names in `accounts.csv`.  For more information about what else can be put in this file see [Defining Accounts](accounts.md)._
 
+## Database Exists Error
+
+If there is already a database on the server Dexter will print an error message like this:
+```plain
+ERROR    database dev exists; use --force to replace it
+```
+
+This policy is in place to prevent users from accidentally overwriting previous data.
+If you really did mean to replace the old data, run the command again, and add a `--force` option to the end of the command line:
+```bash
+$ dex init --file accounts.csv --force
+```
+
+On the other hand, if you want to save the existing database, you can initialize a new one by specifying a different name.
+You can edit the config file, so that this command and future commands use a different name, or you can use `--dbname` to specify the name for just this command:
+```bash
+$ dex --dbname my_dev init --file accounts.csv --force
+```

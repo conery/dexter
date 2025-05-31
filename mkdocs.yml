@@ -43,6 +43,7 @@ nav:
     - "Pair Entries": tut_pair.md
     - "Review Unpaired Entries": tut_review.md
     - "Select Transactions": tut_select.md
+    - "Print Reports": tut_report.md
   - "User Documentation":
     - "Configuration": config.md
     - "Command Line Options": options.md

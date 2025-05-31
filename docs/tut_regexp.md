@@ -1,11 +1,14 @@
 # Import Regular Expressions
 
-Now that we have postings based on the CSV records from our bank and credit card we're ready to start combining them into full transactions.
-To do that we'll use Dexter's `pair` command.
+The next step in the workflow is to "pair" the postings we just imported.
+Dexter uses pattern matching rules as a key part of this process.
+So before we run the `pair` command we have to load the patterns into the database.
+
+> _The pattern matching rules for the tutorial are in a file named `regexp.csv`. You do not need to make any changes to this file, but you can open it with a text editor while you are reading the examples shown below._
 
 ## A Pairing Example
 
-As an example of what we want that command to do, consider one of the postings created by importing the checking account data:
+As an example of what we want the `pair` command to do, consider one of the postings created by importing the checking account data:
 ```plain
 2024-04-24     -$15.00   visa   NEWMAN'S FISH COMPANY       #unpaired
 ```
@@ -13,7 +16,7 @@ The minus sign in the amount means it is a credit (withdrawal) to the checking a
 
 > _**Note:** the terminal output shows credits/negative numbers in red, without the minus sign._
 
-If we regularly shop at this store that we will see this kind of posting again in the future.
+If we regularly shop at this store we will see this kind of posting again in the future.
 Our monthly financial workflow would be more efficient if Dexter could automatically create a new transaction for us:  whenever it sees a credit with a description that matches "NEWMAN" it should create a debit to `expenses:food:groceries`.
 It could then create a new transaction using the two postings.
 
@@ -29,7 +32,7 @@ The parts of a rule are:
 * the account name to use for the new pairing
 * a pattern for the transaction description
 
-As an example, here is the rule for the physical therapy session:
+As an example, here is the rule for Newman's:
 ```plain
 trans,NEWMAN,Newman's Fish,groceries
 ```

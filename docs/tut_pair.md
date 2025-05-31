@@ -23,7 +23,7 @@ Each of these lines is a transaction that created by pairing a posting based on 
 
 There are two column names on each line.
 The first is the credit (source) account, and the second is debit (destination) account.
-So first line shows a charge on the Visa card to pay for a medical expense.
+So first line shows a charge on the Visa card to pay for groceries at a local butcher shop.
 
 It's worth mentioning that while most records in the CSV file are purchases, and thus credits to the account, some will be debits, and the regular expression process correctly handles these situations.
 Here is an example from later in that output section:
@@ -75,7 +75,7 @@ $ dex pair
 
 Run the `info` command again to see the updated state of the database:
 ```plain
-$ dex --db dev info
+$ dex info
 
 Databases                                                 
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓

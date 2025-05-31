@@ -6,14 +6,13 @@ The `select` command (described in more detail in [Select Transactions](tut_sele
 ```
 $ dex select --entry --tag '#unpaired'
 
-Entries                                                                                                                       
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
 ┃ date         ┃ account                   ┃          amount ┃   column   ┃ description                    ┃ tags            ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
-│ 2024-04-01   │ checking                  │          $35.00 │   credit   │ Check # 153: Completed/Check … │ #unpaired       │
+│ 2024-04-01   │ checking                  │          $70.00 │   credit   │ Check # 153: Completed/Check … │ #unpaired       │
 │ 2024-04-02   │ visa                      │           $5.00 │   credit   │ WASH-IT EXPRESS                │ #unpaired       │
+│ 2024-04-03   │ checking                  │          $35.00 │   debit    │ Transfer from Venmo/VENMO  - … │ #unpaired       │
 │ 2024-04-03   │ checking                  │          $50.00 │   credit   │ KAYENTA CHEV-XX6444 JUNCTION … │ #unpaired       │
-│ 2024-04-05   │ checking                  │          $25.00 │   credit   │ Best Buy/NST BEST BUY #226  0… │ #unpaired       │
 ...
 ```
 
@@ -36,7 +35,7 @@ This is what the display looks like for the first entry shown above:
 
 ![Review Blank Fill](images/review.blank.fill.png)
 
-The blanks we can fill in are shown with a light background and a reminder of what goes in that blank.
+The blanks we can fill in are shown with a light background and a reminder (in italics) of what goes in that blank.
 
 After we fill in the description and account fields for this transaction the display will look like this:
 
@@ -90,8 +89,7 @@ And this is the window after the second &#8963;F:
 
 The regular expressions (described below) have stripped away all of the extra text following the colon.
 
-> You can hit &#8963;F a few more times to see how Dexter cycles through the three alternatives.
-Make sure it is displaying the third alternative (created by the regular expressions) before moving on to the next step.
+> _You can hit &#8963;F a few more times to see how Dexter cycles through the three alternatives. Make sure it is displaying the third alternative (created by the regular expressions) before moving on to the next step._
 
 ### Edit the Description
 
@@ -101,7 +99,7 @@ We often want to edit the field to refine that suggestion.
 
 To edit the description field hit &#8963;P.
 
-> The "P" is short for "payee".  We can't use &#8963;D because that's a Unix convention for signalling the end of input and the command to exit the program.
+> _The "P" is short for "payee".  We can't use &#8963;D because that's a Unix convention for signalling the end of input and the command to exit the program._
 
 This is what the screen will look like:
 
@@ -112,7 +110,7 @@ It will print a line with the field name followed by a greater-than sign and the
 In this example, it printed the suggested contents of the description field.
 
 The cursor is at the end of the line, which means we just need to type in the name of the person or business we wrote the check to.
-Type "Jerry's" and hit the return key.
+Type "Glenwood" and hit the return key.
 
 Now the new transaction will look like this:
 
@@ -123,11 +121,11 @@ That means the field has been edited and has a value that will be saved in the d
 
 #### Command Line Editing
 
-Dexter uses a popular library named Gnu Readline to control the editing of fields.
+Dexter uses a popular library named GNU Readline to control the editing of fields.
 You are probably already familiar with the keystrokes you can use, since most shells use this library (or an equivalent).
 
 * use &#8963;A or &#8963;E to move the cursor to the front or end of the line
-* use the arrow keys or type &#8963;B or &#8963;F to move backward or forward one character
+* use left-arrow and right-arrow keys or type &#8963;B or &#8963;F to move backward or forward one character
 * type ESC followed by B or F to move backward or forward one word at a time
 * type DEL to delete the character to the left, ESC DEL to delete the word to the left
 * &#8963;U deletes the entire line
@@ -138,7 +136,7 @@ The complete set of editing keys can be found in the Reference section, in [dex 
 
 To edit the account name in the new posting type &#8963;T.
 
-> The "T" is short for "to", since this posting is usually the destination (credit) account in the transaction.
+> _The "T" is short for "to", since this posting is usually the destination (credit) account in the transaction._
 
 As before, Dexter prints a new line for you to enter the account name:
 
@@ -171,7 +169,7 @@ Dexter is saying there are two accounts that start with "ho":  "home" and "house
 At this point just continue typing.
 Since we want "household" in this case just typing "u" and tab is enough.
 
-> **Note:**  Another reason you won't see anything happen when you hit the tab key is that you misspelled an account name.  For example, if you type "hoo" you can hit the tab key as often as you want.  Dexter is telling you no account starts "hoo". If you really meant "hou" hit the delete key to erase the "o", then type "u" and tab.
+> _**Note:**  Another reason you won't see anything happen when you hit the tab key is that you misspelled an account name.  For example, if you type "hoo" you can hit the tab key as often as you want.  Dexter is telling you no account starts "hoo". If you really meant "hou" hit the delete key to erase the "o", then type "u" and tab._
 
 ## Accept Changes
 
@@ -202,7 +200,7 @@ That tells Dexter to automatically fill each transaction description.
 Mode number 2 is "apply regular expressions to the posting description".
 Now we don't have to type &#8963;F -- it will be done already.
 
-> If you want to use another mode for any transaction you can still type &#8963;F to cycle through the modes.
+> _If you want to use another mode for any transaction you can still type &#8963;F to cycle through the modes._
 
 ## Display Help
 
@@ -257,10 +255,10 @@ The first transaction took $70 out of the restaurant envelope, and if we set the
 Here's an efficient way to clean up the description so it simply reads "Transfer from Venmo":
 
 * Hit &#8963;P, and the suggested description is displayed on the terminal, with the cursor at the end of the line.
-* Type ESC-B to times to move the cursor back two words, then hit the left arrow key to move back one more character
+* Type ESC-B two times to move the cursor back two words, then hit the left arrow key to move back one more character
 * Type &#8963;K to erase all the characters to the right of the curosr, then hit the return key
 
-Set the account to `restaurant`, the same as you did for the check earlier:  &#8963;T to edit the account, then "re" and tab and return.
+Set the account to `restaurant`, the same as you did for the check earlier: type &#8963;T to edit the account, then "re" and tab and return.
 
 Finally, let's add a comment to remind ourselves of what this payment was for.
 Hit &#8963;N (the "N" is a mnemonic for "note") and enter "Reiumbursement from Kate".
@@ -326,7 +324,7 @@ The hash symbol is optional (Dexter adds it for you), and you can enter multiple
 The table below shows the complete list of unpaired transactions.
 We leave it as an exercise for you to continue using the loop in the `review` command to update the remaining transactions.
 
-If you want to take a shortcut, the database in the file named `apr.2024.docs` (available on the GitHub repo) has these transaction filled in already.
+If you want to take a shortcut, the database in the file named `apr.dox` (available on the GitHub repo) has these transaction filled in already.
 
 | date   | amount | original            | desc                 | account    | extra   |
 | ------ | ------ | ------------------- | -------------------- | ---------- | ------- |

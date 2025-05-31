@@ -2,6 +2,7 @@
 
 import csv
 import logging
+import os
 from pathlib import Path
 import re
 
@@ -69,17 +70,13 @@ def restore_records(args):
         args: Namespace object with command line arguments.
     '''
     logging.debug(f'restore {vars(args)}')
-    
-    if not args.preview:
-        if DB.exists(args.dbname) and not args.force:
-            raise ValueError(f'init: database {args.dbname} exists; use --force to replace it')
-        DB.create(args.dbname)    
 
-    fn = Path(args.file)
-    logging.info(f'DB:restoring docs file:{fn}')
+    get_names_and_create_db(args)
+
+    logging.info(f'DB:restoring dox file: {args.file}')
     DB.erase_database()
 
-    with open(fn) as f:
+    with open(args.file) as f:
         for line in f:
             try:
                 sep = line.find(':')
@@ -106,22 +103,42 @@ def init_database(args):
     Arguments:
         args: Namespace object with command line arguments.
     '''
-    accts = Path(args.file)
-    if not accts.exists():
-        raise FileNotFoundError(f'init_database: no file named {accts}')
-    
-    if not args.preview:
-        if DB.exists(args.dbname) and not args.force:
-            raise ValueError(f'init: database {args.dbname} exists; use --force to replace it')
-        DB.create(args.dbname)    
+    get_names_and_create_db(args)
 
+    accts = Path(args.file)
     fmt = accts.suffix[1:]
     match fmt:
         case 'journal': init_from_journal(accts, args.preview)
         case 'csv': init_from_csv(accts, args.preview)
         case _: logging.error(f'init_database: unknown file extension: {accts.suffix}')
 
+def get_names_and_create_db(args):
+    '''
+    Helper function used by restore_records and create_database.  Gets
+    the database name from known locations, creates the database.
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    p = Path(args.file)
+    if not p.exists():
+        raise FileNotFoundError(f'no such file: {args.file}')
+
+    dbname = args.dbname or os.getenv('DEX_DB') or Config.dbname
+    if dbname is None:
+        raise ValueError(f'specify a database name')
+
+    if not args.preview:
+        if DB.exists(dbname) and not args.force:
+            raise ValueError(f'database {dbname} exists; use --force to replace it')
+
+    DB.create(dbname)    
+
 def init_from_csv(fn: Path, preview: bool = False):
+    '''
+    Helper function for init_database.  Parses records from a CSV file.
+    '''
+    logging.info(f'importing CSV file: {fn}')
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
         reader = csv.DictReader(csvfile)
         accts = [ Account(name='equity', category='equity') ]
@@ -189,14 +206,9 @@ def make_balance_transaction(rec, lst):
     
 def init_from_journal(fn: Path, preview: bool = False):
     '''
-    Read accounts and transactions from a plain text accounting
-    (.jorurnal) file.  Erases any previous documents in the database.
-
-    Arguments:
-        fn: path to the input file
-        preview:  if True print documents instead of saving them
+    Helper function for init_database.  Parses records from a Journal file.
     '''
-    logging.info(f'DB:importing journal file:{fn}')
+    logging.info(f'importing journal file: {fn}')
     recs = JournalParser().parse_file(fn)
     if preview:
         for lst in recs.values():

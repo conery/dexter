@@ -2,7 +2,9 @@
 > [!note] Database Connections
 > The current version of Dexter works with a NoQL database named MongoDB.
 > It expects to connect to server running on your computer.
+>
 > A SQLite connection is in the works.
+> When it is available users will be able to skip this step.
 
 ### Install MongoDB
 

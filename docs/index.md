@@ -17,5 +17,7 @@ Dexter is written entirely in Python and can be installed with a `pip` command t
 The only external dependence is MongoDB.
 Before running Dexter it is necessary to start the MongoDB server running locally.
 
+> _A planned update is to allow the option of connecting to a SQLite database._
+
 The overview section is recommended reading before installing Dexter and trying the examples in the tutorial.
 

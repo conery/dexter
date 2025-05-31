@@ -69,7 +69,7 @@ It's a good way to make sure you're getting the data you expect and to work out 
 
 Here it the command to preview the CSV files for April:
 ```shell
-$ dex --pre --db dev import Downloads/apr/*
+$ dex --pre import Downloads/apr/*
 ```
 
 ## Verify the Output
@@ -92,8 +92,8 @@ Each of these lines will be saved in the database as a posting.
 The important information to look for is the date, amount, account, and description.
 The account shown here will be the full account name.  Dexter uses the name of the file (in this case, `visa.csv`) to figure out which account to use (`visa` is the abbreviation for `liabilities:chase:visa`).
 
-**Note:**  When you define your own parser you will be making heavy use of preview mode.
-This is where you will be able to make sure your parser is extracting the right information from the CSV file.
+> _**Note:**  When you define your own parser you will be making heavy use of preview mode._
+_This is where you will be able to make sure your parser is extracting the right information from the CSV file._
 
 ## Import the April Transactions
 

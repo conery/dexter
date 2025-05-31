@@ -327,9 +327,6 @@ class DB:
         Arguments:
             dbname:  name of the database
         '''
-        dbname = dbname or os.getenv('DEX_DB') or Config.dbname
-        if dbname is None:
-            raise ValueError(f'DB.create: specify a database name')
         logging.debug(f'DB: create {dbname}')
 
         DB.connection = connect(dbname, UuidRepresentation='standard')

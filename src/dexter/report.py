@@ -109,10 +109,12 @@ def print_detail_table(acct, entries, start):
 
     t = Table(
         Column(header='date', width=12),
-        Column(header='description', width=22, no_wrap=True),
-        Column(header='account', width=22, no_wrap=True),
-        Column(header='debit', width=12, justify='right'),
-        Column(header='credit', width=12, justify='right'),
+        Column(header='description', width=25, no_wrap=True),
+        # Column(header='account', width=22, no_wrap=True),
+        Column(header='credit', width=20, no_wrap=True),
+        Column(header='debit', width=20, no_wrap=True),
+        Column(header='amount', width=12, justify='right'),
+        # Column(header='credit', width=12, justify='right'),
         Column(header='balance', width=12, justify='right'),
         title=acct,
         title_justify='left',
@@ -122,24 +124,34 @@ def print_detail_table(acct, entries, start):
     bal = DB.balance(acct, start)
     t.add_row(f'[blue italic]{start}','[blue italic]starting balance','','','',format_amount(bal, dollar_sign=True))
     for e in entries:
+        # if trans := e.tref:
+        #     s = trans.pdebit if e.column == ColType.cr else trans.pcredit
+        #     other = DB.display_name(s, markdown=True)
+        # else:
+        #     s = 'unpaired' if Tag.U in e.tags else 'missing'
+        #     trans = Transaction(description=f'[red]{s}')
+        #     other = ''
+        debit = credit = ''
         if trans := e.tref:
-            s = trans.pdebit if e.column == ColType.cr else trans.pcredit
-            other = DB.display_name(s, markdown=True)
-        else:
-            s = 'unpaired' if Tag.U in e.tags else 'missing'
-            trans = Transaction(description=f'[red]{s}')
-            other = ''
+            for e in trans.entries:
+                if e.column == ColType.cr:
+                    credit = DB.display_name(e.account, markdown=True)
+                else:
+                    debit = DB.display_name(e.account, markdown=True)
         row = []
         row.append(str(e.date))
         row.append(trans.description)
-        row.append(other)
-        if e.column.value == 'debit':
-            row.append(format_amount(e.amount, dollar_sign=True))
-            row.append('')
-        else:
-            row.append('')
-            row.append(format_amount(e.amount, dollar_sign=True))
-        bal += e.value
+        # row.append(other)
+        row.append(credit)
+        row.append(debit)
+        # if e.column.value == 'debit':
+        #     row.append(format_amount(e.amount, dollar_sign=True))
+        #     row.append('')
+        # else:
+        #     row.append('')
+        #     row.append(format_amount(e.amount, dollar_sign=True))
+        row.append(format_amount(e.amount, dollar_sign=True))
+        bal -= e.value
         row.append(format_amount(bal, dollar_sign=True))
         t.add_row(*row)
     console.print()

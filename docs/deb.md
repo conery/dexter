@@ -81,6 +81,35 @@ In the case $200 is coming from the `visa` account, with $150 going to `grocerie
 
 The heart of double-entry bookkeeping is the reuirement that each transaction should be balanced:  the sum of the debits must match the sum of the credits.
 
-> _TBD: examples of errors, how DEB helps find them_
+This requirement can help track down many different kinds of errors.
+Here are a few that I have been able to fix more quickly by using double-ended bookkeeping.
+
+#### Missing Transaction (I)
+
+It's easy to overlook an account if it is rarely used.
+If CSV records from an account are not included in the database, there may be "dangling transfers."
+For example, if there is a transfer from account A to account B, but records from B were not imported, the finance tracker will have a posting showing a withdrawal from A but it won't find anything to balance it with.
+
+#### Missing Transactions (II)
+
+I have used several different web applications that aggregate transactions.
+They connect to financial institutions for you and collect all your records.
+The applications have their own finance tracking tools, but they will also let you export all your transactions to a CSV file.
+
+Unfortunately there can be errors here, too.
+I have seen "gaps" where a few days worth of transactions from a source were simply not included.
+
+Double-entry bookkeeping makes this sort of error is easy to find, as well, since the balance in our system won't match the balance reported by the bank or card company.
+
+#### Inverted Flow
+
+If we purchase something using a credit card, and then later return that item, the return shows up in the CSV file as a separate transaction.
+Depending on how the downloads are formatted, returns may be distinguished from purchases by inverting the sign on the amount (purchases are positive, returns are negative) or printing the amount in a different column.
+
+If returns are rare, and the amounts are small, it's easy to get mixed up and enter a return in the expense tracker as a purchase.
+What should be a credit (transfer out) of the expense account is recorded as a debit (transfer in).
+
+These errors will show up when "reconciling" a card payment:  the total value of all purchases and returns should equal the amount of a payment.
+Dexter has tools that will help resolve these discrepencies.
 
 
