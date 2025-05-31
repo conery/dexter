@@ -557,7 +557,9 @@ class DB:
         for acct in Account.objects(name__startswith=node):
             name = acct.name
             tail = name[len(node):]
-            if tail.count(':') <= level:
+            if tail.count(':') == level:
+                res.append(name + ':')
+            elif tail.count(':') <= level:
                 res.append(name)
         return res
 

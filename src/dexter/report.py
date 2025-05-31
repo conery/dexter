@@ -133,11 +133,11 @@ def print_detail_table(acct, entries, start):
         #     other = ''
         debit = credit = ''
         if trans := e.tref:
-            for e in trans.entries:
-                if e.column == ColType.cr:
-                    credit = DB.display_name(e.account, markdown=True)
+            for x in trans.entries:
+                if x.column == ColType.cr:
+                    credit = DB.display_name(x.account, markdown=True)
                 else:
-                    debit = DB.display_name(e.account, markdown=True)
+                    debit = DB.display_name(x.account, markdown=True)
         row = []
         row.append(str(e.date))
         row.append(trans.description)
@@ -150,8 +150,8 @@ def print_detail_table(acct, entries, start):
         # else:
         #     row.append('')
         #     row.append(format_amount(e.amount, dollar_sign=True))
-        row.append(format_amount(e.amount, dollar_sign=True))
-        bal -= e.value
+        row.append(format_amount(e.value, dollar_sign=True))
+        bal += e.value
         row.append(format_amount(bal, dollar_sign=True))
         t.add_row(*row)
     console.print()
