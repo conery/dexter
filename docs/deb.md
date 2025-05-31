@@ -1,7 +1,7 @@
-# Double Entry Bookkeeping
+# Double-Entry Bookkeeping
 
-There are plenty of good descriptions of double entry bookkeeping at other sites, including [GnuCash](https://gnucash.org/viewdoc.phtml?rev=5&lang=C&doc=guide), [Beancount](https://beancount.github.io/docs/the_double_entry_counting_method.html), and  [Accounting for Computer Scientists](https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html).
-This section is a quick overview of the basic ideas in order to describe the philosophy behind Dexter.
+There are plenty of good descriptions of double-entry bookkeeping at other sites, including [GnuCash](https://gnucash.org/viewdoc.phtml?rev=5&lang=C&doc=guide), [Beancount](https://beancount.github.io/docs/the_double_entry_counting_method.html), and  [Accounting for Computer Scientists](https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html).
+This section is a quick overview of the basic ideas necessary to describe the philosophy behind Dexter.
 
 ## Accounts
 
@@ -41,16 +41,16 @@ Some more examples:
 
 * if we use our debit card to buy groceries there will be a transaction where the source is `checking` and the destination is `groceries`.
 
-* if we pay for dinner using a credit card we need to add a transaction where the card account is the source and the "restaurant" account is the destination
+* if we pay for dinner using a credit card we need to add a transaction where the card account is the source and the `restaurant` account is the destination
 
-* paying the credit card bill is another type of transfer, this time with the "checking" account as source and the credit card account as destination.
+* paying the credit card bill is another type of transfer, this time with `checking` account as source and the credit card account as destination.
 
 Note that an account can be on either side of a transaction.
-In some of these examples "checking" was the source account and in others it was the destination.
+In some of these examples `checking` was the source account and in others it was the destination.
 
 A transaction can have any number of sources or destinations.
 As an example, suppose we buy $200 worth of stuff at Costco using our credit card.
-If $150 of that was for food and the remaining $50 for toilet paper, laundry soap, and other household supplies, the transaction could have one source (the credit card) and two destinations ("groceries" and "home").
+If $150 of that was for food and the remaining $50 for toilet paper, laundry soap, and other household supplies, the transaction could have one source (the credit card) and two destinations (`groceries` and `home`).
 
 ## Terminology
 
@@ -59,11 +59,11 @@ In bookkeeping terminology, a source account is the _credit_ account and the des
 The components of a transaction are called _postings_ (or sometimes just "posts").
 A posting has the name of an account, an amount, and an indication of whether the account is being used as the source (credit) or debit (destination).
 
-Historically businesses that used double entry accounting would keep one journal, or ledger, for each account.
+Historically businesses that used double-entry accounting would keep one journal, or ledger, for each account.
 When transactions were recorded, one posting was entered in the journal for the credit account and a matching posting was entered in the journal for the debit account.
 
 With modern accounting software the records are commonly stored in the same file or database.
-Here is how the Costco transaction from above might be shown in a text file that uses the journal format of plain-text accounting applications (Dexter can also read and write files using this format):
+Here is how the Costco transaction from above might be shown in a text file that uses the **Journal format** of plain-text accounting applications (Dexter can also read and write files using this format):
 
 ```
 2024-01-17  Costco
@@ -74,12 +74,12 @@ Here is how the Costco transaction from above might be shown in a text file that
 
 The first line describes the transaction itself.
 Below that are three postings, showing the account name and amount.
-In a ledger file the sign of the amount indicates whether the posting is a debit (positive amount) or credit (negative) amount.
-In the case $200 is coming from the "visa" account, with $150 going to "groceries" and $50 going to "home".
+In a Journal file the sign of the amount indicates whether the posting is a debit (positive amount) or credit (negative) amount.
+In the case $200 is coming from the `visa` account, with $150 going to `groceries` and $50 going to `home`.
 
 ## Transactions Should Be Balanced
 
-The heart of double entry bookkeeping is the reuirement that each transaction should be balanced:  the sum of the debits must match the sum of the credits.
+The heart of double-entry bookkeeping is the reuirement that each transaction should be balanced:  the sum of the debits must match the sum of the credits.
 
 > _TBD: examples of errors, how DEB helps find them_
 

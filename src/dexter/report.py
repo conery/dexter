@@ -42,8 +42,8 @@ def print_grouped_report(args):
             for aname in alist:
                 logging.debug(f'report (grouped):  balances for {aname}')
                 accts.append(aname)
-                starts.append(DB.balance(aname, ending=start_date, nobudget=args.nobudget))
-                ends.append(DB.balance(aname, ending=end_date, nobudget=args.nobudget))
+                starts.append(DB.balance(aname, ending=start_date))
+                ends.append(DB.balance(aname, ending=end_date))
         else:
             logging.error(f'ier: bad spec: {spec}')
 

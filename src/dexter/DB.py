@@ -524,8 +524,9 @@ class DB:
             case spec if spec.startswith('@'):
                 res = [spec] if spec[1:] in DB.account_name_parts() else None
             case spec if spec.endswith(':'):
-                name = DB.fullname(spec[:-1])
-                res = [spec] if name else None
+                # name = DB.fullname(spec[:-1])
+                # res = [spec] if name else None
+                res = [spec]
             case spec if re.match(r'.*:\d+', spec):
                 res = DB.expand_node(spec)
             case _:
@@ -564,13 +565,13 @@ class DB:
         return res
 
     @staticmethod
-    def balance(acct, ending=None, nobudget=False):
+    # def balance(acct, ending=None, nobudget=False):
+    def balance(acct, ending=None):
         '''
-        Compute the balance of an account, with or without budget transactions.
+        Compute the balance of an account
 
         Arguments:
             acct: the name of the account
-            budgets: if False ignore budget transactions
         '''
         # kwargs = {'account': acct}
         kwargs = DB.account_args(acct)
@@ -584,8 +585,8 @@ class DB:
 
         res = debits - credits
 
-        if nobudget:
-            logging.error('--nobudget not implemented in DB.balance')
+        # if nobudget:
+        #     logging.error('--nobudget not implemented in DB.balance')
             # kwargs['tag'] = Tag.B
             # res -= Entry.objects(**kwargs).sum('amount')
         return res

@@ -1,12 +1,12 @@
 # Welcome to Dexter
 
-Dexter (Double Entry Expense Tracker) is a collection of command line applications for managing personal finances.
+Dexter (Double-Entry Expense Tracker) is a collection of command line applications for managing personal finances.
 
 Its main features are:
 
 * the use double-entry bookkeeping to categorize expenses
 
-* a workflow that focusses on efficiency, with extensive use of command completion, edit operations triggered by single keystrokes, and predicting fields based on previous records
+* a workflow that focusses on efficiency, with extensive use of command completion, edit operations triggered by single keystrokes, and automatic fills based on patterns and previous records
 
 * a new budget model that allows for zero-based budgeting entirely within the double-entry bookeeeping framework, without requiring virtual transactions or other extensions
 

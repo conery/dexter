@@ -1,6 +1,6 @@
 # Defining Accounts
 
-The central concept in double entry bookkeeping is the idea that transactions move funds between accounts.
+The central concept in double-entry bookkeeping is the idea that transactions move funds between accounts.
 When we create a new database we need to tell Dexter the names and types of all of our income, asset, expense, and liability accounts.
 
 Account names are defined in a plain text file.

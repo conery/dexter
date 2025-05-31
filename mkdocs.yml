@@ -26,8 +26,9 @@ nav:
     - "Overview": index.md
     - "History": history.md
     - "Double Entry Bookkeeping": deb.md
-    - "Envelope Budgeting":  envelopes.md
     - "Philosophy": philosophy.md
+    - "Envelope Budgeting":  envelopes.md
+    - "Command Line API": command_line.md
     - "Workflow": workflow.md
   - "Installation":
     - "Dexter": dex_install.md

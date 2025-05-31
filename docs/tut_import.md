@@ -134,7 +134,7 @@ The web site will show a table of transactions, and most likely the command to s
 Each transaction from the financial institution will become a single line in the CSV file.
 So when we wrote above "Preview the April Transactions" we meant "preview the records in the CSV download for April."
 
-From Dexter's perspective, however, the word "transaction" has the meaning used in double entry bookkeeping.
+From Dexter's perspective, however, the word "transaction" has the meaning used in double-entry bookkeeping.
 A transaction is a transfer of money between two (or more) accounts.
 Each CSV record becomes a **posting** in the database.
 So from now on, when we refer to the data we just imported, we will use the DEB terminology and call these items postings.

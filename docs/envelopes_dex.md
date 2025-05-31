@@ -3,6 +3,9 @@
 [Envelope budgeting](https://en.wikipedia.org/wiki/Envelope_system) is a systen where income is allocated to "envelopes" or "buckets" for different expense categories.
 When an expense is incurred, it should be paid for out of the corresponding envelope.
 
+It is a very old and time-tested strategy and still very popular ([The Envelope Budgeting Method: Does It Still Work?](https://moneyhawk.com/the-envelope-budgeting-method-does-it-still-work)
+)
+
 The idea is that when we go to make a purchase and there is not enough money in an envelope we should rethink our plans.
 If the envelope labeled "restaurants" has only $20 and there are still two weeks before the next budget period we should probably not go out to that fancy new restaurant tonight.
 

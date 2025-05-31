@@ -26,10 +26,11 @@ There are bound to be errors and incomplete sections, so the software is still i
 
 ## Current Status (May 2025)
 
-The modules currently in the repo are sufficent to run all the examples described in [The Budget Model](budgets.md):
+The modules currently in the repo are sufficent to run all the examples described in the tutorial section, starting with [Create Your Project Directory](folder.md).
+As you work through the tutorial you will:
 
-* initialize a new database by importing records; supports several formats, including plain text accounting `.journal` files
-* export records in the database to `.journal` or other formats
+* initialize a new database using account specifications in example files
 * add records from CSV files downloaded from financial institutions
-* use regular expressions and other techniques to form transactions based on pairs of debit and credit entries
-* report generators to print account balances and expense statements
+* use regular expressions to form transactions based on pairs of debit and credit entries
+* use a specialized command line interface to process records that were not paired automatically
+* run report generators to print account balances and expense transactions
