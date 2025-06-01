@@ -1,18 +1,12 @@
-#
-# This file has functions that parse files to add records to the database
-# or write records in a file.
-#
-# The code is organized with top level functions (called directly from main)
-# are at the front of the file.  Parsers for specific formats come next,
-# and miscellaneous helper functions are at the end.
-#
+#  Methods for reading and writing database contents
 
 import csv
 import logging
 import os
 from pathlib import Path
+import re
 
-from .DB import DB, Account, Entry, Transaction, RegExp, Tag
+from .DB import DB, Account, Entry, Transaction, RegExp, Category, Tag
 from .config import Config
 from .console import print_records, print_grid, print_info_table
 from .journal import JournalParser
@@ -34,78 +28,6 @@ def print_info(args):
     '''
     recs = DB.info()
     print_info_table(recs)
-
-###
-#
-# Top level method for initializing a database
-#
-
-def init_database(args):
-    '''
-    The top level function, called from main when the command is "init".  
-    Initializes a new database using records from either a .journal file or a CSV file.
-
-    Arguments:
-        args: Namespace object with command line arguments.
-    '''
-    get_names_and_create_db(args)
-
-    fn = Path(args.file)
-    fmt = fn.suffix[1:]
-    match fmt:
-        case 'journal': 
-            accts, trans = parse_journal(fn, set())
-        case 'csv': 
-            accts, trans = parse_csv_accounts(fn)
-        case _: 
-            raise ValueError(f'init: unknown file extension: {fn.suffix}')
-        
-    if args.preview:
-        for a in accts:
-            print(a)
-        for t in trans:
-            t.clean()
-            print(t)
-    else:
-        DB.save_records(accts)
-        DB.save_records(trans)
-    
-###
-#
-# Top level method for parsing a file to import new records to a DB
-#
-
-def import_records(args):
-    '''
-    The top level function, called from main when the command 
-    is "import".  Parses one or more files to create new Entry
-    or Regexp documents
-
-    Arguments:
-        args: Namespace object with command line arguments.
-    '''
-    open_db(args)
-
-    if args.regexp:
-        import_regexp(args)
-    else:
-        import_entries(args)
-        # accts = set(DB.account_names(with_parts=False).keys())
-
-###
-#
-# Top level method for exporting transactions
-#
-
-def export_records(args):
-    '''
-    The top level function, called from main when the command 
-    is "export".
-
-    Arguments:
-        args: Namespace object with command line arguments.
-    '''
-    logging.error(f'export: not implemented')
 
 ###
 #
@@ -170,56 +92,26 @@ def restore_records(args):
 
 ###
 #
-# Helper functions
+# Top level method for initializing a database
 #
 
-def parse_journal(fn: Path, accounts: set):
+def init_database(args):
     '''
-    Helper function for init and import commands.  Parses a Journal file,
-    returns a list of account records and transaction records.
+    The top level function, called from main when the command 
+    is "init".  Initializes a new database using records from
+    either a .journal file or a CSV file.
 
     Arguments:
-        fn:        the name of the file to parse
-        accounts:  set of account names in the DB (may be empty)
+        args: Namespace object with command line arguments.
     '''
-    logging.info(f'importing journal file: {fn}')
+    get_names_and_create_db(args)
 
-    jp = JournalParser()
-    jp.parse_file(fn)
-    jp.validate_entries(accounts)
-
-    return jp.account_list, jp.transaction_list
-
-def parse_csv_accounts(fn: Path):
-    '''
-    Helper function for init and import commands.  Parses records from 
-    a CSV file with account descriptions.
-
-    Arguments:
-        fn:        the name of the file to parse
-    '''
-    logging.info(f'importing CSV file: {fn}')
-
-    with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
-        reader = csv.DictReader(csvfile)
-        accts = [ Account(name='equity', category='equity') ]
-        trans = []
-        for rec in reader:
-            if rec['fullname'] == 'equity':
-                continue
-            cat = rec['category'] or rec['fullname'].split(':')[0]
-            a = Account(
-                name = rec['fullname'],
-                category = cat,
-                abbrev = rec['abbrev'],
-                parser = rec['parser']
-            )
-            accts.append(a)
-            if rec['balance']:
-                make_balance_transaction(rec, trans)
-
-    return accts, trans
-
+    accts = Path(args.file)
+    fmt = accts.suffix[1:]
+    match fmt:
+        case 'journal': parse_and_save_journal(accts, args.preview)
+        case 'csv': init_from_csv(accts, args.preview)
+        case _: logging.error(f'init_database: unknown file extension: {accts.suffix}')
 
 def get_names_and_create_db(args):
     '''
@@ -242,15 +134,35 @@ def get_names_and_create_db(args):
             raise ValueError(f'database {dbname} exists; use --force to replace it')
         DB.create(dbname)    
 
-def open_db(args):
+def init_from_csv(fn: Path, preview: bool = False):
     '''
-    Helper function used by import and restore.  Gets database name,
-    opens database.
+    Helper function for init_database.  Parses records from a CSV file.
     '''
-    dbname = args.dbname or os.getenv('DEX_DB') or Config.dbname
-    if dbname is None:
-        raise ValueError(f'specify a database name')
-    DB.open(dbname)
+    logging.info(f'importing CSV file: {fn}')
+    with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
+        reader = csv.DictReader(csvfile)
+        accts = [ Account(name='equity', category='equity') ]
+        trans = []
+        for rec in reader:
+            if rec['fullname'] == 'equity':
+                continue
+            cat = rec['category'] or rec['fullname'].split(':')[0]
+            a = Account(
+                name = rec['fullname'],
+                category = cat,
+                abbrev = rec['abbrev'],
+                parser = rec['parser']
+            )
+            accts.append(a)
+            if rec['balance']:
+                make_balance_transaction(rec, trans)
+    if preview:
+        print_records(accts)
+        any(t.clean() for t in trans)
+        print_grid([[t.description,str(t.pdate),str(t.pamount)] for t in trans])
+    else:
+        DB.save_records(accts)
+        DB.save_records(trans)
 
 def make_balance_transaction(rec, lst):
     '''
@@ -280,6 +192,25 @@ def make_balance_transaction(rec, lst):
     )
     lst.append(trans)
 
+###
+#
+# Top level method for parsing a file to import new records to a DB
+#
+
+def import_records(args):
+    '''
+    The top level function, called from main when the command 
+    is "import".  Parses one or more files to create new Entry
+    or Regexp documents
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    DB.open(args.dbname)
+    if args.regexp:
+        import_regexp(args)
+    else:
+        import_entries(args)
 
 def import_entries(args):
     '''
@@ -337,6 +268,25 @@ def import_regexp(args):
         else:
             DB.save_records(lst)
 
+def import_journal(fn: Path, preview: bool = False):
+    '''
+    Helper function for import_records.  Get a list of existing accounts,
+    pass it to the function that parses the file and saves records.
+    '''
+    logging.info(f'importing journal file: {fn}')
+    accts = set(DB.account_names(with_parts=False).keys())
+    logging.debug(f'import_journal: accts {accts}')
+    recs = JournalParser().parse_file(fn)
+    if preview:
+        for lst in recs.values():
+            # print_records(lst)
+            for obj in lst:
+                obj.clean()
+                print(obj)
+    else:
+        DB.assign_uids(recs['entries'])
+        for lst in recs.values():
+            DB.save_records(lst)
 
    
 def parse_file(fn, pname, account, starting, ending, previous):
@@ -415,3 +365,17 @@ def parse_and_save_journal(fn: Path, preview: bool = False, accounts = None):
         DB.save_records(jp.transaction_list)
 
 
+###
+#
+# Top level method for exporting transactions
+#
+
+def export_records(args):
+    '''
+    The top level function, called from main when the command 
+    is "export".
+
+    Arguments:
+        args: Namespace object with command line arguments.
+    '''
+    logging.error(f'export: not implemented')

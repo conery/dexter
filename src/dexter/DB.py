@@ -58,7 +58,7 @@ class Account(Document):
     comment = StringField()
 
     def __str__(self):
-        return f'{self.abbrev or self.name} {self.category}'
+        return f'<Ac {self.name} {self.category} {self.abbrev}>'
     
     def row(self):
         return [
@@ -486,25 +486,30 @@ class DB:
         return res
     
     @staticmethod
-    def account_names(category=None):
+    def account_names(category=None, with_parts=True):
         '''
-        Return a dictionary that maps a partial account name to a list
-        of full account names that contain that part.  The dictionary
-        wiil also map abbreviations to a full name and a full name
-        maps to itself.
+        Return a dictionary where keys are strings that may refer
+        to an account and values are sets of full account names.  Names that
+        will be used as keys are full account names (refer to themselves),
+        abbreviations (refer to corresponding full name), and, when
+        with_parts is True, inner nodes from the account tree, which
+        refer to the set of all accounts that include that node name.
+
+        Arguments:
+            category:  an account type (assets, expenses, ...)
+            with_parts:  if True include node names
         '''
         dct = {}
         for acct in Account.objects:
             if category and acct.category != category:
                 continue
             dct[acct.name] = { acct.name }
-            parts = []
             if acct.abbrev:
-                parts.append(acct.abbrev)
-            parts += acct.name.split(':')
-            for p in parts:
-                grp = dct.setdefault(p, set())
-                grp.add(acct.name)
+                dct[acct.abbrev] = { acct.name }
+            if with_parts:
+                for p in acct.name.split(':'):
+                    grp = dct.setdefault(p, set())
+                    grp.add(acct.name)
         return dct
 
     @staticmethod
@@ -519,11 +524,11 @@ class DB:
             case None:
                 res = [acct.name for acct in Account.objects]
             case spec if spec.startswith('@'):
-                res = [spec] if spec[1:] in DB.account_name_parts() else None
+                res = [spec] if spec[1:] in DB.account_names() else None
             case spec if spec.endswith(':'):
                 # name = DB.fullname(spec[:-1])
                 # res = [spec] if name else None
-                res = [spec]
+                res = [spec] if spec[:-1] in DB.account_names() else None
             case spec if re.match(r'.*:\d+', spec):
                 res = DB.expand_node(spec)
             case _:
@@ -532,17 +537,17 @@ class DB:
         return res
     
     @staticmethod
-    def account_args(s):
+    def account_args(pattern, field='account__iregx'):
         '''
         Helper methods used by balance and select to turn a name pattern
         created by account_glob into a regular expression to use in a query
         '''
-        if s.startswith('@'):
-            res = { 'account__regex': f'\\b{s[1:]}\\b' }
-        elif s.endswith(':'):
-            res = { 'account__regex': f'^{s[:-1]}.*$' }
+        if pattern.startswith('@'):
+            res = { field: f'\\b{pattern[1:]}\\b' }
+        elif pattern.endswith(':'):
+            res = { field: f'^{pattern[:-1]}.*$' }
         else:
-            res = { 'account__regex': f'^{s}$'}
+            res = { field: f'^{pattern}$'}
         return res
     
     @staticmethod
@@ -707,10 +712,11 @@ class DB:
         for field, value in constraints.items():
             if field not in mapping:
                 raise ValueError(f'select: unknown constraint: {field}')
-            if field in {'account', 'credit', 'debit'}:
-                dct |= DB.account_args(value)
-            else:
-                dct[mapping[field]] = value
+            # if field in {'account', 'credit', 'debit'}:
+            #     dct |= DB.account_args(value, mapping[field])
+            # else:
+            #     dct[mapping[field]] = value
+            dct[mapping[field]] = value
         return collection.objects(Q(**dct))
 
 

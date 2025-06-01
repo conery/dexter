@@ -54,7 +54,7 @@ def init_cli():
 
     init_db_parser = subparsers.add_parser('init', help='initialize a database')
     init_db_parser.set_defaults(dispatch=init_database)
-    init_db_parser.add_argument('--file', metavar='F', help='name of file with account definitions', required=True)
+    init_db_parser.add_argument('file', metavar='F', help='name of file with account definitions')
     init_db_parser.add_argument('--force', action='store_true', help='replace an existing database')
 
     import_parser = subparsers.add_parser('import', help='add new records from files')
@@ -68,19 +68,19 @@ def init_cli():
 
     export_parser = subparsers.add_parser('export', help='write transactions to file')
     export_parser.set_defaults(dispatch=export_records)
-    export_parser.add_argument('--file', metavar='F', type=Path, required=True, help='name of output file')
+    export_parser.add_argument('file', metavar='F', type=Path, help='name of output file')
     export_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     export_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     export_parser.add_argument('--month', metavar='D', choices=months, help='add records only for this month')
 
     save_recs_parser = subparsers.add_parser('save', help='save a database to a text file')
     save_recs_parser.set_defaults(dispatch=save_records)
-    save_recs_parser.add_argument('--file', metavar='F', help='name of output file',default='dexter.docs')
+    save_recs_parser.add_argument('file', metavar='F', help='name of output file')
     save_recs_parser.add_argument('--force', action='store_true', help='overwrite existing file')
 
     restore_recs_parser = subparsers.add_parser('restore', help='load documents into a database')
     restore_recs_parser.set_defaults(dispatch=restore_records)
-    restore_recs_parser.add_argument('--file', metavar='F', help='name of file with records to restore',default='dexter.docs')
+    restore_recs_parser.add_argument('file', metavar='F', help='name of file with records to restore')
     restore_recs_parser.add_argument('--force', action='store_true', help='replace an existing database')
 
     pair_parser = subparsers.add_parser('pair', help='make transactions from matching entries')
