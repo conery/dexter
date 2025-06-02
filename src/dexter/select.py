@@ -51,7 +51,7 @@ def select_transactions(args):
          return
       print_journal_transactions(
          recs,
-         abbrev = not args.fullname,
+         abbrev = args.abbrev,
          order_by = order[args.order_by],
       )
    else:
@@ -59,7 +59,7 @@ def select_transactions(args):
          recs, 
          name='Entries' if args.entry else 'Transactions',
          order_by = order[args.order_by],
-         abbrev = not args.fullname,
+         abbrev = args.abbrev,
          as_csv = args.csv,
       )
 

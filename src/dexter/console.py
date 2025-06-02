@@ -181,8 +181,8 @@ def print_transaction_table(
             row.append(", ".join([f'{s.value}' for s in rec.tags]))
             # row.append(str(rec.tref)[:10])
         else:
-            cr = DB.abbrev(rec.pcredit) if abbrev else rec.pcredit
-            dr = DB.abbrev(rec.pdebit) if abbrev else rec.pdebit
+            cr = DB.abbrev(rec.pcredit) if abbrev else DB.display_name(rec.pcredit, markdown=True)
+            dr = DB.abbrev(rec.pdebit) if abbrev else DB.display_name(rec.pdebit, markdown=True)
             row.append(str(rec.pdate))
             row.append(cr)
             row.append(dr)

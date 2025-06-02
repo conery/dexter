@@ -21,10 +21,14 @@ class JournalParser:
     sees a line for an Entry it can append it to the current Transaction.
     '''
 
-    def __init__(self):
+    def __init__(self, db_accounts, db_uids):
         '''
         Initialize the data structures that will hold the records
         to insert.
+
+        Arguments:
+            db_accounts: set of names of accounts already defined
+            db_uids:     set of UIDs of current entries
         '''
         self._accounts = [ Account(name = 'equity', category = Category.Q)]
         self._entries = []
@@ -35,6 +39,10 @@ class JournalParser:
         self._abbrevs = { }
         self._transaction_date = None
         self._transaction_total = 0
+
+        if db_accounts:
+            self._account_names |= db_accounts
+        self._existing_uids = db_uids
 
     @property
     def account_list(self):
@@ -77,25 +85,6 @@ class JournalParser:
                     logging.error(f'JournalParser: error in {cmnd}')
                     logging.error(err)
 
-    def validate_entries(self, dbnames = None):
-        '''
-        Look up account names in new entries, make sure account
-        defined.  Also expands abbreviations into full names.
-
-        Arguments:
-            dbnames:  dictionary of existing names from the database
-        '''
-        if dbnames:
-            pass
-
-        for e in self._entries:
-            logging.debug(f'{e}?')
-            if acct := self._abbrevs.get(e.account):
-                e.account = acct
-            elif e.account not in self._account_names:
-                logging.error(f'JournalParser: unknown account name {e.account} in {e}')
-
-
     def _parse_amount(self, s):
         '''
         Convert a string with dollar signs, commas, and periods into a
@@ -122,6 +111,10 @@ class JournalParser:
         if name == 'equity':
             return
 
+        if name in self._account_names:
+            logging.error('JournalParser: duplicate account name: {name}')
+            return
+
         tags = { }
         for seg in comment.split(','):
             if m := re.search(r'(\w+):(.*)', seg):
@@ -137,9 +130,6 @@ class JournalParser:
             parser = tags.get('parser') 
         )
         self._accounts.append(acct)
-
-        if name in self._account_names:
-            logging.error('JournalParser: duplicate account name: {name}')
 
         self._account_names.add(name)
         if t := tags.get('abbrev'):
@@ -177,7 +167,11 @@ class JournalParser:
         logging.debug(f'JournalParser._new_entry {cmnd} {desc}')
         parts = cmnd.strip().split()
         acct = parts[0]
-        
+
+        if acct not in self._account_names:
+            logging.error(f'JournalParser:  unknown account name: {acct}')
+            return
+
         if len(parts) > 1:
             amount = self._parse_amount(parts[1])
             self._transaction_total += amount
@@ -197,6 +191,11 @@ class JournalParser:
             amount = abs(amount),
             tags = tags,
         )
+
+        if entry.hash in self._existing_uids:
+            logging.debug(f'skipping existing entry {entry}')
+            return
+        
         trans.entries.append(entry)
         self._entries.append(entry)
 

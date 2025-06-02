@@ -18,10 +18,12 @@ from .console import print_records, print_grid, print_info_table
 from .journal import JournalParser
 from .util import parse_date
 
-###
+#######################
 #
 # Top level method for the info command
 #
+#######################
+
 
 def print_info(args):
     '''
@@ -35,10 +37,11 @@ def print_info(args):
     recs = DB.info()
     print_info_table(recs)
 
-###
+#######################
 #
-# Top level method for initializing a database
+# Top level method for init command
 #
+#######################
 
 def init_database(args):
     '''
@@ -54,7 +57,7 @@ def init_database(args):
     fmt = fn.suffix[1:]
     match fmt:
         case 'journal': 
-            accts, trans = parse_journal(fn, set())
+            accts, trans = parse_journal(fn, set(), set())
         case 'csv': 
             accts, trans = parse_csv_accounts(fn)
         case _: 
@@ -70,32 +73,78 @@ def init_database(args):
         DB.save_records(accts)
         DB.save_records(trans)
     
-###
+#######################
 #
-# Top level method for parsing a file to import new records to a DB
+# Top level method for import command
 #
+#######################
+
 
 def import_records(args):
     '''
-    The top level function, called from main when the command 
-    is "import".  Parses one or more files to create new Entry
-    or Regexp documents
+    The top level function, called from main when the command is "import".  
+    
+    If the regexp option was on the command line parse a single file, 
+    erase old regexps, and replace them with the file contents.
+
+    Otherwise there can be any number of files with transactions downloaded
+    from a financial institution.  Create a new Entry object for each
+    record and save it in the database.
 
     Arguments:
         args: Namespace object with command line arguments.
     '''
     open_db(args)
+    paths = []
+
+    for fn in args.files:
+        p = Path(fn)
+        if p.exists():
+            paths.append(p)
+        else:
+            logging.error(f'import: file not found: {p}')
 
     if args.regexp:
-        import_regexp(args)
+        recs = parse_csv_regexp(paths[0])
+        if not args.preview:
+            DB.delete_regexps()
     else:
-        import_entries(args)
-        # accts = set(DB.account_names(with_parts=False).keys())
+        anames = set(DB.account_names(with_parts=False).keys())
+        recs = []
+        for path in paths:
+            match path.suffix:
+                case '.journal':
+                    _, new_recs = parse_journal(path, anames, DB.uids())
+                case '.csv':
+                    basename = args.account or path.stem
+                    alist = DB.find_account(basename)
+                    if len(alist) == 0:
+                        logging.error(f'import: no account name matches {basename}')
+                        continue
+                    if len(alist) > 1:
+                        logging.error(f'import: ambiguous account name {basename}')
+                        continue
+                    account = alist[0].name
+                    parser = alist[0].parser
+                    if parser not in Config.colmaps.keys():
+                        logging.error(f'import: no parser for {account}')
+                        continue
+                    new_recs = parse_csv_transactions(path, parser, account, args.start_date, args.end_date, DB.uids())
+                case _:
+                    logging.error(f'import: unknown file type: {path.suffix}')
+                    new_recs = []
+            recs += new_recs
 
-###
+    if args.preview:
+        print_records(recs)
+    else:
+        DB.save_records(recs)
+
+#######################
 #
-# Top level method for exporting transactions
+# Top level method for export command
 #
+#######################
 
 def export_records(args):
     '''
@@ -107,10 +156,12 @@ def export_records(args):
     '''
     logging.error(f'export: not implemented')
 
-###
+#######################
 #
-# Top level method for saving all documents to a JSON file
+# Top level method for save command
 #
+#######################
+
 
 def save_records(args):
     '''
@@ -123,8 +174,9 @@ def save_records(args):
     '''
     logging.info(f'Saving to {args.file}')
     logging.debug(f'save {vars(args)}')
-    DB.open(args.dbname)
 
+    open_db(args)
+    
     try:
         mode = 'w' if args.force else 'x'
         with open(args.file, mode) as f:
@@ -133,11 +185,11 @@ def save_records(args):
         logging.error(f'file exists: {args.file}, use --force to overwrite')
         exit(1)
 
-###
+#######################
 #
-# Top level method for restoring a database from a JSON file
-# created by a previous call to save
+# Top level method for restore command
 #
+#######################
 
 def restore_records(args):
     '''
@@ -168,12 +220,14 @@ def restore_records(args):
             except Exception as err:
                 logging.error(err)
 
-###
+#######################
 #
 # Helper functions
 #
+#######################
 
-def parse_journal(fn: Path, accounts: set):
+
+def parse_journal(fn: Path, accounts: set, uids: set):
     '''
     Helper function for init and import commands.  Parses a Journal file,
     returns a list of account records and transaction records.
@@ -181,12 +235,13 @@ def parse_journal(fn: Path, accounts: set):
     Arguments:
         fn:        the name of the file to parse
         accounts:  set of account names in the DB (may be empty)
+        uids:      ids of entries in the DB (may be empty)
     '''
     logging.info(f'importing journal file: {fn}')
 
-    jp = JournalParser()
+    jp = JournalParser(accounts, uids)
     jp.parse_file(fn)
-    jp.validate_entries(accounts)
+    DB.assign_uids(jp.entry_list)
 
     return jp.account_list, jp.transaction_list
 
@@ -198,7 +253,7 @@ def parse_csv_accounts(fn: Path):
     Arguments:
         fn:        the name of the file to parse
     '''
-    logging.info(f'importing CSV file: {fn}')
+    logging.info(f'importing account CSV file: {fn}')
 
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
         reader = csv.DictReader(csvfile)
@@ -219,6 +274,67 @@ def parse_csv_accounts(fn: Path):
                 make_balance_transaction(rec, trans)
 
     return accts, trans
+
+def parse_csv_regexp(fn: Path):
+    '''
+    Helper function for import command -- parses regular expression 
+    records from a CSV file
+
+    Arguments:
+        fn:        the name of the file to parse
+    '''
+    with open(fn) as csvfile:
+        reader = csv.DictReader(csvfile)
+        # for rec in reader:
+        #     e = RegExp(**rec)
+        #     lst.append(e)
+        res = [RegExp(**rec) for rec in reader]
+    return res
+
+def parse_csv_transactions(fn, pname, account, starting, ending, previous):
+    '''
+    Helper function for import command -- make a new Entry object for 
+    every record in a CSV file.
+
+    Arguments:
+        fn:  the name of the CSV file
+        pname:  the name of a parser (column mapping) that specifies
+            which columns to use
+        starting:  start date
+        ending:  end date
+        pevious:  set of UIDS of previously added entries
+
+    Returns:
+        a list of Entry objects
+    '''
+    logging.info(f'importing transaction CSV, file: {fn} account: {account}')
+    res = []
+    cmap = Config.colmaps[pname]
+    logging.debug(f'  parser {pname} colmap {cmap}')
+    with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for rec in reader:
+            if list(rec.values()) == reader.fieldnames:
+                continue
+            rec_date = parse_date(cmap['date'](rec))
+            if starting and rec_date < starting:
+                continue
+            if ending and rec_date > ending:
+                continue
+            desc = {
+                'date': rec_date,
+                'description': cmap['description'](rec),
+                'amount': cmap['amount'](rec),
+                'column': 'credit' if cmap['credit'](rec) else 'debit',
+                'account': account,
+                'tags': [Tag.U],
+            }
+            e = Entry(**desc)
+            if e.hash in previous:
+                continue
+            res.append(e)
+            logging.debug(f'  new entry: {e}')
+    return res
 
 
 def get_names_and_create_db(args):
@@ -318,71 +434,9 @@ def import_entries(args):
             #     e.save()
             DB.save_records(recs)
 
-def import_regexp(args):
-    '''
-    Helper function for import_records -- import regular expression 
-    records from CSV files
-    '''
-    DB.delete_regexps()
-    for fn in args.files:
-        lst = []
-        with open(fn) as csvfile:
-            reader = csv.DictReader(csvfile)
-            for rec in reader:
-                e = RegExp(**rec)
-                lst.append(e)
-        if args.preview:
-            for e in lst:
-                print(e)
-        else:
-            DB.save_records(lst)
 
 
    
-def parse_file(fn, pname, account, starting, ending, previous):
-    '''
-    Make a new Entry object for every record in a CSV file.
-
-    Arguments:
-        fn:  the name of the CSV file
-        pname:  the name of a parser (column mapping) that specifies
-            which columns to use
-        starting:  start date
-        ending:  end date
-        pevious:  set of UIDS of previously added entries
-
-    Returns:
-        a list of Entry objects
-    '''
-    logging.info(f'Parsing {fn}')
-    logging.debug(f'  arguments: {pname} {account} {starting} {ending}')
-    res = []
-    cmap = Config.colmaps[pname]
-    logging.debug(f'parser {pname} colmap {cmap}')
-    with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for rec in reader:
-            if list(rec.values()) == reader.fieldnames:
-                continue
-            rec_date = parse_date(cmap['date'](rec))
-            if starting and rec_date < starting:
-                continue
-            if ending and rec_date > ending:
-                continue
-            desc = {
-                'date': rec_date,
-                'description': cmap['description'](rec),
-                'amount': cmap['amount'](rec),
-                'column': 'credit' if cmap['credit'](rec) else 'debit',
-                'account': account,
-                'tags': [Tag.U],
-            }
-            e = Entry(**desc)
-            if e.hash in previous:
-                continue
-            res.append(e)
-            logging.debug(f'record: {e}')
-    return res
 
 def parse_and_save_journal(fn: Path, preview: bool = False, accounts = None):
     '''

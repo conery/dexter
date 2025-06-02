@@ -172,6 +172,8 @@ class Transaction(Document):
         return Tag.B.value in self.tags
 
     def clean(self):
+        if len(self.entries) == 0:    # possible if transaction imported previously
+            return
         self.pdate = min(e.date for e in self.entries)
         self.pamount = sum(e.amount for e in self.entries if e.column == Column.cr)
         self.pcredit = '/'.join(a.account for a in self.credits)
@@ -179,9 +181,13 @@ class Transaction(Document):
 
     def save(self):
         '''
-        Extend the base class save method.  Save each entry, then call
-        the base class method.
+        Extend the base class save method to handle entries.  If a transaction
+        has no entries (because it was imported previously) don't save it. 
+        Otherwise save each entry, then call the base class method.
         '''
+        if len(self.entries) == 0:
+            logging.debug(f'transaction has no entries, skipping {self}')
+            return
         for e in self.entries:
             e.save()
         super().save()
@@ -400,6 +406,7 @@ class DB:
 
     MAX_DUPS = 10
 
+    @staticmethod
     def assign_uids(recs):
         '''
         Handle duplicates in new records by modifying the description so the 
