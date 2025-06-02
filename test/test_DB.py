@@ -296,18 +296,18 @@ class TestDB:
         assert e.column.opposite() == Column.dr
         assert e.column.opposite().opposite() == e.column
 
-    # def test_balance(self, db):
-    #     '''
-    #     The balance over all entries should be 0
-    #     '''
-    #     assert DB.balance('') == 0
+    def test_balance(self, db):
+        '''
+        The balance over all entries should be 0
+        '''
+        assert DB.balance('') == 0
 
-    # def test_food_balance(self, db):
-    #     '''
-    #     Test the balance of a specified account, with and without budget
-    #     transactions and with and without dates
-    #     '''
-    #     assert DB.balance('food') == -600
-    #     assert DB.balance('food', budgets=False) == 400
-    #     assert DB.balance('food', ending='2024-01-31') == -250
-    #     assert DB.balance('food', ending='2024-01-31', budgets=False) == 250
+    def test_food_balance(self, db):
+        '''
+        Test the balance of a specified account, with and without budget
+        transactions and with and without dates
+        '''
+        assert DB.balance('expenses:food:') == -600
+        assert DB.balance('expenses:food:', nobudget=True) == 400
+        assert DB.balance('expenses:food:', ending='2024-01-31') == -250
+        assert DB.balance('expenses:food:', ending='2024-01-31', nobudget=True) == 250

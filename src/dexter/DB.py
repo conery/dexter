@@ -431,6 +431,14 @@ class DB:
             uids.add(obj.hash)
 
     @staticmethod
+    def uids():
+        '''
+        Return the set of unique identifiers (uids) on all Entry
+        documents in the database. 
+        '''
+        return {e.uid for e in Entry.objects}
+
+    @staticmethod
     def fullname(s: str):
         '''
         The argument s is an account name that could be a full name or abbreviated
@@ -544,7 +552,7 @@ class DB:
         return res
     
     @staticmethod
-    def account_args(pattern, field='account__iregx'):
+    def account_args(pattern, field='account__iregex'):
         '''
         Helper methods used by balance and select to turn a name pattern
         created by account_glob into a regular expression to use in a query
@@ -576,8 +584,7 @@ class DB:
         return res
 
     @staticmethod
-    # def balance(acct, ending=None, nobudget=False):
-    def balance(acct, ending=None):
+    def balance(acct, ending=None, nobudget=False):
         '''
         Compute the balance of an account
 
@@ -589,6 +596,8 @@ class DB:
         if ending:
             kwargs['date__lte'] = ending
 
+        logging.debug(f'kwargs {kwargs}')
+
         cr_args = kwargs | {'column': 'credit'}
         credits = Entry.objects(**cr_args).sum('amount')
         dr_args = kwargs | {'column': 'debit'}
@@ -596,10 +605,12 @@ class DB:
 
         res = debits - credits
 
-        # if nobudget:
-        #     logging.error('--nobudget not implemented in DB.balance')
-            # kwargs['tag'] = Tag.B
-            # res -= Entry.objects(**kwargs).sum('amount')
+        if nobudget:
+            cr_args['tags'] = Tag.B
+            res += Entry.objects(**cr_args).sum('amount')
+            dr_args['tags'] = Tag.B
+            res -= Entry.objects(**dr_args).sum('amount')
+
         return res
     
     # RegExp management -- delete old records so new ones can be
@@ -645,17 +656,6 @@ class DB:
             if r := e.apply(s):
                 s = r
         return s
-
-    # Methods used when adding new records to make sure we don't
-    # have duplicates
-
-    @staticmethod
-    def uids():
-        '''
-        Return the set of unique identifiers (uids) on all Entry
-        documents in the database. 
-        '''
-        return {e.uid for e in Entry.objects}
     
     # These dictionaries map command line arguments to names of 
     # object attributes to use in calls that select objects.

@@ -122,15 +122,31 @@ def print_detail_table(acct, entries, start):
         # show_header=False
     )
     bal = DB.balance(acct, start)
-    t.add_row(f'[blue italic]{start}','[blue italic]starting balance','','','',format_amount(bal, dollar_sign=True))
+
+    fills = []
+    nonfills = []
     for e in entries:
-        # if trans := e.tref:
-        #     s = trans.pdebit if e.column == ColType.cr else trans.pcredit
-        #     other = DB.display_name(s, markdown=True)
-        # else:
-        #     s = 'unpaired' if Tag.U in e.tags else 'missing'
-        #     trans = Transaction(description=f'[red]{s}')
-        #     other = ''
+        if Tag.B in e.tags:
+            fills.append(e)
+        else:
+            nonfills.append(e)
+
+    t.add_row(f'[blue italic]{start}','[blue italic]starting balance','','','',format_amount(bal, dollar_sign=True))
+
+    for e in fills:
+        row = []
+        bal += e.value
+        row.append(f'[blue italic]{str(e.date)}')
+        row.append(f'[blue italic]{e.tref.description}')
+        row.append(DB.display_name(acct, markdown=True))
+        row.append(DB.display_name(e.tref.pdebit, markdown=True))
+        row.append(format_amount(e.value, dollar_sign=True))
+        row.append(format_amount(bal, dollar_sign=True))
+        t.add_row(*row)
+
+    for e in nonfills:
+        row = []
+        bal += e.value
         debit = credit = ''
         if trans := e.tref:
             for x in trans.entries:
@@ -138,20 +154,11 @@ def print_detail_table(acct, entries, start):
                     credit = DB.display_name(x.account, markdown=True)
                 else:
                     debit = DB.display_name(x.account, markdown=True)
-        row = []
         row.append(str(e.date))
         row.append(trans.description)
-        # row.append(other)
         row.append(credit)
         row.append(debit)
-        # if e.column.value == 'debit':
-        #     row.append(format_amount(e.amount, dollar_sign=True))
-        #     row.append('')
-        # else:
-        #     row.append('')
-        #     row.append(format_amount(e.amount, dollar_sign=True))
         row.append(format_amount(e.value, dollar_sign=True))
-        bal += e.value
         row.append(format_amount(bal, dollar_sign=True))
         t.add_row(*row)
     console.print()

@@ -3,7 +3,7 @@
 import pytest
 
 from dexter.DB import DB
-from dexter.io import init_from_journal
+from dexter.io import parse_journal
 
 @pytest.fixture
 def db(scope='session'):
@@ -13,6 +13,8 @@ def db(scope='session'):
     '''
     DB.init()
     DB.create('pytest')
-    init_from_journal('test/fixtures/mini.journal')
+    accts, trans = parse_journal('test/fixtures/mini.journal', set(), set())
+    DB.save_records(accts)
+    DB.save_records(trans)
     return DB.database
 
