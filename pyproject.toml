@@ -1,5 +1,5 @@
 [build-system]
-requires = [
+depemdencies = [
     "hatchling",
     "setuptools",
     "mongoengine",
