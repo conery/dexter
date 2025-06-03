@@ -1,12 +1,5 @@
 [build-system]
-depemdencies = [
-    "hatchling",
-    "setuptools",
-    "mongoengine",
-    "rich",
-    "click",
-    "pytest",
-]
+requires = [ "hatchling"]
 build-backend = "hatchling.build"
 
 [project]
@@ -15,6 +8,13 @@ dynamic = ["version"]
 description = "Double-entry expense tracker for personal finances"
 readme = "README.md"
 requires-python = ">=3.11"
+dependencies = [
+    "setuptools",
+    "mongoengine",
+    "rich",
+    "click",
+    "pytest",
+]
 authors = [
   { name = "John Conery", email = "jconery@icloud.com" },
 ]
