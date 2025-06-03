@@ -46,26 +46,41 @@ Before we get to the explanations, though, there is an important point:
 
 It's very easy to recover the original meanings of the balance of income and expense accounts by simply not including budget transactions in balance calculations.
 
-Dexter's expense report commands assume we want to use the traditional definitions for income and expense balances.
-If you want to include budget transactions add a `--budget` option to the shell command.
-When the table is printed, an envelope icon (✉️) is included in the column heading for the balance.
+Here is the default report for food expenses after we add budget transactions:
 
 ```bash
-$ dex journal expenses:food:2 --start 2024-01-01 --end 2024-01-31 --detail --budget
+$ dex report expenses:food --end 2024-01-10
 
-expenses:food.*                                                                                                
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
-┃ date         ┃ description            ┃ account                ┃        debit ┃       credit ┃   ✉️  balance ┃
-┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
-│ 2024-01-01   │ starting balance       │                        │              │              │        $0.00 │
-│ 2024-01-02   │ fill envelopes         │ income:yoyodyne        │              │    $1,000.00 │   −$1,000.00 │
-│ 2024-01-07   │ Chez Ray               │ assets:checking        │       $75.00 │              │     −$925.00 │
-│ 2024-01-08   │ venmo from Sam         │ assets:checking        │              │       $35.00 │     −$960.00 │
-└──────────────┴────────────────────────┴────────────────────────┴──────────────┴──────────────┴──────────────┘
+expenses:food  ✉️                                                                                                        
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ date         ┃ description               ┃ credit               ┃ debit                ┃       amount ┃      balance ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ 2024-01-01   │ starting balance          │                      │                      │              │        $0.00 │
+│ 2024-01-02   │ fill envelopes            │ food                 │ yoyodyne             │    −$1000.00 │    −$1000.00 │
+│ 2024-01-07   │ Chez Ray                  │ assets:checking      │ food:restaurant      │       $75.00 │     −$925.00 │
+│ 2024-01-08   │ venmo from Sam            │ food:restaurant      │ bank:checking        │      −$35.00 │     −$960.00 │
+└──────────────┴───────────────────────────┴──────────────────────┴──────────────────────┴──────────────┴──────────────┘
 ```
 
-Budget transactions can also be used in `hledger` and other plain text accounting applications.
-See [TBD](tbd) for ideas of how to organize journals with budget transactions and examples of `hledger` commands to print reports with and without budgets.
+Note there is a small envelope icon in the title bar next to the account name, to remind us that budget transactions are used in balance calculations.
+
+If you want to exclude budget transactions add a `--no_budget` option to the shell command and you'll get the same report as before:
+
+```bash
+$ dex report expenses:food --end 2024-01-10 --no_budget
+
+expenses:food:                                                                                                          
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ date         ┃ description               ┃ credit               ┃ debit                ┃       amount ┃      balance ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ 2024-01-01   │ starting balance          │                      │                      │              │        $0.00 │
+│ 2024-01-07   │ Chez Ray                  │ assets:checking      │ food:restaurant      │       $75.00 │       $75.00 │
+│ 2024-01-08   │ venmo from Sam            │ food:restaurant      │ assets:checking      │      −$35.00 │       $40.00 │
+└──────────────┴───────────────────────────┴──────────────────────┴──────────────────────┴──────────────┴──────────────┘
+```
+
+<!-- Budget transactions can also be used in `hledger` and other plain text accounting applications.
+See [TBD](tbd) for ideas of how to organize journals with budget transactions and examples of `hledger` commands to print reports with and without budgets. -->
 
 <!-- An `hledger` user who wants to use this budgeting scheme has several options for controlling when budget transactions are part of the journal:
 

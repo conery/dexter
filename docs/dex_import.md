@@ -1,16 +1,60 @@
-# Importing CSV Files
+# `dex import`
 
 The `import` command parses one or more CSV files and adds new Postings to the database.
 
 #### Usage
 
 ```
-$ dex import F [F ...] [--account A] [--start_date D] [--end_date D] [--month D] 
+$ dex import [-h] [--account A] [--start_date D] [--end_date D] [--month D] [--regexp] F [F ...]
+
+positional arguments:
+  F               name(s) of file(s) with records to add
+
+options:
+  -h, --help      show this help message and exit
+  --account A     account name
+  --start_date D  starting date
+  --end_date D    ending date
+  --month D       add records only for this month
 ```
 
-> _See [Date Range Options](dex_options.md#date-range-options) for an explanation of the date options._
+The `import` command adds new records to the database.
+There are two kinds of data:
 
-## Import a Single CSV File
+* transactions downloaded from a financial institution, which will become postings in the database
+* regular expression rules used by the `pair` and `review` commands.
+
+
+## Importing Regular Expressions
+
+If you want to import regular expresion rules, include the `--regexp` option on the command line:
+```shell
+$ dex import --regexp F
+```
+
+The tutorial data includes a file named `regexp.csv` you can use as a starting point for your own rules.
+The file format and instructions for creating rules are explained in [Regular Expressions](regexp.md).
+
+## Importing Financial Records
+
+By default Dexter assumes you want to import financial records, so if you type
+```shell
+$ dex import F1
+``` 
+Dexter will assume the file `F1` contains transactions.
+
+The file name extension tells Dexter what file format to expect.
+
+* A `.journal` extension means the file contains Journal commands.  Currently only `account` commands and transaction definitions are recognized by Dexter.
+
+* A `.csv` extension means the file contains transactions downloaded from a financial institution.
+
+Journal files are meant to be used to initialize a new database (using the `dex init` command) or to import a small number of transactions, for example budget transactions.
+
+The remainder of this page has instructions for importing CSV files.
+
+
+## Import a Single Transaction File
 
 To import a single file just specify the file name and use the `--account` option to tell Dexter which account to use for the new postings.
 
@@ -75,9 +119,11 @@ There are several web sites that serve as "aggregators".
 They can connect to your banks and credit card companies and download all of your records for you.
 Then you just need to log in to the aggregator and do one download to get those records.
 
-The two that I have tried (Mint and Empower) worked fairly well but had enough drawbacks that I stopped using them.
+A future extension will allow parsers to specify a column in the CSV file to use as the account name.
+
+<!-- The two that I have tried (Mint and Empower) worked fairly well but had enough drawbacks that I stopped using them.
 There were often "gaps" in the data that caused me to lose several days worth of records.
 These sites also did too much "preprocessing" and filtered out columns from the original records that I wanted to use.
 
 Recently several new services have started up, all using Plaid.
-I'm looking forward to trying them out.
+I'm looking forward to trying them out. -->

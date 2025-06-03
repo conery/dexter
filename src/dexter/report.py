@@ -139,6 +139,9 @@ def print_detail_table(acct, entries, start, nobudget):
         else:
             nonfills.append(e)
 
+    logging.debug(f'fills {fills}')
+    logging.debug(f'nonfills {nonfills}')
+
     t.add_row(f'[blue italic]{start}','[blue italic]starting balance','','','',format_amount(bal, dollar_sign=True))
 
     if not nobudget:

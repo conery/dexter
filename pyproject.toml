@@ -3,12 +3,8 @@ requires = [
     "hatchling",
     "setuptools",
     "mongoengine",
-    "seaborn",
-    "pandas",
     "rich",
     "click",
-    "jupyter",
-    "panel",
     "pytest",
 ]
 build-backend = "hatchling.build"

@@ -10,49 +10,12 @@ Dexter recognizes two different file formats:
 
 * a `.journal` file has `account` statements in the Journal format used by hledger; each statement has the name of the account followed by tags that define the attributes.
 
-There is one example of each type of file in the example data:
+There is one example of each type of file in the tutorial data:
 ```plain
 Finances
 ├── accounts.csv
 ├── accounts.journal
 ```
-You should end up with the same records in your new DB using either file.
-
-### Parsers
-
-The key part of your monthly workflow will be importing records you download from banks, credit card companies, and other financial institutions.
-
-As described earlier in [Philosophy](philosophy.md) Dexter will create one new Posting for each record from a CSV file.
-In order to do this, it needs to know which columns of the CSV file to use, and it needs to know how to extract the relevant information from those columns.
-
-The example data has three CSV files.
-Two (checking account and savings account) are from Alice and Bob's bank.
-The format for these files is based on my own bank, Oregon Community Credit Union.
-There is nothing unusual about this format and it should be a useful template for other banks (and very likely is exactly the same as many other credit unions).
-The credit card format is from Chase Bank and should be the same for all Chase credit cards.
-
-Dexter needs a set of rules, called a **parser**, for each different file format.
-Parsers are defined in the configuration file.
-If you open the example configuration (`dex.toml`) you'll find the rules for parsing CSV files from OCCU are in a section named `csv.occu`:
-```plain
-[csv.occu]
-description = ...
-date = ...
-amount = ...
-credit = ...
-```
-The Chase card parser is in a similar section, labeled `csv.chase`.
-
-Every parser has four rules, corresponding to the four attributes of a Posting that need to be filled in.
-The name of the rule, to the left of the equal sign, is the name of the attribute.
-The right sides are Python expressions that tell Dexter where to look for the data to use for that attribute.
-
-The main thing to know at this point is that when we define an account that will have data downloaded from a financial institution we need to specify which parser to use.
-
-### Defining Your Own Parsers
-
-Simply knowing how to associate an account name with a parser is sufficient for working through the rest of this tutorial.
-When you are ready to define your own parsers you'll find a detailed description of rules and hints about what to include in the User Documentation section, under [Configuration](dex_config.md).
 
 ## CSV Format for Accounts
 
@@ -71,7 +34,7 @@ The column names used by Dexter are:
 **Tip:** When you create your own account file you can use a spreadsheet application.
 The columns can be defined in any order, and the file can have additional columns (they will be ignored).
 The only requirement is that column names shown above be entered exactly as they are shown, in all lower case.
-Then simply export the spreadsheet as a CSV file (making sure to include column names, if that is an option).
+Then simply export the spreadsheet as a CSV file, making sure you include column names.
 
 ### `fullname`
 
@@ -93,7 +56,7 @@ expenses:travel
 liabilities:chase:visa
 ```
 
-> **Note**: a fifth account category, `equity`, will be defined automatically.  You don't need to include it in your account file.
+> _**Note**: a fifth account category, `equity`, will be defined automatically.  You don't need to include it in your account file._
 
 There is no limit on the number of segments in a name.
 
@@ -155,7 +118,7 @@ When we run `dex import` to import a file, it will use the file name to figure o
 
 ### `parser`
 
-As noted above, parsers are defined in the [configuration file](dex_config.md).
+As noted previously, parsers are defined in the [configuration file](dex_config.md).
 There will typically be one parser for each data source.
 The `parser` column for these accounts will have the name of the configuration section without the `csv.` prefix, _e.g._ `occu` or `chase`.
 
@@ -198,3 +161,7 @@ This is how to initialize the checking and savings account balances:
     assets:bank:savings    $2,500.00
     equity
 ```
+
+> _**Note**:  Dexter currently assumes all amounts are in US dollars.  Reports and output tables will be formatted with a dollar sign._
+>
+> _When you put an amount in a Journal file dollar signs and commas are optional.  For negative numbers the minus sign can be written before or after the dollar sign:  `$-100.00` or `-$100.00`._

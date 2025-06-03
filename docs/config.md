@@ -3,10 +3,13 @@
 Dexter uses a configuration file to define settings used by various scripts.
 Many of these are cosmetic, for example colors to use when printing tables on the terminal.
 
-But there is one important part of the configuration that you need to define as soon as you can:
-the **parsers** that extract data from CSV files downloaded from banks, credit card companies, and other financial institutions.
+But there is one important part of the configuration that many users might need to edit.
+The **parsers** that extract data from CSV files downloaded from banks, credit card companies, and other financial institutions are defined in the configuration file.
+Dexter comes with a set of predefined parsers, but there are undoubtedly banks and card companies that use a format Dexter doesn't know about.
 
-The sections on this page tell you how to set up your configuration:
+> _**TBD:**  Parsers for other widely used credit cards (American Express, Citi, and Apple (Goldman Sachs)) will be added soon.  We also plan to add a section to the GitHub repo for user-contributed parsers._
+
+The sections on this page:
 
 * where Dexter looks for configuration files
 * how to create a template configuation file
@@ -24,31 +27,33 @@ Dexter looks in the following locations, in order:
 
 ## Create a Template
 
-A configuration file is a plain text file that you can edit with any text editor.
+There are two ways a user can make a template to use as a starting point for their own configuration.
 
-The `config` subcommand prints a template configuration file on the terminal.
-To see the template, simply type
+The first is to copy the file from the tutorial.
+The file is named `dex.toml` and can be found in the top level of the tutorial data folder.
+
+The second is to use Dexter's `config` command.
+Simply type
 ```shell
 $ dex config
 ```
-
+and Dexter will print a template on the terminal.
 To save the file in the default location (a file named `dex.toml` in your project directory) just redirect the output:
 ```shell
 $ dex config > ./dex.toml
 ```
 
 The template defines two parsers.
-One is for my bank, Oregon Community Credit Union, which has a format that should be typical of the one used by most banks and should be easily adapted for your bank.
-The other is for Chase credit cards.
-You should be able to use this as is for your own Chase cards.
+One is for Oregon Community Credit Union (OCCU), which has a format that should be typical of the one used by most banks and should be easily adapted for your bank.
+The other is for Chase credit cards used to make the tutorial data.
+It should be usable as is for all Chase cards.
 
-> _**TBD:**  Parsers for other widely used credit cards (American Express, Citi, and Apple (Goldman Sachs)) will be added soon.  We also plan to add a section to the GitHub repo for user-contributed parsers._
 
 ## The Structure of a Configuration File
 
 As the filename extension `.toml` implies, configuration files use a standard format known as TOML.
 
-> It's unlikely you'll need to know more than what is covered here, but if you're curious or do run into trouble the TOML documentation is at [TOML: Tom's Obvious Minimal Language](https://toml.io/en/)
+> _It's unlikely you'll need to know more than what is covered here, but if you're curious or do run into trouble the TOML documentation is at [TOML: Tom's Obvious Minimal Language](https://toml.io/en/)._
 
 A line that starts with a hash symbol (`#`) is a comment, and the file can include blank lines to improve readability.
 
@@ -64,10 +69,10 @@ All of Dexter's configuration settings will be simple numbers or strings.
 
 ## Defining a Parser
 
-Our goal is to define a set of rules for extracting data from a CSV file downloaded from a financial institution.
+A parser consists of a set of rules for extracting data from a CSV file downloaded from a financial institution.
 
 The first step is to find out what information we have to work with in each CSV file.
-The first line in a file is header, which is a list of column names, separated by commas.
+The first line in a file is **header**, which is a list of column names, separated by commas.
 
 > _Note: some CSV files omit the header line and just contain data.  It's not likely you will get a file without column names from a financial institution, but if you do you'll need to edit the file and add a header._
 
@@ -83,12 +88,12 @@ Transaction Date,Post Date,Description,Category,Type,Amount,Memo
 It doesn't matter whether the names are enclosed in quotes, or whether a column name is a single word or multiple words.
 
 The order doesn't matter, either.
-We just need to be able to figure out which columns we're interested in.
+Dexter will look for data using a columnn name, not a column position.
 
 ### Configuration Section
 
 If you are writing a new parser the first step is to add a new section to the configuration file.
-For example, if you have American Express cards, you'll want to name the parser `amex`, and you'll add a new section named `[csv.amex]`.
+For example, if you have American Express cards, you might name the parser `amex`, and you'll add a new section named `[csv.amex]`.
 
 ### Rules
 
@@ -101,16 +106,16 @@ The new Posting has four attributes:
 * credit (a boolean that is True if the posting is a credit, False if it is a debit)
 
 Every parser has exactly four configuration settings.
-The name to the left of the equal sign is the attribute name, and the value on the right side is an expression that tells the parser where to find the value for that attribute.
+The name to the left of the equal sign is one of the four attribute names shown above, and the value on the right side is an expression that tells the parser where to find the value for that attribute.
 
 ### Expressions
 
 The values on the right side of a setting are Python expressions.
 Even if you don't know Python you should be able to understand the expressions in the default configuration and generalize them to write your own expressions.
 
-To explain the sorts of things that can go into a Python expression we'll use the rules in the example configuration, starting with the simplest and working up to more complex rules.
+To explain the sorts of things that can go into a Python expression the examples below are based on rules in the example configuration, starting with the simplest and working up to more complex rules.
 
-> _A more detailed description of what is allowed in Python expressions will be included in the Reference section [TBD](tbd.ml)_.
+> _A more detailed description of what is allowed in Python expressions will be included in the Reference section on [Parsers](parsers.md)_.
 
 
 #### `date`
@@ -204,7 +209,7 @@ The final rule is:
 ```
 amount = 'abs(float(rec["Amount"]))'
 ```
-> _**TBD**:  how to write a rule when a CSV file has separate columns for credit and debits._
+> _**TBD**:  [Parsers](parsers.md) shows how to write a rule when a CSV file has separate columns for credit and debits._
 
 #### `credit`
 

@@ -1,3 +1,6 @@
-# Command Line Application
+# Regular Expressions
 
-How to run `dex`
+**TBD**
+
+How to write regular expressions used by the `pair` and `review` commands.
+

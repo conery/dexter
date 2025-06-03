@@ -57,7 +57,7 @@ nav:
     - "dex pair": dex_pair.md
     - "dex review": dex_review.md
     - "dex select": dex_select.md
-    - "dex add": dex_add.md
+    # - "dex add": dex_add.md
     - "dex report": dex_report.md
     - "dex save": dex_save.md
     - "dex restore": dex_restore.md
@@ -78,5 +78,7 @@ nav:
     - "Database API": api.md
   - "Reference":
     - "Modules": modules.md
+    - "Parsers": parsers.md
+
 
 

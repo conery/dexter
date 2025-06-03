@@ -9,7 +9,6 @@ import re
 import string
 
 from mongoengine import *
-import pandas as pd
 
 from .config import Config, Tag
 

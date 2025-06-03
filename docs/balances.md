@@ -47,14 +47,14 @@ This transaction has an impact on the balance of both accounts: the checking acc
 This command shows the balance of `expenses:food`, including all subcategories (`expenses:food:groceries`, `expenses:food:restaurant`, _etc_), from the start of the year through the date of the Venmo transaction:
 
 ```bash
-$ dex journal expenses:food:2 --start 2024-01-01 --end 2024-01-31 --detail         
+$ dex report expenses:food: --end 2024-01-10
 
-expenses:food.*                                                                                                
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
-┃ date         ┃ description            ┃ account                ┃        debit ┃       credit ┃      balance ┃
-┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
-│ 2024-01-01   │ starting balance       │                        │              │              │        $0.00 │
-│ 2024-01-07   │ Chez Ray               │ assets:checking        │       $75.00 │              │       $75.00 │
-│ 2024-01-08   │ venmo from Sam         │ assets:checking        │              │       $35.00 │       $40.00 │
-└──────────────┴────────────────────────┴────────────────────────┴──────────────┴──────────────┴──────────────┘
+expenses:food:                                                                                                          
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ date         ┃ description               ┃ credit               ┃ debit                ┃       amount ┃      balance ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ 2024-01-01   │ starting balance          │                      │                      │              │        $0.00 │
+│ 2024-01-07   │ Chez Ray                  │ assets:checking      │ food:restaurant      │       $75.00 │       $75.00 │
+│ 2024-01-08   │ venmo from Sam            │ food:restaurant      │ assets:checking      │      −$35.00 │       $40.00 │
+└──────────────┴───────────────────────────┴──────────────────────┴──────────────────────┴──────────────┴──────────────┘
 ```
