@@ -16,9 +16,42 @@ Dexter is written entirely in Python and can be installed with a `pip` command t
 
 The only external dependence is MongoDB.
 
-## Documentation
-
 ## Installation
+
+### Dexter and Python Libraries
+
+Dexter requires Python 3.13 or higher.
+
+It has very few third party libraries (MongoEngine, Rich, and Click) but we recommend creating a virtual environment.
+
+Activate the environment, then:
+```bash
+$ pip install git+https://github.com/conery/dexter.git
+```
+
+To verify Dexter was installed:
+```bash
+$ dex --help
+```
+
+### MongoDB
+
+Install MongoDB and start a local server.
+This command will test Dexter's connection to the server by printing a list of Dexter databases on the server:
+
+```bash
+$ dex info
+```
+(the table should be empty).
+
+### Unit Tests (Optional)
+
+If you download a copy of the source code, you can `cd` to the project directory and run unit tests:
+```bash
+$ 
+
+
+## Documentation
 
 ## Tutorial Data
 

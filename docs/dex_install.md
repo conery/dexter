@@ -28,7 +28,7 @@ Dexter depends on a several third-party libraries.
 We recommend setting up a new virtual environment for Dexter and its dependences.
 
 Start by choosing a Python version.
-Dexter was developed using 3.13.1 but any version newer than 3.11 should work:
+Dexter requires Python 3.13 or higher:
 ```shell
 $ pyenv shell 3.13.1
 ```

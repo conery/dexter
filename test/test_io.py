@@ -2,7 +2,7 @@
 
 import pytest
 
-from dexter.io import init_from_journal
+from dexter.io import parse_journal
 from dexter.DB import DB
 
 @pytest.fixture
@@ -12,7 +12,9 @@ def iodb(scope='module'):
     '''
     DB.init()
     DB.create('pytest')
-    init_from_journal('test/fixtures/mini.journal')
+    accts, trans = parse_journal('test/fixtures/mini.journal', set(), set())
+    DB.save_records(accts)
+    DB.save_records(trans)
     return DB.database
 
 class TestIO:

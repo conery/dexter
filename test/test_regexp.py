@@ -4,7 +4,7 @@ import pytest
 
 from typing import NamedTuple
 
-from dexter.io import init_from_journal, import_regexp
+from dexter.io import parse_journal, parse_csv_regexp
 from dexter.DB import DB, RegExp, Action
 
 class Args(NamedTuple):
@@ -18,8 +18,12 @@ def redb(scope='session'):
     '''
     DB.init()
     DB.create('pytest')
-    init_from_journal('test/fixtures/mini.journal')
-    import_regexp(Args(['test/fixtures/regexp.csv'], False))
+    accts, trans = parse_journal('test/fixtures/mini.journal', set(), set())
+    DB.save_records(accts)
+    DB.save_records(trans)
+    # import_regexp(Args(['test/fixtures/regexp.csv'], False))
+    regexp = parse_csv_regexp('test/fixtures/regexp.csv')
+    DB.save_records(regexp)
     return DB.database
 
 @pytest.fixture
