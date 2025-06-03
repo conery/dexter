@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>dex report - Dexter</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../css/dex.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "dex report";
+        var mkdocs_page_input_path = "dex_report.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Dexter
+        </a>
+        <div class="version">
+          Version 0.0.5
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../history/">History</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deb/">Double Entry Bookkeeping</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../philosophy/">Philosophy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes/">Envelope Budgeting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../command_line/">Command Line API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../workflow/">Workflow</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_install/">Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../db_server/">Database Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../folder/">Create Your Project Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex/">Shell Command</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_init/">Initialize the Database</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_import/">Import CSV Files</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_regexp/">Import Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_pair/">Pair Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_review/">Review Unpaired Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_select/">Select Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_report/">Print Reports</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_fill/">Fill Envelopes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_income/">Review Income</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../options/">Command Line Options</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../accounts/">Defining Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../regexp/">Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_init/">dex init</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_import/">dex import</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_pair/">dex pair</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_review/">dex review</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_select/">dex select</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">dex report</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_save/">dex save</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_restore/">dex restore</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">The Budget Model</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes_dex/">Envelope Budgeting with Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balances/">Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../budget_trans/">Budget Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_expenses/">Expense Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_income/">Income Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../fill_date/">Fill Date</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../adjustments/">Adjustments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../equity/">Using the Equity Account</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nominal/">Nominal Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dexter and hledger</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hledger/">Notes for hledger Users</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/">Database API</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../modules/">Modules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Dexter</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">User Documentation</li>
+      <li class="breadcrumb-item active">dex report</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/conery/dexter/edit/master/docs/dex_report.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="dex-report"><code>dex report</code></h1>
+<h4 id="usage">Usage</h4>
+<pre><code>$ dex report --help
+usage: dex report [-h] [--start_date D] [--end_date D] [--month M] [--no_budget] [--abbrev] [--grouped] [A ...]
+
+positional arguments:
+  A               accounts
+
+options:
+  -h, --help      show this help message and exit
+  --start_date D  starting date
+  --end_date D    ending date
+  --month M       define start and end dates based on month name
+  --no_budget     remove budget transactions
+  --abbrev        print abbreviated names
+  --grouped       group by account name
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../dex_select/" class="btn btn-neutral float-left" title="dex select"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../dex_save/" class="btn btn-neutral float-right" title="dex save">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy 2025 John Conery</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/conery/dexter" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../dex_select/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../dex_save/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Double Entry Bookkeeping - Dexter</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../css/dex.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Double Entry Bookkeeping";
+        var mkdocs_page_input_path = "deb.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Dexter
+        </a>
+        <div class="version">
+          Version 0.0.5
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../history/">History</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Double Entry Bookkeeping</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#accounts">Accounts</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#transactions">Transactions</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#terminology">Terminology</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#transactions-should-be-balanced">Transactions Should Be Balanced</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#missing-transaction-i">Missing Transaction (I)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#missing-transactions-ii">Missing Transactions (II)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#inverted-flow">Inverted Flow</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../philosophy/">Philosophy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes/">Envelope Budgeting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../command_line/">Command Line API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../workflow/">Workflow</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_install/">Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../db_server/">Database Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../folder/">Create Your Project Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex/">Shell Command</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_init/">Initialize the Database</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_import/">Import CSV Files</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_regexp/">Import Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_pair/">Pair Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_review/">Review Unpaired Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_select/">Select Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_report/">Print Reports</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_fill/">Fill Envelopes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_income/">Review Income</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../options/">Command Line Options</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../accounts/">Defining Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../regexp/">Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_init/">dex init</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_import/">dex import</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_pair/">dex pair</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_review/">dex review</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_select/">dex select</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_report/">dex report</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_save/">dex save</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_restore/">dex restore</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">The Budget Model</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes_dex/">Envelope Budgeting with Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balances/">Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../budget_trans/">Budget Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_expenses/">Expense Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_income/">Income Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../fill_date/">Fill Date</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../adjustments/">Adjustments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../equity/">Using the Equity Account</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nominal/">Nominal Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dexter and hledger</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hledger/">Notes for hledger Users</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/">Database API</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../modules/">Modules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Dexter</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Introduction</li>
+      <li class="breadcrumb-item active">Double Entry Bookkeeping</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/conery/dexter/edit/master/docs/deb.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="double-entry-bookkeeping">Double-Entry Bookkeeping</h1>
+<p>There are plenty of good descriptions of double-entry bookkeeping at other sites, including <a href="https://gnucash.org/viewdoc.phtml?rev=5&amp;lang=C&amp;doc=guide">GnuCash</a>, <a href="https://beancount.github.io/docs/the_double_entry_counting_method.html">Beancount</a>, and  <a href="https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html">Accounting for Computer Scientists</a>.
+This section is a quick overview of the basic ideas necessary to describe the philosophy behind Dexter.</p>
+<h2 id="accounts">Accounts</h2>
+<p>An <strong>account</strong> in a bookkeeping system is a source or a destination for money.</p>
+<p>A <strong>real</strong> account in the system corresponds to an real-world account like a bank account or credit card account.
+They have specific identifiers (the name of the company, account number, <em>etc</em>) and, at any point in time, a balance that reflects the amount of money we own (in a bank account) or owe (to a credit card company).</p>
+<p>The two main types of real accounts are <strong>assets</strong>, which we <em>own</em>, like checking and savings accounts, and <strong>liabilities</strong>, like credit cards and loans, which are things we <em>owe</em>.</p>
+<p>A <strong>nominal</strong> account is more abstract.
+These accounts are used to model sources of <strong>income</strong> and categories for <strong>expenses</strong>.
+When we set up a bookkeeping system we define nominal accounts to suit our needs.</p>
+<p>A good example of the flexibility we have in defining a nominal accounts is to consider how to define categories for monthly expenses.
+We'll want set up accounts for the basic categories with names like <code>home</code>, <code>car</code>, <code>food</code>, and <code>entertainment</code>.
+But if the goal is to do a better job of controlling monthly expenses a person might want to replace <code>food</code> with separate <code>groceries</code> and <code>restaurant</code> accounts, with the idea that the latter is a discretionary expense that can be controlled.
+Most systems, including Dexter, allow accounts to be organized in a hierarchy, so we might have a generic <code>food</code> account along with subaccounts <code>food:groceries</code> and <code>food:restaurant</code>.</p>
+<p>Income is also an abstraction.
+There could just be one catch-all account named <code>income</code> that models all money that comes our way during a month, but a more useful structure would be to have different accounts for <code>salary</code>, <code>interest</code>, <code>tips</code>, <em>etc</em>.
+Each person will set up their own income accounts depending on how they earn money.</p>
+<h2 id="transactions">Transactions</h2>
+<p>Whenever we spend or earn money we want to record it as a <strong>transaction</strong> in the bookkeeping system.</p>
+<p>In the simplest kind of transaction there will be one source account and one destination account.
+For example, when our paycheck is deposited in our bank account, the source account is <code>salary</code> and the destination account is <code>checking</code>.</p>
+<p>When we make a purchase, the source account is where the funds are coming from, for exampe a checking account.
+The destination is the expense account set up for the type of purchase.</p>
+<p>Some more examples:</p>
+<ul>
+<li>
+<p>if want to transfer some money to a savings account there would be a new transaction where the source is <code>checking</code> and the destination is <code>savings</code>.</p>
+</li>
+<li>
+<p>if we use our debit card to buy groceries there will be a transaction where the source is <code>checking</code> and the destination is <code>groceries</code>.</p>
+</li>
+<li>
+<p>if we pay for dinner using a credit card we need to add a transaction where the card account is the source and the <code>restaurant</code> account is the destination</p>
+</li>
+<li>
+<p>paying the credit card bill is another type of transfer, this time with <code>checking</code> account as source and the credit card account as destination.</p>
+</li>
+</ul>
+<p>Note that an account can be on either side of a transaction.
+In some of these examples <code>checking</code> was the source account and in others it was the destination.</p>
+<p>A transaction can have any number of sources or destinations.
+As an example, suppose we buy $200 worth of stuff at Costco using our credit card.
+If $150 of that was for food and the remaining $50 for toilet paper, laundry soap, and other household supplies, the transaction could have one source (the credit card) and two destinations (<code>groceries</code> and <code>home</code>).</p>
+<h2 id="terminology">Terminology</h2>
+<p>In bookkeeping terminology, a source account is the <em>credit</em> account and the destination account is the <em>debit</em> account.</p>
+<p>The components of a transaction are called <em>postings</em> (or sometimes just "posts").
+A posting has the name of an account, an amount, and an indication of whether the account is being used as the source (credit) or debit (destination).</p>
+<p>Historically businesses that used double-entry accounting would keep one journal, or ledger, for each account.
+When transactions were recorded, one posting was entered in the journal for the credit account and a matching posting was entered in the journal for the debit account.</p>
+<p>With modern accounting software the records are commonly stored in the same file or database.
+Here is how the Costco transaction from above might be shown in a text file that uses the <strong>Journal format</strong> of plain-text accounting applications (Dexter can also read and write files using this format):</p>
+<pre><code>2024-01-17  Costco
+    groceries         $150.00      ; cheese, wine, cookies for party
+    home               $50.00      ; TP, soap, misc household
+    visa             $-200.00
+</code></pre>
+<p>The first line describes the transaction itself.
+Below that are three postings, showing the account name and amount.
+In a Journal file the sign of the amount indicates whether the posting is a debit (positive amount) or credit (negative) amount.
+In the case $200 is coming from the <code>visa</code> account, with $150 going to <code>groceries</code> and $50 going to <code>home</code>.</p>
+<h2 id="transactions-should-be-balanced">Transactions Should Be Balanced</h2>
+<p>The heart of double-entry bookkeeping is the reuirement that each transaction should be balanced:  the sum of the debits must match the sum of the credits.</p>
+<p>This requirement can help track down many different kinds of errors.
+Here are a few that I have been able to fix more quickly by using double-ended bookkeeping.</p>
+<h4 id="missing-transaction-i">Missing Transaction (I)</h4>
+<p>It's easy to overlook an account if it is rarely used.
+If CSV records from an account are not included in the database, there may be "dangling transfers."
+For example, if there is a transfer from account A to account B, but records from B were not imported, the finance tracker will have a posting showing a withdrawal from A but it won't find anything to balance it with.</p>
+<h4 id="missing-transactions-ii">Missing Transactions (II)</h4>
+<p>I have used several different web applications that aggregate transactions.
+They connect to financial institutions for you and collect all your records.
+The applications have their own finance tracking tools, but they will also let you export all your transactions to a CSV file.</p>
+<p>Unfortunately there can be errors here, too.
+I have seen "gaps" where a few days worth of transactions from a source were simply not included.</p>
+<p>Double-entry bookkeeping makes this sort of error is easy to find, as well, since the balance in our system won't match the balance reported by the bank or card company.</p>
+<h4 id="inverted-flow">Inverted Flow</h4>
+<p>If we purchase something using a credit card, and then later return that item, the return shows up in the CSV file as a separate transaction.
+Depending on how the downloads are formatted, returns may be distinguished from purchases by inverting the sign on the amount (purchases are positive, returns are negative) or printing the amount in a different column.</p>
+<p>If returns are rare, and the amounts are small, it's easy to get mixed up and enter a return in the expense tracker as a purchase.
+What should be a credit (transfer out) of the expense account is recorded as a debit (transfer in).</p>
+<p>These errors will show up when "reconciling" a card payment:  the total value of all purchases and returns should equal the amount of a payment.
+Dexter has tools that will help resolve these discrepencies.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../history/" class="btn btn-neutral float-left" title="History"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../philosophy/" class="btn btn-neutral float-right" title="Philosophy">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy 2025 John Conery</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/conery/dexter" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../history/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../philosophy/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

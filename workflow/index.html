@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Workflow - Dexter</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../css/dex.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Workflow";
+        var mkdocs_page_input_path = "workflow.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Dexter
+        </a>
+        <div class="version">
+          Version 0.0.5
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../history/">History</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deb/">Double Entry Bookkeeping</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../philosophy/">Philosophy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes/">Envelope Budgeting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../command_line/">Command Line API</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Workflow</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#download-csvs">Download CSVs</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#import-csvs">Import CSVs</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#create-transactions">Create Transactions</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#review-unpaired-records">Review Unpaired Records</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fill-envelopes">Fill Envelopes</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#reports-and-backups">Reports and Backups</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_install/">Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../db_server/">Database Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../folder/">Create Your Project Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex/">Shell Command</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_init/">Initialize the Database</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_import/">Import CSV Files</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_regexp/">Import Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_pair/">Pair Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_review/">Review Unpaired Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_select/">Select Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_report/">Print Reports</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_fill/">Fill Envelopes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_income/">Review Income</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../options/">Command Line Options</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../accounts/">Defining Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../regexp/">Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_init/">dex init</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_import/">dex import</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_pair/">dex pair</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_review/">dex review</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_select/">dex select</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_report/">dex report</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_save/">dex save</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_restore/">dex restore</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">The Budget Model</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes_dex/">Envelope Budgeting with Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balances/">Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../budget_trans/">Budget Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_expenses/">Expense Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_income/">Income Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../fill_date/">Fill Date</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../adjustments/">Adjustments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../equity/">Using the Equity Account</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nominal/">Nominal Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dexter and hledger</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hledger/">Notes for hledger Users</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/">Database API</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../modules/">Modules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Dexter</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Introduction</li>
+      <li class="breadcrumb-item active">Workflow</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/conery/dexter/edit/master/docs/workflow.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="monthly-workflow">Monthly Workflow</h1>
+<p>The standard workflow assumes transactions are saved in a database.
+Each month a new batch of CSVs is downloaded, added to the database, and refined into a set of transactions.</p>
+<p>Because the scripts that initialize a database can read <code>.journal</code> files from hledger there is an aternative workflow for users who just want to use Dexter to convert CSV files into transactions or for envelope budgeting.
+In this workflow, a temporary database is created using account definitions, new records are loaded from CSV files, and the results are written back out in a <code>.journal</code> format that can be read by hldeger.
+See <a href="../hledger/">hledger Workflow</a> for details.</p>
+<h2 id="download-csvs">Download CSVs</h2>
+<p>In the current version of Dexter the records from a financial institution need to be saved in files that have names based on the account they will be loaded into.
+For example, if you have a Chase credit card, and the account you set up for it in Dexter is named <code>liabilities:chase:visa</code>, you will download a month's worth of transactions and rename it <code>visa.csv</code>.</p>
+<blockquote>
+<p>A future update will be able to work with CSV files downloaded from Mint.com and other "aggregators".  These services automatically connect to financial institutions and then let you download a single CSV will all your transactions.  In this case Dexter will get the account name from the CSV records instead of the CSV file name.</p>
+</blockquote>
+<h2 id="import-csvs">Import CSVs</h2>
+<p>If you move all your CSV files to the same folder you will be able to import them with a single command, <em>e.g.</em></p>
+<pre><code>$ dex import Downloads/*
+</code></pre>
+<p>Each line in each CSV will become a single <strong>unpaired</strong> posting that needs to be matched with another posting in order to turn it into a transaction.</p>
+<h2 id="create-transactions">Create Transactions</h2>
+<p>The goal now is to create Transaction records by pairing the new postings using the <code>pair</code> command.</p>
+<p>There are two ways Dexter will do this:</p>
+<ul>
+<li>
+<p>Dexter first looks for matching halves of transfers.  For example, if you transfer money from your checking account to your savings account, Dexter will have found a debit in one CSV file and a credit in the other.  The <code>pair</code> command will create a new transaction and save it in the database.</p>
+</li>
+<li>
+<p>Next it uses pattern matching rules.  For example, we often buy fish at a store named "Newman's Fish Market".  Our database has a rule that says whenver a credit card has a purchase at Newman's it can create a new debit posting to <code>expenses:food:groceries</code> and create a new transaction using the CSV record and the new posting. </p>
+</li>
+</ul>
+<h2 id="review-unpaired-records">Review Unpaired Records</h2>
+<p>There will always be postings that cannot be paired automatically.
+For example, if we buy something from Amazon.com, the record in the CSV file will simply have something like "AMZN Mktp" with no indication of what we purchased.
+In these cases we have to review the postings one at a time to clean up the description and assign an expense category.</p>
+<p>As described earlier, the <code>review</code> command uses a read-eval-print loop that lets us supply the missing information with a minimum of keystrokes.</p>
+<h2 id="fill-envelopes">Fill Envelopes</h2>
+<p>The next step is to add the transaction that fills the budget envelopes.</p>
+<blockquote>
+<p>Currently this is done by using a text editor to create a transaction in Journal format.  Edit the transaction with to have the correct date and make sure the amounts balance, then import the file with <code>dex import</code>.</p>
+<p>A future update will add a new command, <code>dex fill</code>, that will automatically find the most recent deposits and create a new bucket transaction.</p>
+</blockquote>
+<h2 id="reports-and-backups">Reports and Backups</h2>
+<p>The remaining steps are optional.</p>
+<p>A <code>select</code> command can print a table showing transactions or postings that match various constraints.
+For example, this will print all recent grocery purchases that were more than $100:</p>
+<pre><code class="language-bash">$ dex select --month may --min_amount 100.00
+</code></pre>
+<p>The <code>report</code> command can generate tables showing account balances, containing either individual records or a summary grouped by account name.</p>
+<p><img alt="table of grouped food expenses" src="../images/report.food.grouped.png" /></p>
+<p>Other commands described in the reference section include:</p>
+<ul>
+<li><code>dex save</code> saves records in a JSON-like format as a way of backing up the database</li>
+<li><code>dex restore</code> will create a new database from saved records</li>
+<li><code>dex list</code> will print information about the database, for example lists of account names</li>
+<li><code>dex audit</code> runs various consistency checks</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../command_line/" class="btn btn-neutral float-left" title="Command Line API"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../dex_install/" class="btn btn-neutral float-right" title="Dexter">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy 2025 John Conery</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/conery/dexter" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../command_line/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../dex_install/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

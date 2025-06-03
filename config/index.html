@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Configuration - Dexter</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../css/dex.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Configuration";
+        var mkdocs_page_input_path = "config.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Dexter
+        </a>
+        <div class="version">
+          Version 0.0.5
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../history/">History</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deb/">Double Entry Bookkeeping</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../philosophy/">Philosophy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes/">Envelope Budgeting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../command_line/">Command Line API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../workflow/">Workflow</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_install/">Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../db_server/">Database Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../folder/">Create Your Project Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex/">Shell Command</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_init/">Initialize the Database</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_import/">Import CSV Files</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_regexp/">Import Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_pair/">Pair Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_review/">Review Unpaired Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_select/">Select Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_report/">Print Reports</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_fill/">Fill Envelopes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_income/">Review Income</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Configuration</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#finding-configuration-files">Finding Configuration Files</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#create-a-template">Create a Template</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#the-structure-of-a-configuration-file">The Structure of a Configuration File</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#defining-a-parser">Defining a Parser</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#configuration-section">Configuration Section</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#rules">Rules</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#expressions">Expressions</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#date">date</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#description">description</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#amount">amount</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#credit">credit</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#final-notes-on-writing-parsers">Final Notes on Writing Parsers</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../options/">Command Line Options</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../accounts/">Defining Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../regexp/">Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_init/">dex init</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_import/">dex import</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_pair/">dex pair</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_review/">dex review</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_select/">dex select</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_report/">dex report</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_save/">dex save</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_restore/">dex restore</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">The Budget Model</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes_dex/">Envelope Budgeting with Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balances/">Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../budget_trans/">Budget Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_expenses/">Expense Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_income/">Income Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../fill_date/">Fill Date</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../adjustments/">Adjustments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../equity/">Using the Equity Account</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nominal/">Nominal Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dexter and hledger</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hledger/">Notes for hledger Users</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/">Database API</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../modules/">Modules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Dexter</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">User Documentation</li>
+      <li class="breadcrumb-item active">Configuration</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/conery/dexter/edit/master/docs/config.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="configuration">Configuration</h1>
+<p>Dexter uses a configuration file to define settings used by various scripts.
+Many of these are cosmetic, for example colors to use when printing tables on the terminal.</p>
+<p>But there is one important part of the configuration that many users might need to edit.
+The <strong>parsers</strong> that extract data from CSV files downloaded from banks, credit card companies, and other financial institutions are defined in the configuration file.
+Dexter comes with a set of predefined parsers, but there are undoubtedly banks and card companies that use a format Dexter doesn't know about.</p>
+<blockquote>
+<p><em><strong>TBD:</strong>  Parsers for other widely used credit cards (American Express, Citi, and Apple (Goldman Sachs)) will be added soon.  We also plan to add a section to the GitHub repo for user-contributed parsers.</em></p>
+</blockquote>
+<p>The sections on this page:</p>
+<ul>
+<li>where Dexter looks for configuration files</li>
+<li>how to create a template configuation file</li>
+<li>the structure of a configuration file</li>
+<li>how to define parsers</li>
+</ul>
+<h2 id="finding-configuration-files">Finding Configuration Files</h2>
+<p>Dexter looks in the following locations, in order:</p>
+<ul>
+<li>a path specified by the <code>--config</code> option on the command line</li>
+<li>a path stored in an environment variable named DEX_CONFIG</li>
+<li>a file named <code>dex.toml</code> in in current directory (where the <code>dex</code> command is run)</li>
+<li>a default configuration file in the installed code</li>
+</ul>
+<h2 id="create-a-template">Create a Template</h2>
+<p>There are two ways a user can make a template to use as a starting point for their own configuration.</p>
+<p>The first is to copy the file from the tutorial.
+The file is named <code>dex.toml</code> and can be found in the top level of the tutorial data folder.</p>
+<p>The second is to use Dexter's <code>config</code> command.
+Simply type</p>
+<pre><code class="language-shell">$ dex config
+</code></pre>
+<p>and Dexter will print a template on the terminal.
+To save the file in the default location (a file named <code>dex.toml</code> in your project directory) just redirect the output:</p>
+<pre><code class="language-shell">$ dex config &gt; ./dex.toml
+</code></pre>
+<p>The template defines two parsers.
+One is for Oregon Community Credit Union (OCCU), which has a format that should be typical of the one used by most banks and should be easily adapted for your bank.
+The other is for Chase credit cards used to make the tutorial data.
+It should be usable as is for all Chase cards.</p>
+<h2 id="the-structure-of-a-configuration-file">The Structure of a Configuration File</h2>
+<p>As the filename extension <code>.toml</code> implies, configuration files use a standard format known as TOML.</p>
+<blockquote>
+<p><em>It's unlikely you'll need to know more than what is covered here, but if you're curious or do run into trouble the TOML documentation is at <a href="https://toml.io/en/">TOML: Tom's Obvious Minimal Language</a>.</em></p>
+</blockquote>
+<p>A line that starts with a hash symbol (<code>#</code>) is a comment, and the file can include blank lines to improve readability.</p>
+<p>A TOML file is organized by section.
+A section name is written in brackets, <em>e.g.</em> <code>[terminology]</code>.</p>
+<p>A section can have subsections, which are indicated by periods in the name.
+The default configuration has a section named <code>[csv]</code> and then subsections named <code>[csv.occu]</code> and <code>[occu.chase]</code>.</p>
+<p>Configuration settings look like assignment statements in a programming language, with a name, an equal sign, and a value.
+Values can be numbers, dates, strings, or compound items like lists of strings.
+All of Dexter's configuration settings will be simple numbers or strings.</p>
+<h2 id="defining-a-parser">Defining a Parser</h2>
+<p>A parser consists of a set of rules for extracting data from a CSV file downloaded from a financial institution.</p>
+<p>The first step is to find out what information we have to work with in each CSV file.
+The first line in a file is <strong>header</strong>, which is a list of column names, separated by commas.</p>
+<blockquote>
+<p><em>Note: some CSV files omit the header line and just contain data.  It's not likely you will get a file without column names from a financial institution, but if you do you'll need to edit the file and add a header.</em></p>
+</blockquote>
+<p>This is the header on a file from OCCU:</p>
+<pre><code>&quot;Transaction ID&quot;,&quot;Posting Date&quot;,&quot;Effective Date&quot;,&quot;Transaction Type&quot;,&quot;Amount&quot;,&quot;Check Number&quot;,&quot;Reference Number&quot;,&quot;Description&quot;,&quot;Transaction Category&quot;,&quot;Type&quot;,&quot;Balance&quot;,&quot;Memo&quot;,&quot;Extended Description&quot;
+</code></pre>
+<p>and here is the header in a file from Chase:</p>
+<pre><code>Transaction Date,Post Date,Description,Category,Type,Amount,Memo
+</code></pre>
+<p>It doesn't matter whether the names are enclosed in quotes, or whether a column name is a single word or multiple words.</p>
+<p>The order doesn't matter, either.
+Dexter will look for data using a columnn name, not a column position.</p>
+<h3 id="configuration-section">Configuration Section</h3>
+<p>If you are writing a new parser the first step is to add a new section to the configuration file.
+For example, if you have American Express cards, you might name the parser <code>amex</code>, and you'll add a new section named <code>[csv.amex]</code>.</p>
+<h3 id="rules">Rules</h3>
+<p>When the <code>import</code> command reads a CSV file it creates one new Posting for each line in the CSV (described in <a href="../philosophy/">Philosophy</a>).
+The new Posting has four attributes:</p>
+<ul>
+<li>description</li>
+<li>date</li>
+<li>amount</li>
+<li>credit (a boolean that is True if the posting is a credit, False if it is a debit)</li>
+</ul>
+<p>Every parser has exactly four configuration settings.
+The name to the left of the equal sign is one of the four attribute names shown above, and the value on the right side is an expression that tells the parser where to find the value for that attribute.</p>
+<h3 id="expressions">Expressions</h3>
+<p>The values on the right side of a setting are Python expressions.
+Even if you don't know Python you should be able to understand the expressions in the default configuration and generalize them to write your own expressions.</p>
+<p>To explain the sorts of things that can go into a Python expression the examples below are based on rules in the example configuration, starting with the simplest and working up to more complex rules.</p>
+<blockquote>
+<p><em>A more detailed description of what is allowed in Python expressions will be included in the Reference section on <a href="../parsers/">Parsers</a></em>.</p>
+</blockquote>
+<h4 id="date"><code>date</code></h4>
+<p>In the Python code the name <code>rec</code> (short for "record") refers to the current line in the CSV file.
+To access part of a line write the column name in brackets immediately after <code>rec</code>.  </p>
+<p>For example, the transaction date in an OCCU download is in a column named "Posting Date", so the Python expression that refers to the date column on the current line is <code>rec["Posting Date"]</code>.</p>
+<p>Here is the rule in the OCCU parser:</p>
+<pre><code>date = 'rec[&quot;Posting Date&quot;]'
+</code></pre>
+<p>That simply means "use the "Posting Date" column from the CSV file as the value of the date in the new posting that will be added to the database."</p>
+<p>Notice an important detail: the expression on the right side of the rule has a string inside a string.
+The outer (single) quotes are needed to tell TOML that the attribute is a string, and the inner (double) quotes tell Python that "Posting Date" is string to use for the column name.</p>
+<p>In the Chase download the column has a slightly different name, using "Post" instead of "Posting".
+This is the rule in the Chase parser:</p>
+<pre><code>date = 'rec[&quot;Post Date&quot;]'
+</code></pre>
+<!-- One last note:  The file from OCCU has two columns with transaction dates, one called "Posting Date" and one called "Effective Date".
+The Chase file also has two dates, "Transaction Date" and "Post Date".
+In these situations you can choose which one to use. -->
+
+<h4 id="description"><code>description</code></h4>
+<p>A CSV file from Chase has a column named "Description" that has a brief description of a transaction.
+It's usually the name of a business, <em>e.g.</em> "CHEVRON" or "IZAKAYA JAPANESE RESTAURANT".
+So a simple rule for filling the <code>description</code> attribute of the new posting is to just copy the value from this column:</p>
+<pre><code>description = 'rec[&quot;Description&quot;]'
+</code></pre>
+<p>The rule for the OCCU download is a little more interesting:</p>
+<pre><code>description = 'rec[&quot;Description&quot;] + rec[&quot;Extended Description&quot;]'
+</code></pre>
+<p>In Python, if <code>s</code> and <code>t</code> are strings, the expression <code>s + t</code> means "combine <code>s</code> and <code>t</code> into one longer string".</p>
+<p>What's going on here is that neither column, by itself, has enough useful information.
+In some transactions we'll want the "Description" column, and in others we'll want the "Extended Description".
+The solution is to combine both columns into one long string and save that in the database.</p>
+<p>That's going to lead to some pretty ugly looking descriptions.
+But keep in mind, the next step in the overall workflow, after importing records, is to run a script that applies regular expressions to postings, and those regular expressions will usually clean things up.
+So if the parser saves a description like</p>
+<pre><code> Transfer to PayPalPAYPAL INSTANT TRANSFER - INST XFER
+</code></pre>
+<p>a regular expression can transform it into</p>
+<pre><code>PayPal Payment
+</code></pre>
+<p>A general rule:</p>
+<blockquote>
+<p><em>When writing expressions for the desciption attribute, make sure you save enough "raw material" from the CSV file so regular expressions later in the workflow have enough to work with.</em></p>
+</blockquote>
+<p>One final note:  you can save a "marker" in the description so you (and the regular expression) can know where the two parts were in the CSV file.
+This rule will put a slash between the two fields from the CSV file:</p>
+<pre><code>description = 'rec[&quot;Description&quot;] + &quot;/&quot; + rec[&quot;Extended Description&quot;]'
+</code></pre>
+<p>That Python expression combines three strings (a column from the CSV, a slash, and another column) into one longer expression.
+Now the PayPal description will look like this:</p>
+<pre><code>Transfer to PayPal/PAYPAL INSTANT TRANSFER - INST XFER
+</code></pre>
+<h4 id="amount"><code>amount</code></h4>
+<p>The rule for the <code>amount</code> attribute needs to convert a string from the CSV file (all columns in a CSV file are strings) into a number, and to make sure the number is positive (all amounts on postings in our database are positive).</p>
+<p>Python's builtin <code>float</code> function is just what we need.
+If <code>s</code> is a string containing digits (and maybe a decimal point) the expression <code>float(s)</code> means "convert <code>s</code> into a number".</p>
+<p>To write the parser rule, just identify the column that has the transaction amount and pass that to <code>float</code>.
+Both OCCU and Chase use a column named "Amount" so the rule will have this expression:</p>
+<pre><code>float(rec[&quot;Amount&quot;])
+</code></pre>
+<p>In looking at the downloads we can see that both CSV files have positive and negative amounts in this column.
+To make sure all our values are positive just pass the result of calling <code>float</code> to another builtin function, <code>abs</code> (for "absolute value").
+The final rule is:</p>
+<pre><code>amount = 'abs(float(rec[&quot;Amount&quot;]))'
+</code></pre>
+<blockquote>
+<p><em><strong>TBD</strong>:  <a href="../parsers/">Parsers</a> shows how to write a rule when a CSV file has separate columns for credit and debits.</em></p>
+</blockquote>
+<h4 id="credit"><code>credit</code></h4>
+<p>The last attribute we need to define is the <code>credit</code> attribute.
+The rule has this general form:</p>
+<pre><code>credit = 'p(...)'
+</code></pre>
+<p>where <code>p</code> is a "predicate", or in Python terminology, a Boolean expression.
+It the expression is True our new posting will be a credit, otherwise it will be a debit.</p>
+<p>If a CSV file is for an asset account, for example it comes from a bank and is for a checking or savings account, we want transactions that are <strong>withdrawals or purchases</strong> to become <strong>credits</strong> in our database.
+These will eventually be paired with a debit to an expense account to form a complete transaction.
+On the other hand, CSV records for <strong>deposits</strong> should become <strong>debits</strong>.</p>
+<p>In looking through a CSV file from OCCU it's apparent there are negative numbers in the amount column for purchases/withdrawals and positive numbers for deposits.
+So all we need to do is look at the sign in the "Amount" column.
+If there is a negative sign we want the new posting to be a credit.</p>
+<p>Python has a very useful string method named <code>startswith</code> that we can use for our rule.
+In Python, if <code>s</code> and <code>t</code> are strings, the expression <code>s.startswith(t)</code> is True if the letters in <code>t</code> occur at the beginning of the <code>s</code>.
+So to see if the amount column has a minus sign at the front the Python code is <code>rec['Amount'].startswith("-")</code> .</p>
+<p>In English, the rule would be "set <code>credit</code> to True if the first character in the Amount column is a minus sign".
+This is how to write it in Python:</p>
+<pre><code>credit = 'rec[&quot;Amount&quot;].startswith(&quot;-&quot;)'
+</code></pre>
+<p>For the Chase parser the same logic applies.
+If a transaction is a purchase we want it to be a credit, but if it's a return or a card payment we want it to be a debit.
+The "Amount" column in this file also has minus signs for credits, so the rule is the same as the rule for the OCCU parser.</p>
+<h3 id="final-notes-on-writing-parsers">Final Notes on Writing Parsers</h3>
+<p>Any column from the CSV file can be used in an expression.
+Some other columns you might find useful are memos (notes that might be included on an electronic check) and transaction types (where an entry might be a word like "purchase" or "payment").</p>
+<p>Many organizations have started including "category" or "transaction category" columns.
+These are automatically generated and are often helpful.
+For example, if a business is known to be a restaurant, the category column might have "Food &amp; Drink".</p>
+<p>A potential strategy for coming up with categories for purchases might be to save these columns as part of the description, maybe at the end, after a special character:</p>
+<pre><code class="language-plain">IZAKAYA JAPANESE RESTAURANT / Food &amp; Drink
+</code></pre>
+<p>Then when you write the regular expressions used by the <code>pair</code> command (described in <a href="../dex_pair/">Regular Expressions</a>) you can write a rule that debits your <code>restaurant</code> account when it sees this credit.</p>
+<p>In my experience, however, these categories are inconsistent and not very useful.
+They are based solely on the name of the payee, and often have mistakes.
+For example, if you pay for admission to the Ford Theater, you would probably characterize it as entertainment, but the CSV download is likely going to call it an automotive expense.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../tut_recap/" class="btn btn-neutral float-left" title="Recap"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../options/" class="btn btn-neutral float-right" title="Command Line Options">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy 2025 John Conery</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/conery/dexter" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../tut_recap/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../options/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

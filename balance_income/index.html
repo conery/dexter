@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Income Account Balances - Dexter</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../css/dex.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Income Account Balances";
+        var mkdocs_page_input_path = "balance_income.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Dexter
+        </a>
+        <div class="version">
+          Version 0.0.5
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../history/">History</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deb/">Double Entry Bookkeeping</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../philosophy/">Philosophy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes/">Envelope Budgeting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../command_line/">Command Line API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../workflow/">Workflow</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_install/">Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../db_server/">Database Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../folder/">Create Your Project Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex/">Shell Command</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_init/">Initialize the Database</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_import/">Import CSV Files</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_regexp/">Import Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_pair/">Pair Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_review/">Review Unpaired Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_select/">Select Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_report/">Print Reports</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_fill/">Fill Envelopes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_income/">Review Income</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../options/">Command Line Options</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../accounts/">Defining Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../regexp/">Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_init/">dex init</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_import/">dex import</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_pair/">dex pair</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_review/">dex review</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_select/">dex select</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_report/">dex report</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_save/">dex save</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_restore/">dex restore</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">The Budget Model</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes_dex/">Envelope Budgeting with Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balances/">Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../budget_trans/">Budget Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_expenses/">Expense Account Balances</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Income Account Balances</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#giving-every-dollar-a-job">Giving Every Dollar a Job</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#cola">COLA</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#interest-income">Interest Income</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../fill_date/">Fill Date</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../adjustments/">Adjustments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../equity/">Using the Equity Account</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nominal/">Nominal Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dexter and hledger</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hledger/">Notes for hledger Users</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/">Database API</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../modules/">Modules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Dexter</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">The Budget Model</li>
+      <li class="breadcrumb-item active">Income Account Balances</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/conery/dexter/edit/master/docs/balance_income.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="income-account-balance">Income Account Balance</h1>
+<p>When a database has a budget allocation transaction it changes how we interpret the balance for income accounts.</p>
+<p>Currently your income transactions probably all have the same general form as the example shown above:</p>
+<pre><code class="language-plain">2024-01-02  paycheck
+    assets:checking            $5000.00
+    income:yoyodyne           $-5000.00
+</code></pre>
+<p>Unless there is a reason you have to return some income, all of the entries for the income account are credits and the balance keeps getting more and more negative.</p>
+<p>Now consider what happens when we include the budget transaction:</p>
+<pre><code class="language-plain">2024-01-02  fill envelopes                        ; budget:
+    income:yoyodyne                $5000.00
+    expenses:home                 $-3000.00
+    expenses:car                  $-1000.00
+    expenses:food                 $-1000.00
+</code></pre>
+<p>That transaction, like every other transaction, should be balanced.
+The sum of the credits to the expense accounts should match the amount debited to the income account.</p>
+<p>So one way to look at this transaction is that the income is being divided among all the expense accounts:  the total over all credits (money put in envelopes) should equal the debit (the income amount).</p>
+<h3 id="giving-every-dollar-a-job">Giving Every Dollar a Job</h3>
+<p>After including the budget transaction, if the income account balance is not $0 it means something is wrong.</p>
+<ul>
+<li>
+<p>If the balance is less than $0 it means there is left over income that was not distributed to an envelope.</p>
+</li>
+<li>
+<p>If the amount is greater than $0 it means the budget is off -- we're trying to allocate more money than we have.</p>
+</li>
+</ul>
+<p>When the balance is $0 we've successfully given every dollar a job.</p>
+<p><strong>Note:</strong>  "Give every dollar a job" does not mean "spend every dollar."  A monthly budget can include putting money into a savings account.  We'll see how to do that below, in <a href="#using-the-equity-account">Using the Equity Account</a>.</p>
+<h3 id="cola">COLA</h3>
+<p>One way you can end up with unallocated income is if one of your income sources gives you a raise.</p>
+<p>A common workflow is to download CSV records from your bank, add them to the database, and print reports.
+When the balance reports shows the income account has an amount less than $0 it's a signal to edit your budget to make sure it matches your new income.</p>
+<p>Dexter's <code>fill</code> command creates a budget transaction automatically from one or more deposits.
+It uses a budget table defined in the configuration table.
+If a deposit is higher, due to a cost of living adjustment (COLA) or for some other reason, the transaction is unbalanced and the income account will have a positive balance.</p>
+<h3 id="interest-income">Interest Income</h3>
+<p>Another common occurrence is that your asset accounts will earn interest each month.</p>
+<p>One way to deal with is to have a rule or a script that runs every month to compute the total earned in all accounts and insert a new budget transaction that allocates that amount to one of your envelopes:</p>
+<pre><code class="language-plain">2024-01-31  allocate interest income           ; budget:
+    income:interest                $12.34
+    expenses:bank                 $-12.34
+</code></pre>
+<p>I have an envelope named <code>bank</code> that I use for annual credit card fees, the fee for renting a safe deposit box, and other random charges, so I just put interest there to help pay fees when they crop up.
+But of course you could put it in travel, restaurant, or any other place where it would be nice to have some "found money."</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../balance_expenses/" class="btn btn-neutral float-left" title="Expense Account Balances"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../fill_date/" class="btn btn-neutral float-right" title="Fill Date">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy 2025 John Conery</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/conery/dexter" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../balance_expenses/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../fill_date/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

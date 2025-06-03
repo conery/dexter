@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Import Regular Expressions - Dexter</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../css/dex.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Import Regular Expressions";
+        var mkdocs_page_input_path = "tut_regexp.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Dexter
+        </a>
+        <div class="version">
+          Version 0.0.5
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../history/">History</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deb/">Double Entry Bookkeeping</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../philosophy/">Philosophy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes/">Envelope Budgeting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../command_line/">Command Line API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../workflow/">Workflow</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_install/">Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../db_server/">Database Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../folder/">Create Your Project Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex/">Shell Command</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_init/">Initialize the Database</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_import/">Import CSV Files</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Import Regular Expressions</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#a-pairing-example">A Pairing Example</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pairing-rules">Pairing Rules</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#transfers">Transfers</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fill-and-sub-rules">fill and sub Rules</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#the-regexpcsv-file">The regexp.csv File</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_pair/">Pair Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_review/">Review Unpaired Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_select/">Select Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_report/">Print Reports</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_fill/">Fill Envelopes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_income/">Review Income</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../options/">Command Line Options</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../accounts/">Defining Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../regexp/">Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_init/">dex init</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_import/">dex import</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_pair/">dex pair</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_review/">dex review</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_select/">dex select</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_report/">dex report</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_save/">dex save</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_restore/">dex restore</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">The Budget Model</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes_dex/">Envelope Budgeting with Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balances/">Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../budget_trans/">Budget Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_expenses/">Expense Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_income/">Income Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../fill_date/">Fill Date</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../adjustments/">Adjustments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../equity/">Using the Equity Account</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nominal/">Nominal Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dexter and hledger</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hledger/">Notes for hledger Users</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/">Database API</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../modules/">Modules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Dexter</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorial</li>
+      <li class="breadcrumb-item active">Import Regular Expressions</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/conery/dexter/edit/master/docs/tut_regexp.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="import-regular-expressions">Import Regular Expressions</h1>
+<p>The next step in the workflow is to "pair" the postings we just imported.
+Dexter uses pattern matching rules as a key part of this process.
+So before we run the <code>pair</code> command we have to load the patterns into the database.</p>
+<blockquote>
+<p><em>The pattern matching rules for the tutorial are in a file named <code>regexp.csv</code>. You do not need to make any changes to this file, but you can open it with a text editor while you are reading the examples shown below.</em></p>
+</blockquote>
+<h2 id="a-pairing-example">A Pairing Example</h2>
+<p>As an example of what we want the <code>pair</code> command to do, consider one of the postings created by importing the checking account data:</p>
+<pre><code class="language-plain">2024-04-24     -$15.00   visa   NEWMAN'S FISH COMPANY       #unpaired
+</code></pre>
+<p>The minus sign in the amount means it is a credit (withdrawal) to the checking account.</p>
+<blockquote>
+<p><em><strong>Note:</strong> the terminal output shows credits/negative numbers in red, without the minus sign.</em></p>
+</blockquote>
+<p>If we regularly shop at this store we will see this kind of posting again in the future.
+Our monthly financial workflow would be more efficient if Dexter could automatically create a new transaction for us:  whenever it sees a credit with a description that matches "NEWMAN" it should create a debit to <code>expenses:food:groceries</code>.
+It could then create a new transaction using the two postings.</p>
+<h2 id="pairing-rules">Pairing Rules</h2>
+<p>The key word in that previous paragraph is "match".
+Dexter uses Python regular expressions to make pairs of postings.
+For each record read from a CSV file, it looks through a set of <strong>pairing rules</strong> to find a rule that can be applied to the CSV record.
+The parts of a rule are:</p>
+<ul>
+<li>a pattern to match against the posting description</li>
+<li>the action to take when a description matches the pattern</li>
+<li>the account name to use for the new pairing</li>
+<li>a pattern for the transaction description</li>
+</ul>
+<p>As an example, here is the rule for Newman's:</p>
+<pre><code class="language-plain">trans,NEWMAN,Newman's Fish,groceries
+</code></pre>
+<p>The parts are:</p>
+<ul>
+<li><code>trans</code> is the action to take -- it means "make a new transaction"</li>
+<li>"NEWMAN" is the pattern</li>
+<li>"Newman's Fish" is the description that will go in the new transaction</li>
+<li>the last column is the account name to use in the new posting</li>
+</ul>
+<p>The pattern and new description in this example are pretty boring -- all the rule is doing is turning the all-uppercase input into a more readable mixed case.
+In other cases, however, the pattern matching rules can be very helpful.
+For example, a CSV record in the checking account can have a description like "Payment to Chase Credit Card" or ""Payment to Citi Credit Card".
+We can make a rule that matches any card name and then include that name in the transaction description:</p>
+<pre><code class="language-plain">xfer,Payment to (\w+),{0} Payment,
+</code></pre>
+<p>The <code>\w+</code> in the pattern means "any string of letters" and the <code>{0}</code> in the new description means "whatever letters were found in the input".</p>
+<blockquote>
+<p><em>The full set of instructions for writing pairing rules can be found in <a href="../regexp/">Regular Expressions</a>.</em></p>
+</blockquote>
+<h2 id="transfers">Transfers</h2>
+<p>The <code>xfer</code> in the rule shown above for the Chase payment is a second type of action the <code>pair</code> script can take.
+Here the goal isn't to create a new posting but to try to find two complementary postings that already exist.
+In this case, if there is a card payment made from the checking account, there should be a matching deposit in the credit card account.</p>
+<p>Transfer rules are also used for transactions that move money between bank accounts.
+The sample data has a transfer from checking to savings each month.</p>
+<p>In each case -- card payments and bank transfers -- the pairing rules should have patterns that tell Dexter how to identify the two halves of a transfer so it can pair them to make a new transaction.</p>
+<h2 id="fill-and-sub-rules"><code>fill</code> and <code>sub</code> Rules</h2>
+<p>The CSV file can have two other kinds of rules, called "fill" and "sub" (short for "substitution") rules.
+These are used by the <code>review</code> command, so we won't discuss them until that section of the tutorial.</p>
+<h2 id="the-regexpcsv-file">The <code>regexp.csv</code> File</h2>
+<p>Pairing rules need to be saved in a CSV file and then loaded into the database.
+Adding rules to the database uses the same <code>import</code> command that parses downloads.
+Simply add the <code>--regexp</code> option to tell Dexter that the file being imported has pairing rules instead of downloaded transactions.</p>
+<p>The rules for the sample data are in a file named <code>regexp.csv</code>.
+Type this command to add them to the <code>dev</code> database:</p>
+<pre><code class="language-shell">$ dex import --regexp regexp.csv
+</code></pre>
+<p>Run the <code>info</code> command again, and now you will see the pairing rules have been added (the count in the <code>reg_exp</code> column changes from 0 to 29):</p>
+<pre><code class="language-shell">$ dex info
+
+Databases                                                 
+┏━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓
+┃ name         ┃ account ┃ transaction ┃ entry ┃ reg_exp ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━┩
+│ dev          │      18 │           2 │    32 │      29 │
+└──────────────┴─────────┴─────────────┴───────┴─────────┘
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../tut_import/" class="btn btn-neutral float-left" title="Import CSV Files"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../tut_pair/" class="btn btn-neutral float-right" title="Pair Entries">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy 2025 John Conery</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/conery/dexter" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../tut_import/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../tut_pair/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

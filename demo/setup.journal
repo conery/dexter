@@ -1,0 +1,7 @@
+account assets:checking
+account expenses:food
+account expenses:home
+
+2024-01-01  initial balances
+    assets:checking           $1000.00
+    equity                   $-1000.00

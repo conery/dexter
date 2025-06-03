@@ -1,0 +1,11 @@
+details.quote { margin-top: 0px; margin-bottom: 30px; }
+
+.rst-content code { 
+    color: darkblue;
+}
+
+.rst-content code, .rst-content tt, code { 
+    border: 0px; 
+    font-size: 80%;
+    padding: 1px 1px;
+}

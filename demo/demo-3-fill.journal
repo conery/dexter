@@ -1,0 +1,13 @@
+include setup.journal
+
+2024-01-02  paycheck
+    assets:checking                $5000.00
+    income:yoyodyne               $-5000.00
+
+2024-01-02  fill envelopes  ; budget:
+    income:yoyodyne                $5000.00
+    expenses:home                 $-3000.00
+    expenses:car                  $-1000.00
+    expenses:food                 $-1000.00
+
+include demo-2-credits.journal

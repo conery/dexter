@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Defining Accounts - Dexter</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../css/dex.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Defining Accounts";
+        var mkdocs_page_input_path = "accounts.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Dexter
+        </a>
+        <div class="version">
+          Version 0.0.5
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../history/">History</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deb/">Double Entry Bookkeeping</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../philosophy/">Philosophy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes/">Envelope Budgeting</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../command_line/">Command Line API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../workflow/">Workflow</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_install/">Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../db_server/">Database Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../folder/">Create Your Project Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex/">Shell Command</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_init/">Initialize the Database</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_import/">Import CSV Files</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_regexp/">Import Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_pair/">Pair Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_review/">Review Unpaired Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_select/">Select Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_report/">Print Reports</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_fill/">Fill Envelopes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_income/">Review Income</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../options/">Command Line Options</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Defining Accounts</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#csv-format-for-accounts">CSV Format for Accounts</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#fullname">fullname</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#a-note-about-subaccounts">A Note About Subaccounts</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#category">category</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#abbrev">abbrev</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#parser">parser</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#balance">balance</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#journal-file-format-for-accounts">Journal File Format for Accounts</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../regexp/">Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_init/">dex init</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_import/">dex import</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_pair/">dex pair</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_review/">dex review</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_select/">dex select</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_report/">dex report</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_save/">dex save</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_restore/">dex restore</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">The Budget Model</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes_dex/">Envelope Budgeting with Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balances/">Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../budget_trans/">Budget Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_expenses/">Expense Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_income/">Income Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../fill_date/">Fill Date</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../adjustments/">Adjustments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../equity/">Using the Equity Account</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nominal/">Nominal Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dexter and hledger</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hledger/">Notes for hledger Users</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/">Database API</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../modules/">Modules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Dexter</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">User Documentation</li>
+      <li class="breadcrumb-item active">Defining Accounts</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/conery/dexter/edit/master/docs/accounts.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="defining-accounts">Defining Accounts</h1>
+<p>The central concept in double-entry bookkeeping is the idea that transactions move funds between accounts.
+When we create a new database we need to tell Dexter the names and types of all of our income, asset, expense, and liability accounts.</p>
+<p>Account names are defined in a plain text file.
+Dexter recognizes two different file formats:</p>
+<ul>
+<li>
+<p>a <code>.csv</code> (comma separated values) file has a header line followed by one line for each account, specifying the names at attributes of each account.</p>
+</li>
+<li>
+<p>a <code>.journal</code> file has <code>account</code> statements in the Journal format used by hledger; each statement has the name of the account followed by tags that define the attributes.</p>
+</li>
+</ul>
+<p>There is one example of each type of file in the tutorial data:</p>
+<pre><code class="language-plain">Finances
+├── accounts.csv
+├── accounts.journal
+</code></pre>
+<h2 id="csv-format-for-accounts">CSV Format for Accounts</h2>
+<p>The first line in the CSV file is a header that defines the columns that are present in the file.
+The column names used by Dexter are:</p>
+<table>
+<thead>
+<tr>
+<th>column</th>
+<th>definition</th>
+<th>example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fullname</code></td>
+<td>the name of the account</td>
+<td>assets:bank:checking</td>
+</tr>
+<tr>
+<td><code>category</code></td>
+<td>account category (optional, see below)</td>
+<td>assets</td>
+</tr>
+<tr>
+<td><code>abbrev</code></td>
+<td>a short version of the column name (optional)</td>
+<td>checking</td>
+</tr>
+<tr>
+<td><code>parser</code></td>
+<td>rule set for parsing downloads (required if parsing CSVs)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>balance</code></td>
+<td>the initial account balance (optional)</td>
+<td>1,000.00</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>date for initial account balance (required if balance specified)</td>
+<td>2024-12-31</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tip:</strong> When you create your own account file you can use a spreadsheet application.
+The columns can be defined in any order, and the file can have additional columns (they will be ignored).
+The only requirement is that column names shown above be entered exactly as they are shown, in all lower case.
+Then simply export the spreadsheet as a CSV file, making sure you include column names.</p>
+<h3 id="fullname"><code>fullname</code></h3>
+<p>Dexter uses the same hierarchical account name conventions as GnuCash, hledger, and other systems, where
+the segments of a name are separated by colons.</p>
+<p>Generally the first segment is the account category, one of the basic account types of double-entry bookkeeping:</p>
+<ul>
+<li><code>assets</code> are typically checking or savings accounts</li>
+<li><code>liabilities</code> are credit cards and mortgages or other loans</li>
+<li><code>income</code> is for salary and other types of income</li>
+<li><code>expenses</code> are categories that describe what a purchase was for</li>
+</ul>
+<p>Some examples:</p>
+<pre><code class="language-plain">income:salary
+assets:bank:checking
+expenses:travel
+liabilities:chase:visa
+</code></pre>
+<blockquote>
+<p><em><strong>Note</strong>: a fifth account category, <code>equity</code>, will be defined automatically.  You don't need to include it in your account file.</em></p>
+</blockquote>
+<p>There is no limit on the number of segments in a name.</p>
+<p>A segment name may appear in more than one account name.
+For example, you can have <code>expenses:car:insurance</code>, <code>expenses:home:insurance</code>, and <code>expenses:medical:insurance</code>.</p>
+<h5 id="a-note-about-subaccounts">A Note About Subaccounts</h5>
+<p>Suppose you know you want subaccounts for types of food expenses, for example <code>expenses:food:groceries</code> and <code>expenses:food:restaurant</code>.
+That brings up a question:  do you also need to define the "parent" account, <code>expenses:food</code>?</p>
+<p>The answer is no, you are not required to define every intermediate level account.
+But there are two good reasons to do so:</p>
+<ul>
+<li>The parent account can serve as a "miscellaneous" or "unclassified" category.  At some point you might have an expense you know you want to put in the food group but can't decide which subaccount to put it in, so just assign it to <code>expenses.food</code> (but if you have a lot of these it may be better to define <code>expenses:food:misc</code> for the random food expense).</li>
+<li>When you are allocating income to budget envelopes, you can assign an amount to <code>expenses:food</code> to cover all food expenses.  Any expense that debits any food account, no matter where it is in the hierarchy, will take funds from the overall food envelope.</li>
+</ul>
+<p>If you want to use intermediate accounts like <code>expenses:food</code>, either for miscellaneous expenses or for budgeting, the account needs to be defined in the CSV file with other accounts.</p>
+<h3 id="category"><code>category</code></h3>
+<p>If an account name starts with one of the four main account types the category will be inferred from the account name.
+Otherwise put the account type in the <code>category</code> column.</p>
+<h3 id="abbrev"><code>abbrev</code></h3>
+<p>There are two reasons to define an optional abbreviated name for an account.</p>
+<p>One use is to define a short name for an expense account so it can be used in reports.
+For example, suppose we want to print a table showing all food expenses before Jan 31, 2025.
+The <code>select</code> command (described later in <a href="../dex_select/">Select Transactions</a>) will print that table:</p>
+<pre><code class="language-plain">$ dex select --end 2025-01-31 --debit food
+
+2025-01-02  chase:visa       expenses:food:groceries       $22.04  Safeway
+2025-01-06  bank:checking    expenses:food:groceries       $77.42  Costco
+2025-01-06  bank:checking    expenses:food:groceries        $6.99  Safeway
+2025-01-14  chase:visa       expenses:food:restaurant      $40.12  Pizza Palace
+...
+</code></pre>
+<p>For long outputs the repetition of account name prefixes like "expenses:food" is going to make the table harder to read.
+If we specify abbreviations, <em>e.g.</em> <code>groceries</code> for <code>expenses:food:groceries</code> and <code>visa</code> for <code>liabilities:chase:visa</code>, we can include the <code>--abbrev</code> option on the command line to print a more readable table:</p>
+<pre><code class="language-plain">$ dex select --end 2025-01-31 --debit food --abbrev
+
+2025-01-02  visa        groceries       $22.04  Safeway
+2025-01-06  checking    groceries       $77.42  Costco
+2025-01-06  checking    groceries        $6.99  Safeway
+2025-01-14  visa        restaurant      $40.12  Pizza Palace
+...
+</code></pre>
+<p>The second reason is that when we download CSV files for assets and liability accounts we want to rename the file so the base name (the part before the extension) is the account name.
+For example, if we have two bank accounts, one for checking and one for savings, we will download the records for each account separately.
+Rename the file for the checking account to <code>checking.csv</code> and the file for the savings account to <code>savings.csv</code>.
+When we run <code>dex import</code> to import a file, it will use the file name to figure out which account to use for the new postings.</p>
+<h3 id="parser"><code>parser</code></h3>
+<p>As noted previously, parsers are defined in the <a href="dex_config.md">configuration file</a>.
+There will typically be one parser for each data source.
+The <code>parser</code> column for these accounts will have the name of the configuration section without the <code>csv.</code> prefix, <em>e.g.</em> <code>occu</code> or <code>chase</code>.</p>
+<h3 id="balance"><code>balance</code></h3>
+<p>Use this column to enter the starting balance of an account.</p>
+<p>You can use it for assets (bank accounts) and, if using <a href="../envelopes_dex/">envelope budgeting</a>, for expense accounts.
+Note that the initial contents of an envelope should be a negative number.
+For example, if you want to start out with $100 in the groceries envelope put -100.00 in the balance column.</p>
+<h2 id="journal-file-format-for-accounts">Journal File Format for Accounts</h2>
+<p>Accounts can also be defined in a Journal file, using the syntax supported by hledger.</p>
+<p>Write an <code>account</code> statement for each account you want to define.</p>
+<ul>
+<li>the line starts with the word <code>account</code></li>
+<li>following that write the name of the account (what would go in the <code>fullname</code> column of a CSV file)</li>
+<li>add a semicolon to start a comment</li>
+<li>add the remaining data, if any, in the form of <code>tag: value</code> pairs separated by commas</li>
+</ul>
+<p>The category tag can be omitted if the full name starts with one of the four basic categories (<code>assets</code>, <code>expenses</code>, <code>income</code>, <code>liabilities</code>).</p>
+<p>Here are some examples from <code>accounts.journal</code> in the example data:</p>
+<pre><code class="language-plain">account assets:bank:checking        ; category: assets, abbrev: checking, parser: occu
+account liabilities:chase:visa      ; type: liabilities, abbrev: visa, parser: chase
+account income:yoyodyne             ; abbrev: yoyodyne
+account expenses:food               ; type: expenses
+account expenses:food:groceries     ; type: expenses, abbrev: groceries
+</code></pre>
+<p>Instead of putting a balance and date in a comment in the <code>account</code> add a transaction statement following the account statements.
+This is how to initialize the checking and savings account balances:</p>
+<pre><code class="language-plain">2024-12-31 initial balance
+    assets:bank:checking   $1,000.00
+    assets:bank:savings    $2,500.00
+    equity
+</code></pre>
+<blockquote>
+<p><em><strong>Note</strong>:  Dexter currently assumes all amounts are in US dollars.  Reports and output tables will be formatted with a dollar sign.</em></p>
+<p><em>When you put an amount in a Journal file dollar signs and commas are optional.  For negative numbers the minus sign can be written before or after the dollar sign:  <code>$-100.00</code> or <code>-$100.00</code>.</em></p>
+</blockquote>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../options/" class="btn btn-neutral float-left" title="Command Line Options"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../regexp/" class="btn btn-neutral float-right" title="Regular Expressions">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy 2025 John Conery</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/conery/dexter" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../options/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../regexp/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

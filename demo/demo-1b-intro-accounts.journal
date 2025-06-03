@@ -1,0 +1,9 @@
+include setup.journal
+
+2024-01-07  Chez Ray
+    expenses:food:restaurant     $75.00
+    assets:checking             $-75.00
+
+2024-01-10  Tools R Us
+    expenses:home               $100.00
+    assets:checking            $-100.00

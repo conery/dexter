@@ -1,0 +1,38 @@
+account equity                      ; type: equity
+account assets:checking             ; type: assets
+account assets:savings              ; type: assets
+account expenses:car                ; type: expenses
+account expenses:food               ; type: expenses
+account expenses:food:groceries     ; type: expenses
+account expenses:food:restaurant    ; type: expenses
+account expenses:home               ; type: expenses
+account income:yoyodyne             ; type: income
+account liabilities:chase:visa      ; type: liabilities
+
+
+2024-01-01  initial balances
+    assets:savings              $7000.00
+    equity                     $-7000.00
+
+2024-01-02  paycheck
+    assets:checking             $5000.00
+    income:yoyodyne            $-5000.00
+
+2024-01-02  fill envelopes                    ; budget:
+    income:yoyodyne             $5000.00
+    expenses:home              $-3000.00
+    expenses:car               $-1000.00
+    expenses:food              $-1000.00
+
+2024-01-06  Tools R Us
+    expenses:home                $100.00
+    assets:checking             $-100.00
+
+2024-01-07  Chez Ray
+    expenses:food:restaurant      $75.00
+    assets:checking              $-75.00
+
+2024-01-08  venmo from Sam
+    assets:checking               $35.00
+    expenses:food:restaurant     $-35.00
+    

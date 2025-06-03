@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Envelope Budgeting - Dexter</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../css/dex.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Envelope Budgeting";
+        var mkdocs_page_input_path = "envelopes.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Dexter
+        </a>
+        <div class="version">
+          Version 0.0.5
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../history/">History</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deb/">Double Entry Bookkeeping</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../philosophy/">Philosophy</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Envelope Budgeting</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../command_line/">Command Line API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../workflow/">Workflow</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_install/">Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../db_server/">Database Server</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../folder/">Create Your Project Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex/">Shell Command</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_init/">Initialize the Database</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_import/">Import CSV Files</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_regexp/">Import Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_pair/">Pair Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_review/">Review Unpaired Entries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_select/">Select Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_report/">Print Reports</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_fill/">Fill Envelopes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_income/">Review Income</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tut_recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../options/">Command Line Options</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../accounts/">Defining Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../regexp/">Regular Expressions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_init/">dex init</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_import/">dex import</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_pair/">dex pair</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_review/">dex review</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_select/">dex select</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_report/">dex report</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_save/">dex save</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dex_restore/">dex restore</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">The Budget Model</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../envelopes_dex/">Envelope Budgeting with Dexter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balances/">Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../budget_trans/">Budget Transactions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_expenses/">Expense Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../balance_income/">Income Account Balances</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../fill_date/">Fill Date</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../adjustments/">Adjustments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../equity/">Using the Equity Account</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nominal/">Nominal Accounts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../recap/">Recap</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dexter and hledger</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hledger/">Notes for hledger Users</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/">Database API</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../modules/">Modules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Dexter</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Introduction</li>
+      <li class="breadcrumb-item active">Envelope Budgeting</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/conery/dexter/edit/master/docs/envelopes.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="envelope-budgeting">Envelope Budgeting</h1>
+<p>Dexter not only keeps track of expenses, it also helps users who want to try to control their expenses by maintaining a budget.</p>
+<p>The strategy we use is a familiar method called <strong>Envelope Budgeting.</strong>
+The idea is that when we get paid we should put money into envelopes with labels like "groceries", "entertainment", <em>etc</em>,.
+When we make a purchase, the money should come from one of those envelopes.
+If we want to go to a baseball game but the entertainment envelope is empty it means we've already spent all the money we put aside for entertainment and should make other plans.</p>
+<p>Putting cash in physical envelopes is apparently still a thing (<a href="https://www.moneyfit.org/envelope-budget/">Envelope Budgeting: Simple Cash Control</a>) but of course when we use Dexter we're going to set up virtual envelopes.</p>
+<p>But it's not obvious how to do this.
+Real cash-filled envelopes are, like checking accounts, assets.
+The intuitive approach would be to set up an additional set of asset accounts in our expense tracking system.
+Some personal finance applications allow users to create virtual accounts to use for budgeting (or other uses).
+But then each time an expense occurs we have to add a virtual transaction to update the envelopes.</p>
+<p>The approach we use in Dexter seems paradoxical, but in fact it makes a lot of sense, and as we'll see it is also far simpler to manage.</p>
+<p>The key idea:</p>
+<blockquote>
+<p>In Dexter <strong><em>envelopes are expense accounts.</em></strong></p>
+</blockquote>
+<p>Our envelopes are not asset accounts, they are expense accounts.
+In fact, with Dexter, <strong>every expense account automatically becomes the envelope</strong> for that expense category.</p>
+<p>The question then becomes, "how do we allocate money to envelopes?"</p>
+<p>The short answer is "by crediting the account."
+To see why that might be the case, consider these two transactions.
+The first is a purchase at a hardware store:</p>
+<pre><code class="language-plain">2024-04-21   Jerrys Home Improvement   ; drill, screwdriver set
+    visa                         −$50.00
+    household                     $50.00
+</code></pre>
+<p>Now suppose a few days later we decide to return one of the things we bought.
+This leads to a new transaction:</p>
+<pre><code class="language-plain">2024-04-22   Jerrys Home Improvement   ; we have enough screwdrivers
+    household                    −$20.00
+    visa                          $20.00
+</code></pre>
+<p>Notice how the role of the two accounts is the opposite:
+the original purchase has a debit to the expense account, but the return has a credit to that same account.
+In double-entry bookkeeping:</p>
+<ul>
+<li>a purchase <strong>debits</strong> an expense account, <strong>increasing</strong> its balance</li>
+<li>a return <strong>credits</strong> the account, <strong>decreasing</strong> its balance</li>
+</ul>
+<p>So the long answer to "how do we fill envelopes?" is that we add a new transaction at the start of each month that credits each of the expense categories:</p>
+<pre><code class="language-plain">2024-04-01   Fill envelopes
+    groceries                    −$200.00
+    household                    −$500.00
+    entertainment                −$100.00
+    ...
+</code></pre>
+<p>If each account starts out at $0 initially, that transaction sets the balance to a negative value.
+Now each purchase is going to add to the balance, and as more purchases are made the balance gets closer and closer to $0.
+When the balance hits $0 all the money has been spent from the envelope.</p>
+<p>To get back to the hardware store example:</p>
+<ul>
+<li>the envelope was "filled" with -$500 on Apr 1</li>
+<li>the purchase on Apr 21 "removed" $50, so the updated balance is -$450</li>
+<li>the return on Apr 22 "put back" $20 by crediting the account, updating the balance to -$470.</li>
+</ul>
+<p>But transactions need to be balanced, so now we have a new question: "where is all that money in the envelope fillig transaction coming from?"
+That also has a short answer: income accounts.</p>
+<p>The last line in the envelope-filling transaction is a debit to the source of income that we're putting in envelopes:</p>
+<pre><code>    income:salary                $5000.00
+</code></pre>
+<p>That also seems very unlikely.
+Normally when an income account is used in a posting it's in a transaction that records salary or other income:</p>
+<pre><code class="language-plain">2024-04-22   Yoyodyne
+    checking                   $5,000.00
+    income:salary             −$5,000.00
+</code></pre>
+<p>So now we have a new interpretation for the balance of an income account:  when funds are transferred in to one of our asset accounts (like a deposit to our checking account) the balance of the income account decreases.
+As we allocate money to envelopes the balance increases.
+In fact, if it reaches $0 we can be sure that all of our income has been "given a job" and has been put in an envelope.</p>
+<p>Earlier the claim was made that Dexter's budgeting method was made far simpler by using expense accounts for envelopes.
+Now we can see why: the only transaction that needs to be added to manage envelopes is the one that fills the envelopes at the beginning of the month.
+After that, every transaction automatically updates the envelope.</p>
+<ul>
+<li>if we use a credit card to buy dinner at a restaurant, the debit to the <code>restaurant</code> account increases the balance (takes money from the envelope)</li>
+<li>if we use Venmo to send money to a friend, and Venmo takes that money from our checking account, that transaction will also debit <code>restaurant</code>, and again takes money from the same envelope</li>
+<li>if our employer deposits money in our checking account as a reimbursement for a dinner, that transaction can credit <code>restaurant</code>, putting money back in the envelope</li>
+</ul>
+<p>There is a lot to digest here, even for (maybe especially for) readers who are already familiar with double-entry bookkeeping.
+An entire section of this documentation is devoted to Dexter's approach to budgeting (<a href="../envelopes_dex/">Envelope Budgeting with Dexter</a>).</p>
+<p>For now, these are the main ponts to take away from this short introduction:</p>
+<ul>
+<li>expense accounts can be used as virtual envelopes for money to use for the correponding expense category</li>
+<li>an envelope is "filled" by a tranaction that sets the account balance to a negative number</li>
+<li>a transaction that debits an expense account removes money from the envelope by increasing the balance, which moves it closer to $0</li>
+<li>when the balance goes over $0 it means the sum of all purchases exceeds the amount put in the envelope</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../philosophy/" class="btn btn-neutral float-left" title="Philosophy"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../command_line/" class="btn btn-neutral float-right" title="Command Line API">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy 2025 John Conery</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/conery/dexter" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../philosophy/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../command_line/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
