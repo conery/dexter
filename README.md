@@ -46,12 +46,34 @@ $ dex info
 
 ### Unit Tests (Optional)
 
-If you download a copy of the source code, you can `cd` to the project directory and run unit tests:
+If you download a copy of the source code, you can `cd` to the project directory and run unit tests for the database API:
 ```bash
-$ 
+$ pytest test/test_DB.py
+```
 
+Now when you run the `info` command you should see the database created by the unit tests:
+```bash
+ $ dex info
+
+Databases                                                 
+┏━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓
+┃ name         ┃ account ┃ transaction ┃ entry ┃ reg_exp ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━┩
+│ pytest       │      15 │          16 │    40 │       0 │
+└──────────────┴─────────┴─────────────┴───────┴─────────┘
+```
 
 ## Documentation
+
+The documentation is at [https://conery.github.io/dexter/](https://conery.github.io/dexter/).
+The main sections are:
+
+* an overview, with subsections on Dexter's core philosophy and its new approach to envelope budgeting
+* a [tutorial](folder.md) that walks new users through the first steps of a monthly finance tracking workflow using sample data
+* a more in-depth discussion of [envelope budgeting with Dexter](envelopes_dex.md)
+* user documentation for each of Dexter's operations
+* reference sections that include details about the database API (for users who want to write their own scripts to extend Dexter) and code documentation
+
 
 ## Tutorial Data
 
