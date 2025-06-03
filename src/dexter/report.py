@@ -42,16 +42,20 @@ def print_grouped_report(args):
             for aname in alist:
                 logging.debug(f'report (grouped):  balances for {aname}')
                 accts.append(aname)
-                starts.append(DB.balance(aname, ending=start_date))
-                ends.append(DB.balance(aname, ending=end_date))
+                starts.append(DB.balance(aname, ending=start_date, nobudget=args.no_budget))
+                ends.append(DB.balance(aname, ending=end_date, nobudget=args.no_budget))
         else:
             logging.error(f'ier: bad spec: {spec}')
+
+    title = f'Account Balance   {start_date} to {end_date}'
+    if not args.no_budget:
+        title += '  ✉️'
 
     t = Table(
         Column(header='account', width=30),
         title_justify='left',
         title_style='table_header',
-        title = f'Account Balance   {start_date} to {end_date}'
+        title = title,        
     )
 
     if args.start_date and args.end_date:
@@ -93,10 +97,10 @@ def print_detailed_report(args):
             logging.error(f'report: bad spec: {spec}')
 
     for acct, elist in entries.items():
-        print_detail_table(acct, elist, start_date)
+        print_detail_table(acct, elist, start_date, args.no_budget)
 
 
-def print_detail_table(acct, entries, start):
+def print_detail_table(acct, entries, start, nobudget):
     '''
     Helper function for expense report.  Uses rich to print a table
     with one line per record, updating balance.
@@ -107,6 +111,10 @@ def print_detail_table(acct, entries, start):
         start: date to use for starting balance
     '''
 
+    title=acct
+    if not nobudget:
+        title += '  ✉️'
+
     t = Table(
         Column(header='date', width=12),
         Column(header='description', width=25, no_wrap=True),
@@ -116,7 +124,7 @@ def print_detail_table(acct, entries, start):
         Column(header='amount', width=12, justify='right'),
         # Column(header='credit', width=12, justify='right'),
         Column(header='balance', width=12, justify='right'),
-        title=acct,
+        title=title,
         title_justify='left',
         title_style='table_header',
         # show_header=False
@@ -133,16 +141,17 @@ def print_detail_table(acct, entries, start):
 
     t.add_row(f'[blue italic]{start}','[blue italic]starting balance','','','',format_amount(bal, dollar_sign=True))
 
-    for e in fills:
-        row = []
-        bal += e.value
-        row.append(f'[blue italic]{str(e.date)}')
-        row.append(f'[blue italic]{e.tref.description}')
-        row.append(DB.display_name(acct, markdown=True))
-        row.append(DB.display_name(e.tref.pdebit, markdown=True))
-        row.append(format_amount(e.value, dollar_sign=True))
-        row.append(format_amount(bal, dollar_sign=True))
-        t.add_row(*row)
+    if not nobudget:
+        for e in fills:
+            row = []
+            bal += e.value
+            row.append(f'[blue italic]{str(e.date)}')
+            row.append(f'[blue italic]{e.tref.description}')
+            row.append(DB.display_name(acct, markdown=True))
+            row.append(DB.display_name(e.tref.pdebit, markdown=True))
+            row.append(format_amount(e.value, dollar_sign=True))
+            row.append(format_amount(bal, dollar_sign=True))
+            t.add_row(*row)
 
     for e in nonfills:
         row = []

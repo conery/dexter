@@ -45,6 +45,8 @@ nav:
     - "Select Transactions": tut_select.md
     - "Print Reports": tut_report.md
     - "Fill Envelopes": tut_fill.md
+    - "Review Income": tut_income.md
+    - "Recap": tut_recap.md
   - "User Documentation":
     - "Configuration": config.md
     - "Command Line Options": options.md
@@ -65,6 +67,7 @@ nav:
     - "Budget Transactions": budget_trans.md
     - "Expense Account Balances": balance_expenses.md
     - "Income Account Balances": balance_income.md
+    - "Fill Date": fill_date.md
     - "Adjustments": adjustments.md
     - "Using the Equity Account": equity.md
     - "Nominal Accounts": nominal.md

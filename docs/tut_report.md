@@ -78,3 +78,4 @@ A mnemonic for rememberis the difference between `X:` (without a level number) a
 A `--grouped` option along with a name pattern that would make separate tables tells Dexter to compute the balance of each table and then collect the results into a single table to print:
 
 ![grouped food account report](images/report.food.grouped.png)
+

@@ -36,7 +36,7 @@ It allocates most of the monthly paycheck from Yoyodyne (which was for $5,000)  
 
 That transaction is in a file named `fill.apr.journal` in the project directory.
 
-> _**Important:** Note the transaction has a `budget:` tag.  The tag is optional, but if it's there Dexter will be able to remove budget transactions from reports (why that's useful is explained below).
+> _**Important:** Note the transaction has a `budget:` tag.  The tag is optional, but if it's there Dexter will be able to remove budget transactions from reports (why that's useful is explained below)._
 
 ## Import the Budget Transaction
 
@@ -61,6 +61,13 @@ $ dex import fill.apr.journal
 
 ## Print Food Expenses
 
+A quick reminder of how Dexter does envelope budgeting (introduced earlier in [Envelope Budgeting](envelopes.md):
+
+* an envelope is an expense account
+* filling the envelope sets a negative balance by crediting the account
+* purchases, which debit the account, add a positive amount, moving the balance closer to $0
+* if the balance ever gets to $0 it mean the total purchases exceed the original allocation
+
 If you look back at the budget fill transaction, you'll see the posting that fills the food envelope put $600 in the account named `expenses:food`:
 
 ```plain
@@ -69,13 +76,6 @@ If you look back at the budget fill transaction, you'll see the posting that fil
 
 That's the parent account for `expenses:food:groceries` and `expenses:food:restaurant`.
 Any expenses in those two accounts are automatically taken from the food envelope.
-
-A quick reminder of how Dexter does envelope budgeting (introduced earlier in [Envelope Budgeting](envelopes.md):
-
-* an envelope is an expense account
-* filling the envelope sets a negative balance by crediting the account
-* purchases, which debit the account, add a positive amount, moving the balance closer to $0
-* if the balance ever gets to $0 it mean the total purchases exceed the original allocation
 
 This command prints a report for all food transactions, including the envelope filling transaction:
 
@@ -94,6 +94,18 @@ At the end of the month the balance was -$405.
 This agrees with the summary shown earlier, which said we spent $195 on food.
 We put in $600, spent $195, and have $405 left.
 
+There is one other difference to note.
+The title bar of this table has a little envelope icon next to the account name.
+That's there to indicate the report includes an envelope-filling budget transactions.
+
+## Date for the Budget Transaction
+
+You may have noticed the date on the budget fill transaction was April 2.
+We chose that date because it was the date of the monthly paycheck, so it seemed like a natural time to allocate money to expense categories.
+
+There are other strategies that work just as well, and may even make more sense when there are mulitple income sources or income deposits are made later in the month.
+This topic is covered in the [Fill Date](fill_date.md) section of the Budget Model documentation.
+
 ## Print a Summary of All Expenses
 
 This command groups all expenses by the main category (food, car, _etc_):
@@ -101,3 +113,17 @@ This command groups all expenses by the main category (food, car, _etc_):
 ![table with budget and all food expenses](images/report.envelopes.all.png)
 
 The items in the last column show the money left in each envelope at the end of the month.
+
+## Ignore Budgets
+
+Adding the budget transaction changed the meaning of "account balance" for expense accounts -- the balance is now the amount left in the envelope (as a negative number).
+
+If you want to print a table that shows the original meaning, namely the total amount spent in that category, it's easy to do -- just tell Dexter to ignore that budget transaction.
+Since the budget transaction is tagged `#budget` the report generator can simply take those out of the calculation.
+
+The `--no_budget` option tells Dexter to ignore the budget transaction when it prints the summary of all expenses:
+
+![grouped food report without budget](images/report.nobudget.png)
+
+That's exactly what we saw at the beginning of this section.
+
