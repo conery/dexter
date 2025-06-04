@@ -26,3 +26,4 @@ dex = "dexter.main:main"
 
 [tool.hatch.version]
 path = "src/dexter/__about__.py"
+
