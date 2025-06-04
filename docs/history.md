@@ -3,6 +3,7 @@
 ## The Evolution of Dexter
 
 The first program I wrote to keep track of personal expenses was written in Pascal and ran on an operating system named CPM.
+To run that program, I had to insert the floppy disk, then....
 
 OK, that's too much history.
 

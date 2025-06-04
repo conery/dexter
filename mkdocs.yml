@@ -6,7 +6,7 @@ theme:
   name: "readthedocs"
 
 extra:
-  version: Version 0.0.5
+  version: Version 0.2.0b
 
 extra_css:
   - css/dex.css
