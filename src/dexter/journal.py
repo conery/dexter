@@ -64,65 +64,60 @@ class JournalParser:
         Arguments:
             fn: path to the input file
         '''
-        patterns = [
-            (r'account', self._new_account),
-            (r'\d{4}-\d{2}-\d{2}', self._new_transaction),
-            (r'\s+\w+', self._new_entry),
-        ]
         with open(fn) as f:
             while line := f.readline():
-                cmnd, *comment = re.split(r'[;#]', line.rstrip())
-                if len(cmnd) == 0:
+                if len(line) == 1 or line.startswith((';','#')):
                     continue
+                if ';' in line:
+                    parts = line.split(';')
+                    cmnd = parts[0].rstrip()
+                    comment = parts[1]
+                else:
+                    cmnd = line.rstrip()
+                    comment = ''
+                tokens = cmnd.split()
+                logging.debug(f'parse_file {tokens}')
                 try:
-                    for pat, func in patterns:
-                        if re.match(pat,cmnd):
-                            func(cmnd, *comment)
-                            break
+                    if re.match(r'\d{4}-\d{2}-\d{2}', line):
+                        self._new_transaction(tokens, comment)
+                    elif re.match(r'^\s+', line):
+                        self._new_posting(tokens, comment)
                     else:
-                        raise ValueError('unknown statement')
+                        self._parse_directive(tokens, comment)
                 except Exception as err:
-                    logging.error(f'JournalParser: error in {cmnd}')
+                    logging.error(f'JournalParser: error in {line.rstrip()}')
                     logging.error(err)
-
-    def _parse_amount(self, s):
-        '''
-        Convert a string with dollar signs, commas, and periods into a
-        dollar amount.
-        '''
-        s = re.sub(r'[,$]','',s)
-        return float(s)
     
-    def _new_account(self, cmnd, comment=''):
+    def _parse_directive(self, tokens, comment):
         '''
-        Helper function to create an Account document from the current line.
+        Helper function to process a directive.
 
         Arguments:
-           cmnd:  a string with the 'account' command followed by the account name
-           comment: the comment field from the line
-
-        Expected format of the command part
-           account N C
-        where N is the account name and C is a category name
+           tokens:  a list of tokens made from splitting the command
+           comment:  the string following a semicolon
         '''
-        logging.debug(f'JournalParser._new_account: {cmnd} {comment}')
-        lst = cmnd.split()
-        name = lst[1].strip()
+        if tokens[0] == 'account':
+            self._new_account(tokens[1:], comment)
+        else:
+            raise ValueError(f'directive not implemented: {tokens[0]}')
+        
+    def _new_account(self, tokens, comment):
+        '''
+        Create a new account.
+
+        Arguments:
+           tokens:  a list of tokens following the word "account" in the current line
+           comment:  the string following a semicolon
+        '''
+        logging.debug(f'JournalParser._new_account: {tokens}')
+        name = tokens[0]
+        logging.debug(f'JournalParser._new_account: {name}')
         if name == 'equity':
             return
-
         if name in self._account_names:
-            logging.error('JournalParser: duplicate account name: {name}')
+            logging.error(f'JournalParser: duplicate account name: {name}')
             return
-
-        tags = { }
-        for seg in comment.split(','):
-            if m := re.search(r'(\w+):(.*)', seg):
-                tags[m[1]] = m[2].strip()
-        if 'type' in tags:
-            tags['category'] = tags['type']
-        logging.debug(tags)
-
+        tags = self._parse_tags(comment)
         acct = Account(
             name = name, 
             category = tags.get('category') or name.split(':')[0],
@@ -135,61 +130,59 @@ class JournalParser:
         if t := tags.get('abbrev'):
             self._abbrevs[t] = name
 
-    def _new_transaction(self, date, comment=''):
+    def _new_transaction(self, tokens, comment):
         '''
         Helper function to create a Transaction object from the current line.
 
         Arguments:
-           date: the date from the front of the line
-           comment: the comment field from the line
+           tokens:  a list of tokens made from splitting the current line
+           comment:  the string following a semicolon
         '''
-        logging.debug(f'JournalParser._new_transaction {date} {comment}')
-        m = re.match(r'(\d{4}-\d{2}-\d{2})(.*)', date)
-        self._transaction_date = m.group(1)
+        logging.debug(f'JournalParser._new_transaction {tokens} {comment.rstrip()}')
+        self._transaction_date = tokens[0]
         self._transaction_total = 0
         trans = Transaction(
-            description = m.group(2).strip(),
+            description = ' '.join(tokens[1:])
         )
-        # comment = tokens[0].strip() if tokens else ''
         trans.comment = comment.strip()
-        trans.tags = [f'#{s[:-1]}' for s in re.findall(r'\w+:', comment)]
+        tags = self._parse_tags(comment)
+        trans.tags = list(tags.keys())
         self._transactions.append(trans)
 
-    def _new_entry(self, cmnd, desc=''):
+    def _new_posting(self, tokens, comment):
         '''
         Helper function to create a new Entry object.  Appends the
         new object to the entries list of the most recent Transaction.
 
         Arguments:
-           cmnd: a string with the account name and amount
-           comment: the comment field from the line
+           tokens:  a list of tokens made from splitting the current line
+           comment:  the string following a semicolon
         '''
-        logging.debug(f'JournalParser._new_entry {cmnd} {desc}')
-        parts = cmnd.strip().split()
-        acct = parts[0]
+        logging.debug(f'JournalParser._new_posting {tokens} {comment}')
+        acct = tokens[0].strip()
 
         if acct not in self._account_names:
             logging.error(f'JournalParser:  unknown account name: {acct}')
             return
 
-        if len(parts) > 1:
-            amount = self._parse_amount(parts[1])
+        if len(tokens) > 1:
+            amount = self._parse_amount(tokens[1])
             self._transaction_total += amount
         else:
             amount = -self._transaction_total
 
-        tags = re.findall(r'\w+:', desc)
+        tags = self._parse_tags(comment)
         col = 'credit' if amount < 0 else 'debit'
         trans = self._transactions[-1]
         if trans.isbudget:
             tags.append(Tag.B)
         entry = Entry(
             date = self._transaction_date,
-            description = desc.strip(),
+            description = comment,
             account = acct,
             column = col,
             amount = abs(amount),
-            tags = tags,
+            tags = list(tags.keys()),
         )
 
         if entry.hash in self._existing_uids:
@@ -199,3 +192,28 @@ class JournalParser:
         trans.entries.append(entry)
         self._entries.append(entry)
 
+    def _parse_amount(self, s):
+        '''
+        Convert a string with dollar signs, commas, and periods into a
+        dollar amount.
+        '''
+        s = re.sub(r'[,$]','',s)
+        return float(s)
+
+    def _parse_tags(self, line):
+        '''
+        Look for tags in the comment portion of a line.
+
+        Arguments:
+            line:  characters following a semicolon on the current line
+
+        Returns:
+            a dictionary of tags and their values
+        '''
+        dct = { }
+        for part in line.split(','):
+            if ':' in part:
+                tag = re.search(r'(\w+):', part)[1]
+                val = part[part.index(':')+1:]
+                dct[tag] = val
+        return dct

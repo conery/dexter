@@ -99,6 +99,7 @@ class Config:
             Config.start_date = dd.get('start_date')
 
         # logging.debug(f'config: parsers: {Config.parsers}')
+        logging.debug(f'config: dbname: {Config.dbname}')
         logging.debug(f'config: colmaps: {Config.colmaps}')
         logging.debug(f'config: fullname: {Config.fullname}')
 
