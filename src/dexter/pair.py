@@ -24,6 +24,7 @@ def pair_entries(args):
     credits = {}
     debits = {}
     unmatched = []
+    fillable = []
 
     for entry in unpaired:
         logging.debug(f'pair: find regexp for {entry.description}')
@@ -36,6 +37,8 @@ def pair_entries(args):
         elif regexp := DB.find_first_regexp(entry.description, Action.X):
             logging.debug(f'  xfer part')
             xfer_part(entry, regexp, credits, debits)
+        elif regexp := DB.find_first_regexp(entry.description, Action.F):
+            fillable.append(entry)
         else:
             unmatched.append(entry)
 
@@ -44,10 +47,12 @@ def pair_entries(args):
     if args.preview:
         preview_transactions(new_transactions)
         preview_transfers(xfers)
-        preview_unmatched(unmatched)
+        preview_unmatched(fillable, "Will be matched during review")
+        preview_unmatched(unmatched, "Unmatched")
     else:
         logging.info(f'pair: {len(new_transactions)} matched')
         logging.info(f'pair: {len(xfers)} paired')
+        logging.info(f'pair: {len(fillable)} to be filled')
         logging.info(f'pair: {len(unmatched)} unmatched')
         save_matched_transactions(new_transactions)
         save_xfers(xfers)
@@ -60,30 +65,39 @@ def preview_transfers(lst):
     any(t.clean() for t in lst)
     print_records(lst, name='Transfers', count=len(lst))
 
-def preview_unmatched(lst):
-    print_grid([[DB.abbrev(e.account), e.description] for e in lst], name='Unmatched', count=len(lst))
+def preview_unmatched(lst, title):
+    print_grid([[DB.abbrev(e.account), e.description] for e in lst], name=title, count=len(lst))
 
 def matching_transaction(entry, regexp):
     '''
-    A description from a CSV file matched a regular expression.  Use the match
-    to create a new Entry and pair with the the existing one in a new Transaction.
+    Helper function for pair_entries.  A record from a CVS file matches a regular
+    expression.  Use the match to create a new Entry object and pair it with the 
+    existing one in a new Transaction.
+
+    Arguments:
+        entry:  the Entry object for the CSV record
+        regexp:  the RegExp object for the matching regular expression
+
+    Returns:
+        a new Transaction object or None if the account name in the RegExp is invalid
     '''
     acct = DB.fullname(regexp.acct)
     if acct is None:
         logging.error(f'pair: unknown account name {regexp.acct} in regexp')
-        return None
-    new_entry = Entry(
-        date = entry.date,
-        description = "match " + entry.description,
-        account = acct,
-        column = entry.column.opposite(),
-        amount = entry.amount,
-    )
-    new_transaction = Transaction(
-        description = regexp.apply(entry.description)
-    )
-    new_transaction.entries.append(entry)      # IMPORTANT: add original entry first
-    new_transaction.entries.append(new_entry)
+        new_transaction = None
+    else:
+        new_entry = Entry(
+            date = entry.date,
+            description = "match " + entry.description,
+            account = acct,
+            column = entry.column.opposite(),
+            amount = entry.amount,
+        )
+        new_transaction = Transaction(
+            description = regexp.apply(entry.description)
+        )
+        new_transaction.entries.append(entry)      # IMPORTANT: add original entry first
+        new_transaction.entries.append(new_entry)
     return new_transaction
 
 def save_matched_transactions(lst):

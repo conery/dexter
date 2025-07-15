@@ -145,8 +145,10 @@ class JournalParser:
             description = ' '.join(tokens[1:])
         )
         trans.comment = comment.strip()
-        tags = self._parse_tags(comment)
-        trans.tags = list(tags.keys())
+        # tags = self._parse_tags(comment)
+        if 'pending:' in comment:
+            # trans.tags = list(tags.keys())
+            trans.tags = [ Tag.P.value ]
         self._transactions.append(trans)
 
     def _new_posting(self, tokens, comment):
@@ -200,20 +202,22 @@ class JournalParser:
         s = re.sub(r'[,$]','',s)
         return float(s)
 
-    def _parse_tags(self, line):
+    def _parse_tags(self, comment):
         '''
         Look for tags in the comment portion of a line.
 
         Arguments:
-            line:  characters following a semicolon on the current line
+            comment:  characters following a semicolon on the current line
 
         Returns:
             a dictionary of tags and their values
         '''
+        src = comment.strip()
         dct = { }
-        for part in line.split(','):
+        for part in src.split(','):
             if ':' in part:
                 tag = re.search(r'(\w+):', part)[1]
-                val = part[part.index(':')+1:]
+                val = part[part.index(':')+1:].strip()
                 dct[tag] = val
+                logging.debug(f'parse_tags:  "{tag}" = "{val}"')
         return dct

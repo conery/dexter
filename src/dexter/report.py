@@ -160,14 +160,16 @@ def print_detail_table(acct, entries, start, nobudget):
         row = []
         bal += e.value
         debit = credit = ''
+        row.append(str(e.date))
         if trans := e.tref:
             for x in trans.entries:
                 if x.column == ColType.cr:
                     credit = DB.display_name(x.account, markdown=True)
                 else:
                     debit = DB.display_name(x.account, markdown=True)
-        row.append(str(e.date))
-        row.append(trans.description)
+            row.append(trans.description)
+        else:
+            row.append('[blue italic]unpaired')
         row.append(credit)
         row.append(debit)
         row.append(format_amount(e.value, dollar_sign=True))
