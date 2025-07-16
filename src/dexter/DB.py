@@ -238,6 +238,7 @@ class RegExp(Document):
 
         if m := re.search(self.expr, s, re.I):
             repl = self.repl
+            logging.debug(f'  match {m} repl "{repl}"')
             for i, f in re.findall(RegExp.placeholder, self.repl, re.I):
                 if f:
                     repl = repl.replace(f,'')

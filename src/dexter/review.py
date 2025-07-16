@@ -29,6 +29,7 @@ class KEY:
     EDIT_ACCOUNT = ctrl('T')          # mnemonic:  "to"
     EDIT_REGEXP = ctrl('E')
     FILL_DESC = ctrl('F')
+    RESET = ctrl('R')
     ACCEPT = ctrl('A')
 
 cmnd_keys = { x[1] for x in vars(KEY).items() if not x[0].startswith('__') }
@@ -81,15 +82,19 @@ def review_unpaired(args):
                     show_help(all_keys)
                     continue
                 case KEY.PREV:
-                    row = (row - 1) % len(tlist)
+                    if confirmed(tlist[row]):
+                        row = (row - 1) % len(tlist)
                 case KEY.NEXT:
-                    row = (row + 1) % len(tlist)
+                    if confirmed(tlist[row]):
+                        row = (row + 1) % len(tlist)
                 case KEY.FILL_DESC:
                     tlist[row].mode = (tlist[row].mode + 1) % 3
                 case KEY.EDIT_DESC | KEY.EDIT_COMMENT | KEY.EDIT_TAGS:
                     edit_field(tlist[row], key)
                 case KEY.EDIT_ACCOUNT:
                     edit_account(tlist[row], account_names)
+                case KEY.RESET:
+                    reset_transaction(tlist[row])
                 case KEY.ACCEPT:
                     if verify_and_save_transaction(tlist[row]):
                         del tlist[row]
@@ -295,12 +300,39 @@ def edit_account(trans, names):
     if accts := names.get(text):
         # messages.append(f'{accts}')
         if len(accts) > 1:
-            messages.append(f'ambiguous, choose from {accts}')
+            messages.append(f'[red]ambiguous, choose from {accts}')
         else:
             entry.account = list(accts)[0]
             trans.edited.add('account')
     else:
-        messages.append(f'unknown account: {text}')
+        messages.append(f'[red]unknown account: {text}')
+
+def reset_transaction(trans):
+    '''
+    Reinitialize the fields of the transaction.
+    '''
+    trans.description = ''
+    trans.comment = ''
+    trans.tags = []
+    trans.entries[1].account = ''
+    trans.edited = set()
+
+def confirmed(trans):
+    '''
+    User has hit up or down arrow.  If there are changes to a field
+    ask if they should be saved.  Return True if the move should be
+    taken, False to continue editing the current transaction.
+    '''
+    if trans.edited:
+        console.out('\nDiscard changes? [yN] ', end='', style='blue italic')
+        key = click.getchar()
+        if key in 'yY':
+            reset_transaction(trans)
+            return True
+        else:
+            return False
+    else:
+        return True
 
 def verify_and_save_transaction(trans):
     '''
@@ -319,18 +351,13 @@ def verify_and_save_transaction(trans):
             missing.append('description')
     if 'account' not in trans.edited:
         missing.append('account')
+
     if missing:
         messages.append(f'[red]Missing required fields: {", ".join(missing)}')
         return False
-    
-    # Convert the tag string to a list, adding #'s if necessary
-    if 'tags' in trans.edited:
-        trans.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', trans.tags)]
-
-    # Save the entries and the transaction
-    trans.entries[0].tags.remove(Tag.U)
-    # for e in trans.entries:
-    #     e.save()
-    # trans.save()  
-    DB.save_records([trans])
-    return True
+    else:
+        if 'tags' in trans.edited:
+            trans.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', trans.tags)]
+        trans.entries[0].tags.remove(Tag.U)
+        DB.save_records([trans])
+        return True

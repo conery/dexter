@@ -29,17 +29,21 @@ def pair_entries(args):
     for entry in unpaired:
         logging.debug(f'pair: find regexp for {entry.description}')
         if regexp := DB.find_first_regexp(entry.description, Action.T):
+            logging.debug(f'  found {regexp}')
             if trans := matching_transaction(entry, regexp):
                 logging.debug(f'  new transaction: {trans.description}')
                 new_transactions.append(trans)
             else:
+                logging.debug('    apply failed')
                 unmatched.append(entry)
         elif regexp := DB.find_first_regexp(entry.description, Action.X):
-            logging.debug(f'  xfer part')
+            logging.debug(f'  xfer {regexp}')
             xfer_part(entry, regexp, credits, debits)
         elif regexp := DB.find_first_regexp(entry.description, Action.F):
+            logging.debug(f'  fill {regexp}')
             fillable.append(entry)
         else:
+            logging.debug(f'    no match')
             unmatched.append(entry)
 
     xfers = combine_xfer_parts(credits, debits)
@@ -49,6 +53,12 @@ def pair_entries(args):
         preview_transfers(xfers)
         preview_unmatched(fillable, "Will be matched during review")
         preview_unmatched(unmatched, "Unmatched")
+
+        unpaired_xfers = []
+        for lst in list(debits.values()) + list(credits.values()):
+            for e in lst:
+                unpaired_xfers.append(e)
+        preview_unmatched(unpaired_xfers, "Unpaired xfer")
     else:
         logging.info(f'pair: {len(new_transactions)} matched')
         logging.info(f'pair: {len(xfers)} paired')
