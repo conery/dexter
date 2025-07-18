@@ -88,6 +88,8 @@ def init_cli():
 
     review_parser = subparsers.add_parser('review', help='review transactions')
     review_parser.set_defaults(dispatch=review_unpaired)
+    review_parser.add_argument('--description', metavar='X', default='', help='descriptions pattern')
+    review_parser.add_argument('--account', metavar='A', default='', help='account name pattern')
     review_parser.add_argument('--fill_mode', metavar='N', type=int, choices=[0,1,2], default=0, help='method for filling descriptions')
 
     add_trans_parser = subparsers.add_parser('add', help='add a new transaction')

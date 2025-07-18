@@ -68,7 +68,7 @@ def review_unpaired(args):
     readline.parse_and_bind('tab: complete')
     readline.set_completer(completer_function(account_parts))
     row = 0
-    tlist = [make_candidate(e, args.fill_mode) for e in unpaired]
+    tlist = [make_candidate(e, args.fill_mode) for e in unpaired if matching(e,args)]
     try:
         if not debugging():
             console.set_alt_screen(True)
@@ -202,9 +202,24 @@ def display_row(trans):
     messages.clear()
     console.print()
 
+def matching(e, args):
+    '''
+    Return True if the description and account in entry e match
+    patterns specified on the command line.
+
+    Arguments:
+        e:  an Entry object derived from a line in a CSV file
+        args:  command line arguments
+
+    '''
+    # Relies on the fact that the default patterns are empty strings and a
+    # regular expression search when the pattern is empty is always True.
+
+    return re.search(args.description, e.description, re.I) and re.search(args.account, e.account, re.I)
+
 def make_candidate(e, n):
     '''
-    Create a suggested Entry object to pair with the current Entry and
+    Create a suggested Entry object to pair with the Entry e and
     a Transaction for the pair.
 
     Arguments:
