@@ -87,43 +87,32 @@ entry_header_format = {
     # 'tref':    {'width': 12},
 }
 
-def print_records(docs, name=None, count=0):
+def make_row(rec, row_type, abbrev):
     '''
-    Print a grid containing descriptions of documents.  Each document
-    class has its own `row` method that has the information it wants
-    to display.  Groups documents by collection, then print each group.
-
-    Arguments:
-        docs:  a list of documents
+    Helper function for print_transaction_table and print_csv_transactions.
+    Extra data from a record and save it in a list.
     '''
-    # dct = {}
-    # for obj in docs:
-    #     lst = obj.row()
-    #     a = dct.setdefault(lst[0], [])
-    #     a.append(lst)
-
-    # for tbl, lst in dct.items():
-    #     n = len(lst[0])
-    #     grid = Table.grid(""*n, padding=[0,2,0,2])
-    #     for row in lst:
-    #         grid.add_row(*row)
-    #     console.print(grid)
-    #     console.print()
-
-    if name:
-        title = f'[bold blue]{name}'
-        if count:
-            title += f' ({count})'
-        console.print(title)
-
-    if len(docs) > 0:
-        lst = [obj.row() for obj in docs]
-        n = len(lst[0])
-        grid = Table.grid(""*n, padding=[0,3,0,3])
-        for row in lst:
-            grid.add_row(*row)
-        console.print(grid)
-    console.print()
+    row = []
+    if row_type == 'entry':
+        acct = DB.abbrev(rec.account) if abbrev else rec.account
+        row.append(str(rec.date))
+        row.append(acct)
+        row.append(format_amount(rec.amount, dollar_sign=True))
+        row.append(rec.column.value)
+        row.append(rec.description)
+        row.append(", ".join([f'{s.value}' for s in rec.tags]))
+        # row.append(str(rec.tref)[:10])
+    else:
+        cr = DB.abbrev(rec.pcredit) if abbrev else DB.display_name(rec.pcredit, markdown=True)
+        dr = DB.abbrev(rec.pdebit) if abbrev else DB.display_name(rec.pdebit, markdown=True)
+        row.append(str(rec.pdate))
+        row.append(cr)
+        row.append(dr)
+        row.append(format_amount(rec.pamount, dollar_sign=True))
+        row.append(rec.description)
+        row.append(rec.comment)
+        row.append(", ".join([f'{s}' for s in rec.tags]))
+    return row
 
 def tag_strings(rec):
     '''
@@ -136,18 +125,51 @@ def tag_strings(rec):
     i = 0 if rec.column == Column.cr else 1
     return " ".join([Config.tag_syms[t][i] for t in rec.tags])
 
-def print_transaction_table(
-        lst, 
-        name=None, 
-        styles={},
-        order_by=None,
-        abbrev=False,
-        as_csv=False,
-    ):
-    if order_by:
-        lst = lst.order_by(order_by)
+def print_transaction_table(lst, args):
+    '''
+    Function called by select command to print a list of Entry or Transaction
+    objects in a tabular form.
 
-    if lst and isinstance(lst[0],Entry):
+    Arguments:
+        lst:  the selected objects
+        args:  command line options
+    '''
+    if isinstance(lst[0],Entry):
+        header = dict(entry_header_format)
+        row_type = 'entry'
+        name = 'Entries'
+    else:
+        header = dict(transaction_header_format)
+        row_type = 'transaction'
+        name = 'Transactions'
+
+    colnames = header.keys()
+
+    t = Table(
+        title=name,
+        title_justify='left',
+        title_style='table_header'
+    )
+    for h in colnames:
+        t.add_column(h, **header.get(h))
+            
+    for rec in lst:
+        row = make_row(rec, row_type, args.abbrev)
+        t.add_row(*row)
+
+    console.print()
+    console.print(t)
+
+def print_csv_transactions(lst, args):
+    '''
+    Function called by select command to print a list of Entry or Transaction
+    objects as CSV records.
+
+    Arguments:
+        lst:  the selected objects
+        args:  command line options
+    '''
+    if isinstance(lst[0],Entry):
         header = dict(entry_header_format)
         row_type = 'entry'
     else:
@@ -156,66 +178,29 @@ def print_transaction_table(
 
     colnames = header.keys()
 
-    if as_csv:
-        writer = csv.DictWriter(sys.stdout, colnames)
-        writer.writeheader()
-    else:
-        t = Table(
-            title=name,
-            title_justify='left',
-            title_style='table_header'
-        )
-        for h in colnames:
-            args = styles.get(h) or header.get(h)
-            t.add_column(h, **args)
-            
+    writer = csv.DictWriter(sys.stdout, colnames)
+    writer.writeheader()
+
     for rec in lst:
-        row = []
-        if row_type == 'entry':
-            acct = DB.abbrev(rec.account) if abbrev else rec.account
-            row.append(str(rec.date))
-            row.append(acct)
-            row.append(format_amount(rec.amount, dollar_sign=True))
-            row.append(rec.column.value)
-            row.append(rec.description)
-            row.append(", ".join([f'{s.value}' for s in rec.tags]))
-            # row.append(str(rec.tref)[:10])
-        else:
-            cr = DB.abbrev(rec.pcredit) if abbrev else DB.display_name(rec.pcredit, markdown=True)
-            dr = DB.abbrev(rec.pdebit) if abbrev else DB.display_name(rec.pdebit, markdown=True)
-            row.append(str(rec.pdate))
-            row.append(cr)
-            row.append(dr)
-            row.append(format_amount(rec.pamount, dollar_sign=True))
-            row.append(rec.description)
-            row.append(rec.comment)
-            row.append(", ".join([f'{s}' for s in rec.tags]))
-        if as_csv:
-            writer.writerow(dict(zip(colnames,row)))
-        else:
-            t.add_row(*row)
+        row = make_row(rec, row_type, args.abbrev)
+        writer.writerow(dict(zip(colnames,row)))
 
-    print()
-    if not as_csv:
-        console.print(t)
-
-def print_journal_transactions(lst, abbrev=False, order_by=None):
+def print_journal_transactions(lst, args):
     '''
-    Print transactions in Journal format.
+    Function called by select command to print a list of Entry or Transaction
+    objects in Journal format.
 
     Arguments:
-        lst: a list of Transaction objects
+        lst:  the selected objects
+        args:  command line options
     '''
-    if order_by:
-        lst = lst.order_by(order_by)
-
     for obj in lst:
         line = f'{obj.pdate}   {obj.description}'
         if obj.comment:
             line += f'   ; {obj.comment}'
         print(line)
         for e in obj.entries:
-            acct = DB.abbrev(e.account) if abbrev else e.account
+            acct = DB.abbrev(e.account) if args.abbrev else e.account
             amt = format_amount(e.value, dollar_sign=True)
             line = f'    {acct:20s} {amt:>15s}'
             print(line)
@@ -251,6 +236,31 @@ def print_grid(recs: list, name: str = None, count: int = 0):
         n = len(recs[0])
         grid = Table.grid(""*n, padding=[0,2,0,2])
         for row in recs:
+            grid.add_row(*row)
+        console.print(grid)
+    console.print()
+
+def print_records(docs, name=None, count=0):
+    '''
+    Print a grid containing descriptions of documents.  Each document
+    class has its own `row` method that has the information it wants
+    to display.  Groups documents by collection, then print each group.
+
+    Arguments:
+        docs:  a list of documents
+    '''
+
+    if name:
+        title = f'[bold blue]{name}'
+        if count:
+            title += f' ({count})'
+        console.print(title)
+
+    if len(docs) > 0:
+        lst = [obj.row() for obj in docs]
+        n = len(lst[0])
+        grid = Table.grid(""*n, padding=[0,3,0,3])
+        for row in lst:
             grid.add_row(*row)
         console.print(grid)
     console.print()

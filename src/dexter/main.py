@@ -16,8 +16,8 @@ from .util import setup_logging, parse_date, date_range
 from .io import print_info, init_database, save_records, restore_records, import_records, export_records
 from .pair import pair_entries
 from .report import print_audit_report, print_balance_report
-from .review import review_unpaired
-from .select import select_transactions
+# from .review import review_unpaired
+from .select import select
 
 # Stub functions for commands (will be moved to modules)
 
@@ -86,11 +86,11 @@ def init_cli():
     pair_parser = subparsers.add_parser('pair', help='make transactions from matching entries')
     pair_parser.set_defaults(dispatch=pair_entries)
 
-    review_parser = subparsers.add_parser('review', help='review transactions')
-    review_parser.set_defaults(dispatch=review_unpaired)
-    review_parser.add_argument('--description', metavar='X', default='', help='descriptions pattern')
-    review_parser.add_argument('--account', metavar='A', default='', help='account name pattern')
-    review_parser.add_argument('--fill_mode', metavar='N', type=int, choices=[0,1,2], default=0, help='method for filling descriptions')
+    # review_parser = subparsers.add_parser('review', help='review transactions')
+    # review_parser.set_defaults(dispatch=review_unpaired)
+    # review_parser.add_argument('--description', metavar='X', default='', help='descriptions pattern')
+    # review_parser.add_argument('--account', metavar='A', default='', help='account name pattern')
+    # review_parser.add_argument('--fill_mode', metavar='N', type=int, choices=[0,1,2], default=0, help='method for filling descriptions')
 
     add_trans_parser = subparsers.add_parser('add', help='add a new transaction')
     add_trans_parser.set_defaults(dispatch=add_transaction)
@@ -114,30 +114,34 @@ def init_cli():
     report_parser.add_argument('--abbrev', action='store_true', help='print abbreviated names')
     report_parser.add_argument('--grouped', action='store_true', help='group by account name')
 
-    select_parser = subparsers.add_parser('select', help='select transactions')
-    select_parser.set_defaults(dispatch=select_transactions)
-    select_parser.add_argument('--entry', action='store_true', help='seach individual debit or credit entries')
-    select_parser.add_argument('--date', metavar='D', type=parse_date, help='transaction date')
+    select_parser = subparsers.add_parser('select', help='select transactions or postings')
+    select_parser.set_defaults(dispatch=select)
+    select_parser.add_argument('--entry', action='store_true', help='select individual debits or credits')
+    select_parser.add_argument('--date', metavar='D', type=parse_date, help='transaction or posting date')
     select_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     select_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     select_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
-    select_parser.add_argument('--credit', metavar='A', help='credit account name (transaction)')
-    select_parser.add_argument('--debit', metavar='A', help='debit account name (transaction)')
-    select_parser.add_argument('--account', metavar='A', help='account name (entry)')
-    select_parser.add_argument('--column', metavar='C', choices=['credit','debit'], help='entry type (entry)')
+    # select_parser.add_argument('--credit', metavar='A', help='credit account name (transaction)')
+    # select_parser.add_argument('--debit', metavar='A', help='debit account name (transaction)')
+    select_parser.add_argument('--account', metavar='A', help='account name')
+    select_parser.add_argument('--column', metavar='C', choices=['credit','debit'], help='entry type (posting)')
     select_parser.add_argument('--description', metavar='X', help='descriptions pattern')
     select_parser.add_argument('--comment', metavar='X', help='comment pattern (transaction)')
-    select_parser.add_argument('--tag', metavar='X', help='tag pattern (transaction)')
+    select_parser.add_argument('--tag', metavar='X', help='tag pattern')
     select_parser.add_argument('--amount', metavar='N', type=float, help='amount')
     select_parser.add_argument('--min_amount', metavar='N', type=float, help='minimum amount')
     select_parser.add_argument('--max_amount', metavar='N', type=float, help='maximum amount')
-    select_parser.add_argument('--abbrev', action='store_true', help='print abbreviated account names')
+    select_parser.add_argument('--abbrev', action='store_true', help='show abbreviated account names')
     select_parser.add_argument('--order_by', metavar='C', choices=columns, default='date', help='sort order')
-    select_parser.add_argument('--total', action='store_true', help='print total amount of selected transactions')
-    select_parser.add_argument('--update', metavar='F V', nargs=2, help='update fields')
-    formats = select_parser.add_mutually_exclusive_group()
-    formats.add_argument('--journal', action='store_true', help='print in Journal format')
-    formats.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
+    select_parser.add_argument('--total', action='store_true', help='show total amount of selected transactions')
+    actions = select_parser.add_mutually_exclusive_group()
+    actions.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
+    actions.add_argument('--journal', action='store_true', help='print in Journal format (transaction)')
+    actions.add_argument('--repl', action='store_true', help='show selection in command line REPL')
+    actions.add_argument('--panel', action='store_true', help='show selection in a GUI')
+    actions.add_argument('--update', metavar='F V', nargs=2, help='update fields')
+    actions.add_argument('--delete', action='store_true', help='delete selected records')
+    actions.add_argument('--set_tag', metavar='T', help='add or remove tag on selected records')
 
     if len(sys.argv) == 1:
         parser.print_usage()

@@ -673,6 +673,10 @@ class DB:
         'tag': 'tags',
     }
 
+    entry_unused = {
+        'comment',
+    }
+
     entry_order = {
         'description': 'description',
         'date':  'date',
@@ -688,9 +692,13 @@ class DB:
         'amount':  'pamount',
         'min_amount': 'pamount__gte',
         'max_amount': 'pamount__lte',
-        'debit': 'pdebit__iregex',
-        'credit': 'pcredit__iregex',
+        # 'debit': 'pdebit__iregex',
+        # 'credit': 'pcredit__iregex',
         'tag': 'tags',
+    }
+
+    transaction_unused = {
+        'column',
     }
 
     transaction_order = {
