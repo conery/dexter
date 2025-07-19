@@ -134,6 +134,7 @@ def init_cli():
     select_parser.add_argument('--abbrev', action='store_true', help='show abbreviated account names')
     select_parser.add_argument('--order_by', metavar='C', choices=columns, default='date', help='sort order')
     select_parser.add_argument('--total', action='store_true', help='show total amount of selected transactions')
+    select_parser.add_argument('--unpaired', action='store_true', help='set --entry and --tag #unpaired')
     actions = select_parser.add_mutually_exclusive_group()
     actions.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
     actions.add_argument('--journal', action='store_true', help='print in Journal format (transaction)')

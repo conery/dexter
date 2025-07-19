@@ -48,16 +48,17 @@ field_names = {
 # Top level method for reviewing transactions
 #
 
-def review_unpaired(args):
+def repl(recs, args):
     '''
     The top level function, called from main when the command 
     is "review". 
 
     Arguments:
+        recs: List of Entry objects provided by `select`
         args: Namespace object with command line arguments.
     '''
-    DB.open(args.dbname)
-    unpaired = DB.select(Entry, tag=Tag.U).order_by('date')
+    # DB.open(args.dbname)
+    # unpaired = DB.select(Entry, tag=Tag.U).order_by('date')
     account_parts = list(DB.account_name_parts(Category.E) | DB.account_name_parts(Category.I))
     account_names = DB.account_names(Category.E) | DB.account_names(Category.I)
     if debugging():
@@ -68,7 +69,8 @@ def review_unpaired(args):
     readline.parse_and_bind('tab: complete')
     readline.set_completer(completer_function(account_parts))
     row = 0
-    tlist = [make_candidate(e, args.fill_mode) for e in unpaired if matching(e,args)]
+    # tlist = [make_candidate(e, args.fill_mode) for e in unpaired if matching(e,args)]
+    tlist =[make_candidate(e) for e in recs]
     try:
         if not debugging():
             console.set_alt_screen(True)
@@ -217,7 +219,8 @@ def matching(e, args):
 
     return re.search(args.description, e.description, re.I) and re.search(args.account, e.account, re.I)
 
-def make_candidate(e, n):
+# def make_candidate(e, n):
+def make_candidate(e):
     '''
     Create a suggested Entry object to pair with the Entry e and
     a Transaction for the pair.
@@ -229,6 +232,7 @@ def make_candidate(e, n):
     Returns:
         the new Transaction
     '''
+    # TODO:  get default fill mode from config file
     new_entry = Entry(
         date = e.date,
         description = "repl " + e.description,
@@ -239,7 +243,7 @@ def make_candidate(e, n):
     new_transaction.entries.append(e) 
     new_transaction.entries.append(new_entry)
     new_transaction.edited = set()
-    new_transaction.mode = n
+    new_transaction.mode = 2            # ick, see above
     return new_transaction
 
 def suggested(trans):
