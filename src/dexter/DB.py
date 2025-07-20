@@ -323,6 +323,9 @@ class DB:
         DB.models = [cls for cls in Document.__subclasses__() if hasattr(cls, 'objects')]
         DB.collections = { cls._meta["collection"]: cls for cls in DB.models }
 
+        DB.real_accounts = { a.name for a in Account.objects(category=Category.L) }
+        DB.real_accounts |= { a.name for a in Account.objects(category=Category.A) }
+
     @staticmethod
     def create(dbname: str):
         ''''

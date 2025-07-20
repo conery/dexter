@@ -7,6 +7,53 @@ from .config import Config, Tag
 from .console import print_transaction_table, print_csv_transactions, print_journal_transactions
 from .repl import repl
 
+
+def validate_options(args):
+    '''
+    Helper function to check combinations of command line arguments.
+
+    Returns the type of object to select and a dictionary that maps command line 
+    constraint names to attribute names for the type.
+    '''
+    if args.unpaired:
+        args.entry = True
+        args.tag = Tag.U.value
+
+    if args.entry:
+        if args.journal:
+            raise ValueError('select: --journal cannot be used with --entry')
+        cls = Entry
+        dct = DB.entry_constraints
+    else:
+        if args.repl:
+            raise ValueError('select: --repl requires --entry or --unpaired')
+        cls = Transaction
+        dct = DB.transaction_constraints
+    logging.debug(f'select {cls}')
+
+    unused = DB.entry_unused if args.entry else DB.transaction_unused
+    for arg in unused:
+        if vars(args).get(arg):
+            logging.warning(f'select: option not valid for {cls.__name__}: {arg} (ignored)')
+
+    return cls, dct
+
+def collect_parameters(dct, args):
+    '''
+    Helper function to set up search parameters based on command
+    line arguments.
+    '''
+    kwargs = {}
+    for name in dct:
+        if val := vars(args).get(name):
+            kwargs[name] = val
+            logging.debug(f'  {name} = {val}')
+
+    if 'start_date' not in kwargs:
+        kwargs['start_date'] = Config.start_date
+
+    return kwargs
+
 # Table mapping action names (from the command line) with functions that
 # implement the action:
 
@@ -35,7 +82,7 @@ def select(args):
 
         --csv               display records as CSV (for import to a spreadsheet)
         --journal           display using Journal format [transactions only]
-        --repl              show records one at a time in a command line REPL
+        --repl              show records one at a time in a command line REPL (entry only)
         --panel             display records in a GUI
         --update            bulk update of a specified attribute in all selected records
         --tag               add or remove a tag on all selected records
@@ -67,34 +114,9 @@ def select(args):
     '''
     DB.open(args.dbname)
 
-    if args.unpaired:
-        args.entry = True
-        args.tag = Tag.U.value
+    cls, dct = validate_options(args)
+    kwargs = collect_parameters(dct, args)
 
-    if args.entry:
-        cls = Entry
-        dct = DB.entry_constraints
-        order = DB.entry_order
-    else:
-        cls = Transaction
-        dct = DB.transaction_constraints
-        order = DB.transaction_order
-    logging.debug(f'select {cls}')
-
-    kwargs = {}
-    for name in dct:
-        if val := vars(args).get(name):
-            kwargs[name] = val
-            logging.debug(f'  {name} = {val}')
-
-    if 'start_date' not in kwargs:
-        kwargs['start_date'] = Config.start_date
-
-    unused = DB.entry_unused if args.entry else DB.transaction_unused
-    for arg in unused:
-        if vars(args).get(arg):
-            logging.warning(f'select: option not valid for {cls.__name__}: {arg} (ignored)')
-    
     recs = DB.select(cls, **kwargs)
 
     if recs == []:

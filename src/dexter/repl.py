@@ -1,22 +1,28 @@
 # Command line REPL used by scripts that review transactions one at a time
 
 import click
+from collections import namedtuple
 from curses.ascii import ESC, ctrl, unctrl
 import logging
 import readline
 import re
-import string
-import sys
 
 from rich.console import Group
 from rich.panel import Panel
 from rich.pretty import pprint
 from rich.text import Text
 
+import heapq
+from thefuzz import fuzz
+
 from .DB import DB, Transaction, Entry, Account, Category, Action
-from .config import Tag
+from .config import Config, Tag
 from .console import console, format_amount
 from .util import debugging
+
+# A tuple that holds descriptions of previous entries with similar descriptions
+
+PrevEntry = namedtuple('PrevEntry', ['description', 'date', 'tags', 'account'])
 
 # Key combinations used to trigger updates
 
@@ -61,6 +67,8 @@ def repl(recs, args):
     # unpaired = DB.select(Entry, tag=Tag.U).order_by('date')
     account_parts = list(DB.account_name_parts(Category.E) | DB.account_name_parts(Category.I))
     account_names = DB.account_names(Category.E) | DB.account_names(Category.I)
+    previous_entries = [e for e in DB.select(Entry, start_date=Config.start_date) if e.tref and e.account in DB.real_accounts and len(e.description) > 10]
+    logging.debug(f'prev {previous_entries}')
     if debugging():
         print('account parts:')
         pprint(account_parts)
@@ -70,7 +78,8 @@ def repl(recs, args):
     readline.set_completer(completer_function(account_parts))
     row = 0
     # tlist = [make_candidate(e, args.fill_mode) for e in unpaired if matching(e,args)]
-    tlist =[make_candidate(e) for e in recs]
+    tlist = [make_candidate(e, previous_entries) for e in recs]
+    logging.debug(f'tlist {tlist}')
     try:
         if not debugging():
             console.set_alt_screen(True)
@@ -95,6 +104,8 @@ def repl(recs, args):
                     edit_field(tlist[row], key)
                 case KEY.EDIT_ACCOUNT:
                     edit_account(tlist[row], account_names)
+                case ch if ch in digit_keys:
+                    copy_previous(tlist[row], ch)
                 case KEY.RESET:
                     reset_transaction(tlist[row])
                 case KEY.ACCEPT:
@@ -198,6 +209,13 @@ messages = [ ]
 def display_row(trans):
     console.clear()
     console.print(make_panel(trans))
+    console.print()
+    for i, x in enumerate(trans.similar):
+        line = f'   ({i})  {x.date}'
+        line += f'  {x.description[:40]:40s}'
+        line += f'  {DB.abbrev(x.account):20s}'
+        line += f'  {x.tags}'
+        console.print(line)
     if messages:
         for m in messages:
             console.print(m)
@@ -220,14 +238,14 @@ def matching(e, args):
     return re.search(args.description, e.description, re.I) and re.search(args.account, e.account, re.I)
 
 # def make_candidate(e, n):
-def make_candidate(e):
+def make_candidate(e, prev):
     '''
     Create a suggested Entry object to pair with the Entry e and
     a Transaction for the pair.
 
     Arguments:
         e:  an Entry object derived from a line in a CSV file
-        n:  default fill mode (int from 0 to 2)
+        prev:  a list of previously defined Entry objects
 
     Returns:
         the new Transaction
@@ -244,7 +262,28 @@ def make_candidate(e):
     new_transaction.entries.append(new_entry)
     new_transaction.edited = set()
     new_transaction.mode = 2            # ick, see above
+    new_transaction.similar = find_similar(e, prev)
+    for x in new_transaction.similar:
+        logging.debug(f'similar: {x}')
     return new_transaction
+
+def find_similar(e, prev):
+    '''
+    Find descriptions of previous entries with similar descriptions
+
+    Arguments:
+        e:  a new entry with a description from a CSV file
+        prev: a list of previously paired entries
+    '''
+    lst = []
+    dset = set()
+    for p in prev:
+        score = fuzz.token_set_ratio(e.description, p.description)
+        if score > 50 and p.description not in dset:
+            t = p.tref
+            heapq.heappush(lst, PrevEntry(t.description, p.date, t.tags, t.entries[1].account))
+            dset.add(p.description)
+    return heapq.nlargest(5, lst)
 
 def suggested(trans):
     '''
@@ -303,6 +342,7 @@ def edit_account(trans, names):
 
     Arguments:
         trans:  the transaction to update
+        names:  list of account names
     '''
     entry = trans.entries[1]
     s = entry.account or ""
@@ -325,6 +365,26 @@ def edit_account(trans, names):
             trans.edited.add('account')
     else:
         messages.append(f'[red]unknown account: {text}')
+
+def copy_previous(trans, key):
+    '''
+    Copy the description, account, and tags from a previous transaction.
+
+    Arguments:
+        trans:  the transaction to update
+        key: the digit key that selected the previous transaction
+    '''
+    n = int(key)
+    if n < len(trans.similar):
+        prev = trans.similar[n]
+        entry = trans.entries[1]
+        entry.account = prev.account
+        trans.description = prev.description
+        trans.edited |= {'account','description'}
+        if prev.tags:
+            trans.tags = prev.tags
+            trans.edited.add('tags')
+        trans.copy = prev
 
 def reset_transaction(trans):
     '''

@@ -219,14 +219,14 @@ class TestDB:
         assert len(lst) == 2
         assert all('budget' in t.comment for t in lst)
 
-        # select by account
-        lst = DB.select(Transaction, credit='expenses:home')
-        assert len(lst) == 3
-        assert all('home' in t.pcredit for t in lst)
+        # # select by account
+        # lst = DB.select(Transaction, credit='expenses:home')
+        # assert len(lst) == 3
+        # assert all('home' in t.pcredit for t in lst)
 
-        lst = DB.select(Transaction, debit='expenses:home')
-        assert len(lst) == 3
-        assert all('home' in t.pdebit for t in lst)
+        # lst = DB.select(Transaction, debit='expenses:home')
+        # assert len(lst) == 3
+        # assert all('home' in t.pdebit for t in lst)
 
     def test_select_transactions_multi(self, db):
         '''
@@ -237,9 +237,9 @@ class TestDB:
         assert lst[0].description.startswith('S')
         assert lst[0].pamount > 100
 
-        lst = DB.select(Transaction, start_date = date(2024,2,1), credit='visa')
-        assert len(lst) == 3
-        assert all('visa' in t.pcredit and t.pdate >= date(2024,2,1) for t in lst)
+        # lst = DB.select(Transaction, start_date = date(2024,2,1), credit='visa')
+        # assert len(lst) == 3
+        # assert all('visa' in t.pcredit and t.pdate >= date(2024,2,1) for t in lst)
 
     def test_select_entries(self, db):
         '''

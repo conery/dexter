@@ -40,6 +40,9 @@ class JournalParser:
         self._transaction_date = None
         self._transaction_total = 0
 
+        # Make a list of the special tags without the # at the front
+        self._special_tags = [x.value[1:] for x in Tag.__members__.values()]
+
         if db_accounts:
             self._account_names |= db_accounts
         self._existing_uids = db_uids
@@ -145,10 +148,11 @@ class JournalParser:
             description = ' '.join(tokens[1:])
         )
         trans.comment = comment.strip()
-        # tags = self._parse_tags(comment)
-        if 'pending:' in comment:
-            # trans.tags = list(tags.keys())
-            trans.tags = [ Tag.P.value ]
+        # # tags = self._parse_tags(comment)
+        # if 'pending:' in comment:
+        #     # trans.tags = list(tags.keys())
+        #     trans.tags = [ Tag.P.value ]
+        trans.tags = list(self._parse_tags(comment).keys())
         self._transactions.append(trans)
 
     def _new_posting(self, tokens, comment):
@@ -173,18 +177,18 @@ class JournalParser:
         else:
             amount = -self._transaction_total
 
-        tags = self._parse_tags(comment)
+        tags = list(self._parse_tags(comment).keys())
         col = 'credit' if amount < 0 else 'debit'
         trans = self._transactions[-1]
         if trans.isbudget:
             tags.append(Tag.B)
         entry = Entry(
             date = self._transaction_date,
-            description = comment,
+            description = comment.strip(),
             account = acct,
             column = col,
             amount = abs(amount),
-            tags = list(tags.keys()),
+            tags = tags,
         )
 
         if entry.hash in self._existing_uids:
@@ -204,7 +208,8 @@ class JournalParser:
 
     def _parse_tags(self, comment):
         '''
-        Look for tags in the comment portion of a line.
+        Look for tags in the comment portion of a line.  Adds a hash tag in
+        front of special tags.
 
         Arguments:
             comment:  characters following a semicolon on the current line
@@ -217,6 +222,8 @@ class JournalParser:
         for part in src.split(','):
             if ':' in part:
                 tag = re.search(r'(\w+):', part)[1]
+                if tag in self._special_tags:
+                    tag = '#' + tag
                 val = part[part.index(':')+1:].strip()
                 dct[tag] = val
                 logging.debug(f'parse_tags:  "{tag}" = "{val}"')
