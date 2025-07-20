@@ -67,7 +67,7 @@ def repl(recs, args):
     # unpaired = DB.select(Entry, tag=Tag.U).order_by('date')
     account_parts = list(DB.account_name_parts(Category.E) | DB.account_name_parts(Category.I))
     account_names = DB.account_names(Category.E) | DB.account_names(Category.I)
-    previous_entries = [e for e in DB.select(Entry, start_date=Config.start_date) if e.tref and e.account in DB.real_accounts and len(e.description) > 10]
+    previous_entries = [e for e in DB.select(Entry, start_date=Config.DB.start_date) if e.tref and e.account in DB.real_accounts and len(e.description) > 10]
     logging.debug(f'prev {previous_entries}')
     if debugging():
         print('account parts:')

@@ -309,7 +309,7 @@ class DB:
         Arguments:
             dbname:  name of the database
         '''
-        dbname = dbname or os.getenv('DEX_DB') or Config.dbname
+        dbname = dbname or os.getenv('DEX_DB') or Config.DB.name
         if dbname is None:
             raise ValueError('DB.open: specify a database name with --db or DEX_DB')   
         if dbname not in DB.dexters:

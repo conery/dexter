@@ -4,7 +4,7 @@ import logging
 import re
 
 from .DB import DB, Transaction, Entry, Action, Column
-from .config import Config, Tag
+from .config import Tag
 from .console import print_records, print_grid
 
 def pair_entries(args):

@@ -7,9 +7,7 @@ from pathlib import Path
 import re
 
 from .DB import DB, Account, Entry, Transaction, RegExp, Category, Tag
-from .config import Config
 from .util import parse_date
-
 
 class JournalParser:
     '''

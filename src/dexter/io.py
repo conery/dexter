@@ -126,7 +126,7 @@ def import_records(args):
                         continue
                     account = alist[0].name
                     parser = alist[0].parser
-                    if parser not in Config.colmaps.keys():
+                    if parser not in Config.CSV.colmaps.keys():
                         logging.error(f'import: no parser for {account}')
                         continue
                     new_recs = parse_csv_transactions(path, parser, account, args.start_date, args.end_date, DB.uids())
@@ -309,7 +309,7 @@ def parse_csv_transactions(fn, pname, account, starting, ending, previous):
     '''
     logging.info(f'importing transaction CSV, file: {fn} account: {account}')
     res = []
-    cmap = Config.colmaps[pname]
+    cmap = Config.CSV.colmaps[pname]
     logging.debug(f'  parser {pname} colmap {cmap}')
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
         reader = csv.DictReader(csvfile)
@@ -351,7 +351,7 @@ def get_names_and_create_db(args):
     if not p.exists():
         raise FileNotFoundError(f'no such file: {args.file}')
 
-    dbname = args.dbname or os.getenv('DEX_DB') or Config.dbname
+    dbname = args.dbname or os.getenv('DEX_DB') or Config.DB.name
     if dbname is None:
         raise ValueError(f'specify a database name')
 
@@ -365,7 +365,7 @@ def open_db(args):
     Helper function used by import and restore.  Gets database name,
     opens database.
     '''
-    dbname = args.dbname or os.getenv('DEX_DB') or Config.dbname
+    dbname = args.dbname or os.getenv('DEX_DB') or Config.DB.name
     if dbname is None:
         raise ValueError(f'specify a database name')
     DB.open(dbname)
@@ -397,77 +397,4 @@ def make_balance_transaction(rec, lst):
         entries = [debit,credit]
     )
     lst.append(trans)
-
-
-# def import_entries(args):
-#     '''
-#     Helper function for import_records -- determine the type of each
-#     file (CSV or Journal), parse the file and save records
-#     '''
-#     for path in args.files:
-#         if not path.is_file():
-#             logging.error(f'import: no file named {path}')
-#             continue
-#         if path.suffix == '.journal':
-#             recs = import_journal(path, args.preview)
-#         elif path.suffix != '.csv':
-#             logging.error(f'import: unknown extension {path.suffix}')
-#         else:
-#             basename = args.account or path.stem
-#             alist = DB.find_account(basename)
-#             if len(alist) == 0:
-#                 logging.error(f'import: no account name matches {basename}')
-#                 continue
-#             if len(alist) > 1:
-#                 logging.error(f'import: ambiguous account name {basename}')
-#                 continue
-#             account = alist[0].name
-#             parser = alist[0].parser
-#             logging.debug(f'import_records: account {account} parser {parser}')
-#             if parser not in Config.colmaps.keys():
-#                 logging.error(f'import: no parser for {account}')
-#                 continue
-#             recs = parse_file(path, parser, account, args.start_date, args.end_date, DB.uids())
-#         if args.preview:
-#             print_records(recs)
-#         else:
-#             DB.assign_uids(recs)
-#             # for e in recs:
-#             #     e.save()
-#             DB.save_records(recs)
-
-
-
-   
-
-# def parse_and_save_journal(fn: Path, preview: bool = False, accounts = None):
-#     '''
-#     Open a Journal file, parse the records, and (if preview is False) add
-#     them to the database
-
-#     Arguments:
-#         fn:         path to the Journal file
-#         preview:    if true print records but don't save them
-#         accoints:   optional list of account names from the database
-#     '''
-#     logging.info(f'parsing journal file: {fn}')
-
-#     jp = JournalParser()
-#     try:
-#         jp.parse_file(fn)
-#         jp.validate_entries()
-#     except Exception as err:
-#         logging.error(err)
-#         return
-
-#     if preview:
-#         for lst in [jp.account_list, jp.transaction_list, jp.entry_list]:
-#             for obj in lst:
-#                 obj.clean()
-#                 print(obj)
-#     else:
-#         DB.assign_uids(jp.entry_list)
-#         DB.save_records(jp.account_list)
-#         DB.save_records(jp.transaction_list)
-
 

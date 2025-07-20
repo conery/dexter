@@ -114,17 +114,6 @@ def make_row(rec, row_type, abbrev):
         row.append(", ".join([f'{s}' for s in rec.tags]))
     return row
 
-def tag_strings(rec):
-    '''
-    Return a string to display in the tags column of a table, looking up
-    symbols for system tags.
-
-    Arguments:
-        lst:  an Entry document
-    '''
-    i = 0 if rec.column == Column.cr else 1
-    return " ".join([Config.tag_syms[t][i] for t in rec.tags])
-
 def print_transaction_table(lst, args):
     '''
     Function called by select command to print a list of Entry or Transaction

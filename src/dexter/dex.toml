@@ -1,13 +1,13 @@
 # Default configuration settings
 
-[terminology]
-cname = "credit"   # alts:  "from", "out", "source"
-dname = "debit"    # alts:  "to", "in", "destination"
+[database]
+name = "finances"
+start_date = "2025-01-01"
 
 [csv]
 
 [csv.occu]
-description = 'rec["Description"] + rec["Extended Description"]'
+description = 'rec["Description"] + "§" + rec["Extended Description"]'
 date = 'rec["Posting Date"]'
 amount = 'abs(float(rec["Amount"]))'
 credit = 'rec["Amount"].startswith("-")'
@@ -18,3 +18,20 @@ date = 'rec["Post Date"]'
 amount = 'abs(float(rec["Amount"]))'
 credit = 'rec["Amount"].startswith("-")'
 
+[csv.citi]
+description = 'rec["Description"]'
+date = 'rec["Date"]'
+amount = 'abs(float(rec["Debit"] or rec["Credit"]))'
+credit = 'rec["Debit"]'
+
+[csv.amex]
+description = 'rec["Description"]'
+date = 'rec["Date"]'
+amount = 'abs(float(rec["Amount"]))'
+credit = 'float(rec["Amount"]) > 0'
+
+[csv.apple]
+description = 'rec["Description"]'
+date = 'rec["Clearing Date"]'
+amount = 'abs(float(rec["Amount (USD)"]))'
+credit = 'float(rec["Amount (USD)"]) > 0'

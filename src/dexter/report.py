@@ -30,7 +30,7 @@ def print_grouped_report(args):
     '''
     Print a one-line summary of the balance of each account.
     '''
-    start_date = args.start_date or Config.start_date
+    start_date = args.start_date or Config.DB.start_date
     end_date = args.end_date or datetime.date.today()
 
     accts = []
@@ -84,7 +84,7 @@ def print_detailed_report(args):
     Detailed expense report, with one line for each transaction
     in the date range.
     '''
-    start_date = args.start_date or Config.start_date
+    start_date = args.start_date or Config.DB.start_date
     end_date = args.end_date or datetime.date.today()
     entries = {}
 

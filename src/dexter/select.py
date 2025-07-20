@@ -50,7 +50,7 @@ def collect_parameters(dct, args):
             logging.debug(f'  {name} = {val}')
 
     if 'start_date' not in kwargs:
-        kwargs['start_date'] = Config.start_date
+        kwargs['start_date'] = Config.DB.start_date
 
     return kwargs
 

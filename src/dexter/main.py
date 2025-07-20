@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 import sys
 
-from .config import Config
+from .config import Config, initialize_config
 from .console import console
 from .DB import DB
 from .util import setup_logging, parse_date, date_range
@@ -156,7 +156,7 @@ def init_cli():
         exit(1)
 
     if args.command == 'config':
-        Config.print_default()
+        Config.print_default_config()
         exit(0)
 
     if 'month' in vars(args):
@@ -179,9 +179,8 @@ def main():
     """
     args = init_cli()
     try:
-        Config.init(args.config)
+        initialize_config(args.config)
         DB.init()
-        # DB.open(args.dbname, args.command not in ['init','restore'])
         args.dispatch(args)
     except (ValueError, FileNotFoundError, ModuleNotFoundError) as err:
         logging.error(err)
