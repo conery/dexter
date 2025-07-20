@@ -250,7 +250,6 @@ def make_candidate(e, prev):
     Returns:
         the new Transaction
     '''
-    # TODO:  get default fill mode from config file
     new_entry = Entry(
         date = e.date,
         description = "repl " + e.description,
@@ -261,7 +260,7 @@ def make_candidate(e, prev):
     new_transaction.entries.append(e) 
     new_transaction.entries.append(new_entry)
     new_transaction.edited = set()
-    new_transaction.mode = 2            # ick, see above
+    new_transaction.mode = Config.Select.fill_mode
     new_transaction.similar = find_similar(e, prev)
     for x in new_transaction.similar:
         logging.debug(f'similar: {x}')
@@ -279,11 +278,11 @@ def find_similar(e, prev):
     dset = set()
     for p in prev:
         score = fuzz.token_set_ratio(e.description, p.description)
-        if score > 50 and p.description not in dset:
+        if score >= Config.Select.min_similarity and p.description not in dset:
             t = p.tref
             heapq.heappush(lst, PrevEntry(t.description, p.date, t.tags, t.entries[1].account))
             dset.add(p.description)
-    return heapq.nlargest(5, lst)
+    return heapq.nlargest(Config.Select.max_similar, lst)
 
 def suggested(trans):
     '''

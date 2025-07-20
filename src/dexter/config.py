@@ -46,6 +46,11 @@ class Config:
         colmaps = { }
         fullname = { }
 
+    class Select:
+        fill_mode = 2
+        min_similarity = 70
+        max_similar = 5
+
 def print_default_config():
     '''
     Print a copy of the default config file to the terminal.
@@ -54,7 +59,7 @@ def print_default_config():
     with open(path) as f:
         print(f.read())
 
-def inititialize_config(fn = None):
+def initialize_config(fn = None):
     '''
     Initialize configuration settings.  Looks for a TOML file in
     the following places, in order:
@@ -72,18 +77,17 @@ def inititialize_config(fn = None):
     config = load_toml_file(cpath)
 
     if dd := config.get('database'):
-        if name := dd.get('dbname'):
-            Config.DB.name = name
-            logging.debug(f'Config.DB.name: {Config.DB.name}')
-        if date := dd.get('start_date'):
-            Config.DB.start_date = date
-            logging.debug(f'Config.DB.start_date: {Config.DB.start_date}')
+        add_attributes(Config.DB, dd)
 
     if cd := config.get('csv'):
         logging.debug(f'cd {cd}')
         for fmt, spec in cd.items():
             compile_specs(fmt, spec)
             logging.debug(f'Config: parser for {fmt}: {spec}')
+
+    if sd := config.get('select'):
+        add_attributes(Config.Select, sd)
+
 
 ###
 #
@@ -122,7 +126,6 @@ def load_toml_file(fn):
         res = tomllib.load(f)
     return res
 
-@staticmethod
 def compile_specs(fmt, specs):
     '''
     Helper method for initialize_config.  Convert column mapping specs into
@@ -134,3 +137,11 @@ def compile_specs(fmt, specs):
         f = eval(e, locals={}, globals={})
         Config.CSV.colmaps[fmt][field] = f
 
+def add_attributes(cls, specs):
+    '''
+    Helper method for initialize_config.  Iterate over a section of the
+    config file, save the settings in the Config subclass for that section.
+    '''
+    for name, val in specs.items():
+        setattr(cls, name, val)    
+        logging.debug(f'{cls}: {name} = {val}')

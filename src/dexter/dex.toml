@@ -7,7 +7,7 @@ start_date = "2025-01-01"
 [csv]
 
 [csv.occu]
-description = 'rec["Description"] + "§" + rec["Extended Description"]'
+description = 'rec["Description"] + " § " + rec["Extended Description"]'
 date = 'rec["Posting Date"]'
 amount = 'abs(float(rec["Amount"]))'
 credit = 'rec["Amount"].startswith("-")'
@@ -35,3 +35,8 @@ description = 'rec["Description"]'
 date = 'rec["Clearing Date"]'
 amount = 'abs(float(rec["Amount (USD)"]))'
 credit = 'float(rec["Amount (USD)"]) > 0'
+
+[select]
+fill_mode = 2
+min_similarity = 50
+max_similar = 5
