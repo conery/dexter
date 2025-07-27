@@ -15,8 +15,8 @@ from rich.text import Text
 import heapq
 from thefuzz import fuzz
 
-from .DB import DB, Transaction, Entry, Account, Category, Action
-from .config import Config, Tag
+from .DB import DB, Transaction, Entry, Account, Category, Action, Tag
+from .config import Config
 from .console import console, format_amount
 from .util import debugging
 

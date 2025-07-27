@@ -6,9 +6,9 @@ import re
 
 from rich.table import Table, Column
 
-from .DB import DB, Transaction, Entry, Column as ColType
+from .DB import DB, Transaction, Entry, Column as ColType, Tag
 from .console import console, format_amount
-from .config import Config, Tag
+from .config import Config
 
 
 def print_balance_report(args):

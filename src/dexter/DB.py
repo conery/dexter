@@ -10,7 +10,8 @@ import string
 
 from mongoengine import *
 
-from .config import Config, Tag
+# from .config import Config, Tag
+from .config import Config
 
 ### Database Schema, defined using MongoEngine
 
@@ -42,6 +43,13 @@ class Action(Enum):
 
     def __str__(self):
         return self.value
+
+class Tag(Enum):
+    A = '#allocated'
+    B = '#budget'
+    P = '#pending'
+    U = '#unpaired'
+    X = '#xfer'
 
 class Dexter(Document):
     date = DateField(required=True)

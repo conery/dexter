@@ -3,8 +3,8 @@
 import logging
 import re
 
-from .DB import DB, Transaction, Entry, Action, Column
-from .config import Tag
+from .DB import DB, Transaction, Entry, Action, Column, Tag
+# from .config import Tag
 from .console import print_records, print_grid
 
 def pair_entries(args):

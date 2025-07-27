@@ -2,8 +2,8 @@
 
 import logging
 
-from .DB import DB, Transaction, Entry
-from .config import Config, Tag
+from .DB import DB, Transaction, Entry, Tag
+from .config import Config
 from .console import print_transaction_table, print_csv_transactions, print_journal_transactions
 from .repl import repl
 

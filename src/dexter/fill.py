@@ -5,8 +5,8 @@ import logging
 from pathlib import Path
 import tomllib
 
-from .DB import DB, Transaction, Entry, Column
-from .config import Config, Tag
+from .DB import DB, Transaction, Entry, Column, Tag
+from .config import Config
 from .console import console, print_journal_transactions, print_csv_transactions
 
 def fill(args):
