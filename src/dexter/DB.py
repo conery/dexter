@@ -695,8 +695,8 @@ class DB:
         'amount':  'pamount',
         'min_amount': 'pamount__gte',
         'max_amount': 'pamount__lte',
-        # 'debit': 'pdebit__iregex',
-        # 'credit': 'pcredit__iregex',
+        'debit': 'pdebit__iregex',
+        'credit': 'pcredit__iregex',
         'tag': 'tags',
     }
 

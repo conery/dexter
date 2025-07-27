@@ -20,13 +20,15 @@ def validate_options(args):
         args.tag = Tag.U.value
 
     if args.entry:
-        if args.journal:
-            raise ValueError('select: --journal cannot be used with --entry')
+        for opt in ['journal','credit','debit']:
+            if getattr(args,opt):
+                raise ValueError(f'select: --{opt} cannot be used with --entry')
         cls = Entry
         dct = DB.entry_constraints
     else:
-        if args.repl:
-            raise ValueError('select: --repl requires --entry or --unpaired')
+        for opt in ['repl','account']:
+            if getattr(args,opt):
+                raise ValueError(f'select: --{opt} requires --entry')
         cls = Transaction
         dct = DB.transaction_constraints
     logging.debug(f'select {cls}')
