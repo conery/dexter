@@ -149,7 +149,7 @@ def print_transaction_table(lst, args):
     console.print()
     console.print(t)
 
-def print_csv_transactions(lst, args):
+def print_csv_transactions(lst, args = None):
     '''
     Function called by select command to print a list of Entry or Transaction
     objects as CSV records.
@@ -158,6 +158,9 @@ def print_csv_transactions(lst, args):
         lst:  the selected objects
         args:  command line options
     '''
+    if len(lst) == 0:
+        return
+    
     if isinstance(lst[0],Entry):
         header = dict(entry_header_format)
         row_type = 'entry'
@@ -171,10 +174,10 @@ def print_csv_transactions(lst, args):
     writer.writeheader()
 
     for rec in lst:
-        row = make_row(rec, row_type, args.abbrev)
+        row = make_row(rec, row_type, args and args.abbrev)
         writer.writerow(dict(zip(colnames,row)))
 
-def print_journal_transactions(lst, args):
+def print_journal_transactions(lst, args = None):
     '''
     Function called by select command to print a list of Entry or Transaction
     objects in Journal format.
@@ -189,9 +192,11 @@ def print_journal_transactions(lst, args):
             line += f'   ; {obj.comment}'
         print(line)
         for e in obj.entries:
-            acct = DB.abbrev(e.account) if args.abbrev else e.account
+            acct = DB.abbrev(e.account) if (args and args.abbrev) else e.account
             amt = format_amount(e.value, dollar_sign=True)
             line = f'    {acct:20s} {amt:>15s}'
+            if e.description:
+                line += f'     ; {e.description}'
             print(line)
         print()
 

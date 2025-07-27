@@ -27,6 +27,7 @@ ColMap = namedtuple('ColMap', ['description', 'date', 'amount', 'column'])
 # Tags for Trabsaction and Entry objects
 
 class Tag(Enum):
+    A = '#allocated'
     B = '#budget'
     P = '#pending'
     U = '#unpaired'
