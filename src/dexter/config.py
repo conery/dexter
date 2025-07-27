@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 import tomllib
 
+from .util import parse_date
+
 ###
 # 
 # A ColMap tuple tells the parser where to find essential
@@ -40,7 +42,10 @@ class Config:
 
     class DB:
         name = 'dexter'
-        start_date = '1970-01-01'
+        start_date = parse_date('1970-01-01')
+
+    class Budget:
+        specs = None
 
     class CSV:
         colmaps = { }
@@ -79,6 +84,9 @@ def initialize_config(fn = None):
     if dd := config.get('database'):
         add_attributes(Config.DB, dd)
 
+    if bd := config.get('budget'):
+        Config.Budget.specs = bd       
+
     if cd := config.get('csv'):
         logging.debug(f'cd {cd}')
         for fmt, spec in cd.items():
@@ -87,7 +95,6 @@ def initialize_config(fn = None):
 
     if sd := config.get('select'):
         add_attributes(Config.Select, sd)
-
 
 ###
 #
@@ -144,4 +151,4 @@ def add_attributes(cls, specs):
     '''
     for name, val in specs.items():
         setattr(cls, name, val)    
-        logging.debug(f'{cls}: {name} = {val}')
+        logging.debug(f'{cls}: {name} = {val} {type(val)}')

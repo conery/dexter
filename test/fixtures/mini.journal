@@ -1,6 +1,4 @@
 ;
-; transactions exported from finances.db
-;
 
 ; note: the abbreviation for the restaurant account is for a unit
 ; test that makes sure abbreviations are included.

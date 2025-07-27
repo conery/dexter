@@ -13,6 +13,7 @@ from .console import console
 from .DB import DB
 from .util import setup_logging, parse_date, date_range
 
+from .fill import fill
 from .io import print_info, init_database, save_records, restore_records, import_records, export_records
 from .pair import pair_entries
 from .report import print_audit_report, print_balance_report
@@ -63,7 +64,7 @@ def init_cli():
     import_parser.add_argument('--account', metavar='A', help='account name')
     import_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     import_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
-    import_parser.add_argument('--month', metavar='D', choices=months, help='add records only for this month')
+    import_parser.add_argument('--month', metavar='M', choices=months, help='add records only for this month')
     import_parser.add_argument('--regexp', action='store_true', help='CSV files have regular expression definitions')
 
     export_parser = subparsers.add_parser('export', help='write transactions to file')
@@ -71,7 +72,7 @@ def init_cli():
     export_parser.add_argument('file', metavar='F', type=Path, help='name of output file')
     export_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     export_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
-    export_parser.add_argument('--month', metavar='D', choices=months, help='add records only for this month')
+    export_parser.add_argument('--month', metavar='M', choices=months, help='add records only for this month')
 
     save_recs_parser = subparsers.add_parser('save', help='save a database to a text file')
     save_recs_parser.set_defaults(dispatch=save_records)
@@ -86,11 +87,11 @@ def init_cli():
     pair_parser = subparsers.add_parser('pair', help='make transactions from matching entries')
     pair_parser.set_defaults(dispatch=pair_entries)
 
-    # review_parser = subparsers.add_parser('review', help='review transactions')
-    # review_parser.set_defaults(dispatch=review_unpaired)
-    # review_parser.add_argument('--description', metavar='X', default='', help='descriptions pattern')
-    # review_parser.add_argument('--account', metavar='A', default='', help='account name pattern')
-    # review_parser.add_argument('--fill_mode', metavar='N', type=int, choices=[0,1,2], default=0, help='method for filling descriptions')
+    fill_parser = subparsers.add_parser('fill', help='fill envelopes')
+    fill_parser.set_defaults(dispatch=fill)
+    fill_parser.add_argument('files', metavar='F', nargs='*', help='TOML files with budget')
+    fill_parser.add_argument('--date', metavar='D', type=parse_date, help='transaction date')
+    fill_parser.add_argument('--month', metavar='M', choices=months, help='infer date from month name')
 
     add_trans_parser = subparsers.add_parser('add', help='add a new transaction')
     add_trans_parser.set_defaults(dispatch=add_transaction)
@@ -169,7 +170,7 @@ def init_cli():
     logging.debug('command line arguments:')
     for name, val in vars(args).items():
         if val is not None:
-            logging.debug(f'  --{name} {val}')
+            logging.debug(f'  --{name} {val} {type(val)}')
 
     return args 
 

@@ -119,7 +119,7 @@ def select(args):
 
     recs = DB.select(cls, **kwargs)
 
-    if recs == []:
+    if len(recs) == 0:
         return
 
     if args.order_by:
