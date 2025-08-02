@@ -51,8 +51,7 @@ def fill(args):
         for t in dlist:
             t.tags = [Tag.A.value]
             t.save()
-        for t in tlist:
-            t.save()
+        DB.save_records(tlist)
 
 def transaction_date(args):
     '''

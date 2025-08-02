@@ -24,29 +24,27 @@ def validate_options(args):
             if getattr(args,opt):
                 raise ValueError(f'select: --{opt} cannot be used with --entry')
         cls = Entry
-        dct = DB.entry_constraints
     else:
-        for opt in ['repl','account']:
+        for opt in ['repl']:
             if getattr(args,opt):
                 raise ValueError(f'select: --{opt} requires --entry')
         cls = Transaction
-        dct = DB.transaction_constraints
     logging.debug(f'select {cls}')
 
-    unused = DB.entry_unused if args.entry else DB.transaction_unused
+    unused = {'comment'} if args.entry else {'column'}
     for arg in unused:
         if vars(args).get(arg):
-            logging.warning(f'select: option not valid for {cls.__name__}: {arg} (ignored)')
+            raise ValueError(f'select: option not valid for {cls.__name__}: {arg}')
 
-    return cls, dct
+    return cls
 
-def collect_parameters(dct, args):
+def collect_parameters(cls, args):
     '''
     Helper function to set up search parameters based on command
     line arguments.
     '''
     kwargs = {}
-    for name in dct:
+    for name in cls.constraints:
         if val := vars(args).get(name):
             kwargs[name] = val
             logging.debug(f'  {name} = {val}')
@@ -116,16 +114,30 @@ def select(args):
     '''
     DB.open(args.dbname)
 
-    cls, dct = validate_options(args)
-    kwargs = collect_parameters(dct, args)
+    cls = validate_options(args)
+    kwargs = collect_parameters(cls, args)
 
-    recs = DB.select(cls, **kwargs)
+    for arg in ['account', 'credit', 'debit']:
+        if val := kwargs.get(arg):
+            if val.startswith('@'):
+                kwargs[arg] = r'\b' + val + r'\b'
+
+    logging.debug(f'kwargs {str(kwargs)}')
+
+    if (cls == Transaction) and ('account' in kwargs):
+        acct = kwargs.pop('account')
+        debits = DB.select(cls, **(kwargs | {'debit': acct}))
+        credits = DB.select(cls, **(kwargs | {'credit': acct}))
+        recs = list(debits) + list(credits)
+    else:
+        recs = list(DB.select(cls, **kwargs))
 
     if len(recs) == 0:
         return
 
-    if args.order_by:
-        recs = recs.order_by(args.order_by)
+    if col := args.order_by:
+        # recs = recs.order_by(args.order_by)
+        recs = sorted(recs, key=lambda x: x[cls.order_by.get(col)])
 
     for aname in actions.keys():
         if vars(args).get(aname):

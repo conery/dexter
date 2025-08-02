@@ -1,5 +1,24 @@
 # Useful functions
 
+########
+#
+# Use "with cd(X)"" to execute a shell command in directory X
+#
+
+import os
+
+class cd:
+    "context manager for changing the working directory"
+    def __init__(self, path):
+        self._new_dir = path
+
+    def __enter__(self):
+        self._old_dir = os.getcwd()
+        os.chdir(self._new_dir)
+
+    def __exit__(self, *ignored):
+        os.chdir(self._old_dir)
+
 # Logging API
 
 import calendar

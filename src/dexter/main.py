@@ -10,7 +10,7 @@ import sys
 
 from .config import Config, initialize_config
 from .console import console
-from .DB import DB
+from .DB import DB, Transaction, Entry
 from .util import setup_logging, parse_date, date_range
 
 from .fill import fill
@@ -38,7 +38,7 @@ def init_cli():
         a Namespace object with values of the command line arguments. 
     """
     months = [ m[:3].lower() for m in calendar.month_name[1:] ]
-    columns = list(DB.transaction_order.keys())
+    orders = set(Transaction.order_by.keys()) | set(Entry.order_by.keys())
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--dbname', metavar='X', help='database name')
@@ -133,7 +133,7 @@ def init_cli():
     select_parser.add_argument('--min_amount', metavar='N', type=float, help='minimum amount')
     select_parser.add_argument('--max_amount', metavar='N', type=float, help='maximum amount')
     select_parser.add_argument('--abbrev', action='store_true', help='show abbreviated account names')
-    select_parser.add_argument('--order_by', metavar='C', choices=columns, default='date', help='sort order')
+    select_parser.add_argument('--order_by', metavar='C', choices=orders, default='date', help='sort order')
     select_parser.add_argument('--total', action='store_true', help='show total amount of selected transactions')
     select_parser.add_argument('--unpaired', action='store_true', help='set --entry and --tag #unpaired')
     actions = select_parser.add_mutually_exclusive_group()

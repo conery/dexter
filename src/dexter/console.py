@@ -2,6 +2,7 @@
 # Define a Rich Console object and styles used in terminal output
 #
 
+import calendar
 import csv
 import logging
 import sys
@@ -65,6 +66,12 @@ def format_amount(n, dollar_sign=False):
         return f'{sign}${round(abs(n),2):,.2f}'
     else:
         return f'{sign}{round(abs(n),2):.2f}'
+
+def format_date(date):
+    '''Return a date string to use in reports'''
+    m = int(date[5:7])
+    d = int(date[8:])
+    return calendar.month_abbr[m] + ' ' + str(d)
 
 
 transaction_header_format = {

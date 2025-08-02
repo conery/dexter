@@ -45,7 +45,7 @@ def print_grouped_report(args):
                 starts.append(DB.balance(aname, ending=start_date, nobudget=args.no_budget))
                 ends.append(DB.balance(aname, ending=end_date, nobudget=args.no_budget))
         else:
-            logging.error(f'ier: bad spec: {spec}')
+            logging.error(f'report: bad spec: {spec}')
 
     title = f'Account Balance   {start_date} to {end_date}'
     if not args.no_budget:

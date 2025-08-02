@@ -93,6 +93,29 @@ class Entry(Document):
 
     meta = {'strict': False}
 
+    # These dictionaries map command line arguments to names of 
+    # object attributes 
+
+    constraints = {
+        'description': 'description__iregex',
+        'date':  'date',
+        'start_date': 'date__gte',
+        'end_date': 'date__lte',
+        'amount':  'amount',
+        'min_amount': 'amount__gte',
+        'max_amount': 'amount__lte',
+        'account': 'account__iregex',
+        'column': 'column',
+        'tag': 'tags',
+    }
+
+    order_by = {
+        'description': 'description',
+        'date':  'date',
+        'amount':  'amount',
+        'account': 'account',
+    }
+
     def __str__(self):
         e = '+' if self.column == Column.dr else '-'
         return f'<En {self.date} {self.account} {e}${self.amount} {self.tags}>'
@@ -132,6 +155,30 @@ class Transaction(Document):
     pdebit = StringField()
     pcredit = StringField()
     pamount = FloatField()
+    
+    constraints = {
+        'description': 'description__iregex',
+        'comment': 'comment__iregex',
+        'date':  'pdate',
+        'start_date': 'pdate__gte',
+        'end_date': 'pdate__lte',
+        'amount':  'pamount',
+        'min_amount': 'pamount__gte',
+        'max_amount': 'pamount__lte',
+        'debit': 'pdebit__iregex',
+        'credit': 'pcredit__iregex',
+        'tag': 'tags',
+        'account': None,         # placeholder, will be filled by app
+    }
+
+    order_by = {
+        'description': 'description',
+        'date':  'pdate',
+        'amount':  'pamount',
+        'debit': 'pdebit',
+        'credit': 'pcredit',
+        'account': 'pdebit',
+    }
 
     def __str__(self):
         return f'<Tr {self.pdate} {self.pcredit} -> {self.pdebit} ${self.pamount} {self.description} {self.tags}>'
@@ -667,58 +714,6 @@ class DB:
             if r := e.apply(s):
                 s = r
         return s
-    
-    # These dictionaries map command line arguments to names of 
-    # object attributes to use in calls that select objects.
-
-    entry_constraints = {
-        'description': 'description__iregex',
-        'date':  'date',
-        'start_date': 'date__gte',
-        'end_date': 'date__lte',
-        'amount':  'amount',
-        'min_amount': 'amount__gte',
-        'max_amount': 'amount__lte',
-        'account': 'account__iregex',
-        'column': 'column',
-        'tag': 'tags',
-    }
-
-    entry_unused = {
-        'comment',
-    }
-
-    entry_order = {
-        'description': 'description',
-        'date':  'date',
-        'amount':  'amount',
-    }
-
-    transaction_constraints = {
-        'description': 'description__iregex',
-        'comment': 'comment__iregex',
-        'date':  'pdate',
-        'start_date': 'pdate__gte',
-        'end_date': 'pdate__lte',
-        'amount':  'pamount',
-        'min_amount': 'pamount__gte',
-        'max_amount': 'pamount__lte',
-        'debit': 'pdebit__iregex',
-        'credit': 'pcredit__iregex',
-        'tag': 'tags',
-    }
-
-    transaction_unused = {
-        'column',
-    }
-
-    transaction_order = {
-        'description': 'description',
-        'date':  'pdate',
-        'amount':  'pamount',
-        'debit': 'pdebit',
-        'credit': 'pcredit',
-    }
 
     @staticmethod
     def select(collection, **constraints):
@@ -733,7 +728,7 @@ class DB:
         if collection not in [Entry, Transaction]:
             raise ValueError('select: collection must be Entry or Transaction')
         
-        mapping = DB.transaction_constraints if collection == Transaction else DB.entry_constraints
+        mapping = Transaction.constraints if collection == Transaction else Entry.constraints
         dct = {}
         for field, value in constraints.items():
             if field not in mapping:
