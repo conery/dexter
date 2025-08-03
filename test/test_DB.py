@@ -115,43 +115,26 @@ class TestDB:
         Account(name='expenses:car:fuel:gas', category=Category.E).save()
         Account(name='expenses:car:fuel:electric', category=Category.E).save()
 
-        # An account globs to itself
-        assert DB.account_glob('expenses:car') == ['expenses:car']
+        # Expand the top level expense categories
+        expenses = DB.expand_node('expenses:1')
+        assert len(expenses) == 4
+        assert 'expenses:car' in expenses
+        assert 'expenses:travel' in expenses
+        assert 'expenses:car:fuel' not in expenses
 
-        # An abbrev globs to the full name
-        assert DB.account_glob('groceries') == ['expenses:food:groceries']
+        # Expand car categories
+        expenses = DB.expand_node('car:1')
+        assert len(expenses) == 3
+        assert r'expenses:car$' in expenses
+        assert 'expenses:car:fuel' in expenses
+        assert 'expenses:car:fuel:electric' not in expenses
 
-        # A pattern that will apps will use to find all accounts below a node
-        assert DB.account_glob('expenses:car:') == ['expenses:car:']
-
-        # An interior node without any of its descendants
-        assert DB.account_glob('expenses:car:0') == ['expenses:car:']
-
-        # An interior node and its immediate descendants
-        assert DB.account_glob('expenses:car:1') == [
-            'expenses:car',
-            'expenses:car:payment:', 
-            'expenses:car:fuel:'
-        ]
-
-        # An interior node and two levels down
-        assert DB.account_glob('expenses:car:2') == [
-            'expenses:car',
-            'expenses:car:payment', 
-            'expenses:car:fuel',
-            'expenses:car:fuel:gas:',
-            'expenses:car:fuel:electric:',                
-        ]
-
-        # A name pattern
-        assert DB.account_glob('@car') == ['@car']
-
-        # If a name is not in the DB return None
-        assert DB.account_glob('carp') is None
-        assert DB.account_glob('expenses:carp') is None
-        assert DB.account_glob('expenses:carp:') is None
-        assert DB.account_glob('expenses:carp:1') == []
-        assert DB.account_glob('@carp') is None
+        # Expand car categories two levels down
+        expenses = DB.expand_node('car:2')
+        assert len(expenses) == 5
+        assert r'expenses:car$' in expenses
+        assert r'expenses:car:fuel$' in expenses
+        assert 'expenses:car:fuel:electric' in expenses
 
     def test_transaction_attributes(self, db):
         '''
@@ -307,7 +290,7 @@ class TestDB:
         Test the balance of a specified account, with and without budget
         transactions and with and without dates
         '''
-        assert DB.balance('expenses:food:') == -600
-        assert DB.balance('expenses:food:', nobudget=True) == 400
-        assert DB.balance('expenses:food:', ending='2024-01-31') == -250
-        assert DB.balance('expenses:food:', ending='2024-01-31', nobudget=True) == 250
+        assert DB.balance('expenses:food') == -600
+        assert DB.balance('expenses:food', nobudget=True) == 400
+        assert DB.balance('expenses:food', ending='2024-01-31') == -250
+        assert DB.balance('expenses:food', ending='2024-01-31', nobudget=True) == 250

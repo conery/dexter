@@ -584,93 +584,55 @@ class DB:
                     grp = dct.setdefault(p, set())
                     grp.add(acct.name)
         return dct
-
-    @staticmethod
-    def account_glob(spec=None):
-        '''
-        Turn an account spec from the command line into a list of account
-        names.  If no specification return a list of all account names.
-
-        Returns:  list of strings or None
-        '''
-        match spec:
-            case None:
-                res = [acct.name for acct in Account.objects]
-            case spec if spec.startswith('@'):
-                res = [spec] if spec[1:] in DB.account_names() else None
-            case spec if spec.endswith(':'):
-                # name = DB.fullname(spec[:-1])
-                # res = [spec] if name else None
-                res = [spec] if spec[:-1] in DB.account_names() else None
-            case spec if re.match(r'.*:\d+', spec):
-                res = DB.expand_node(spec)
-            case _:
-                name = DB.fullname(spec)
-                res = [name] if name else None
-        return res
-    
-    @staticmethod
-    def account_args(pattern, field='account__iregex'):
-        '''
-        Helper methods used by balance and select to turn a name pattern
-        created by account_glob into a regular expression to use in a query
-        '''
-        if pattern.startswith('@'):
-            res = { field: f'\\b{pattern[1:]}\\b' }
-        elif pattern.endswith(':'):
-            res = { field: f'^{pattern[:-1]}.*$' }
-        else:
-            res = { field: f'^{pattern}$'}
-        return res
     
     @staticmethod
     def expand_node(spec):
         '''
         A command line argument had an account name and level.  Return the
-        list of accounts below to the specified level.
+        list of accounts below to the specified level.  Each list element is
+        a pattern that will match an account and all accounts below it.
         '''
         node, n = re.match(r'(.*):(\d+)',spec).groups()
         level = int(n)
         res = []
-        for acct in Account.objects(name__startswith=node):
+        for acct in Account.objects(name__iregex=node):
             name = acct.name
-            tail = name[len(node):]
-            if tail.count(':') == level:
-                res.append(name + ':')
-            elif tail.count(':') <= level:
+            pre, post = name.split(node)
+            if post.count(':') < level:
+                res.append(name + '$')
+            elif post.count(':') == level:
                 res.append(name)
         return res
 
     @staticmethod
-    def balance(acct, ending=None, nobudget=False):
+    def column_sum(account, column, starting=None, ending=None, nobudget=False):
         '''
-        Compute the balance of an account
-
-        Arguments:
-            acct: the name of the account
+        Compute the sum of amounts for Entry objects based on account name and column type.
         '''
-        # kwargs = {'account': acct}
-        kwargs = DB.account_args(acct)
+        kwargs = {
+            'account__iregex': account,
+            'column': column,
+        }
+        if starting:
+            kwargs['date__gte'] = starting
         if ending:
             kwargs['date__lte'] = ending
-
-        logging.debug(f'kwargs {kwargs}')
-
-        cr_args = kwargs | {'column': 'credit'}
-        credits = Entry.objects(**cr_args).sum('amount')
-        dr_args = kwargs | {'column': 'debit'}
-        debits = Entry.objects(**dr_args).sum('amount')
-
-        res = debits - credits
-
+        logging.debug(f'DB.column_sum: kwargs {kwargs}')
+        total = Entry.objects(**kwargs).sum('amount')
+        logging.debug(f'   total: {total}')
         if nobudget:
-            cr_args['tags'] = Tag.B
-            res += Entry.objects(**cr_args).sum('amount')
-            dr_args['tags'] = Tag.B
-            res -= Entry.objects(**dr_args).sum('amount')
-
-        return res
+            kwargs['tags'] = Tag.B
+            tagged = Entry.objects(**kwargs).sum('amount')
+            logging.debug(f'   tagged: {tagged}')
+            total -= tagged
+        return total
     
+    @staticmethod
+    def balance(account, ending=None, nobudget=False):
+        debits = DB.column_sum(account, Column.dr, ending=ending, nobudget=nobudget)
+        credits = DB.column_sum(account, Column.cr, ending=ending, nobudget=nobudget)
+        return debits - credits
+
     # RegExp management -- delete old records so new ones can be
     # imported
 
@@ -733,10 +695,6 @@ class DB:
         for field, value in constraints.items():
             if field not in mapping:
                 raise ValueError(f'select: unknown constraint: {field}')
-            # if field in {'account', 'credit', 'debit'}:
-            #     dct |= DB.account_args(value, mapping[field])
-            # else:
-            #     dct[mapping[field]] = value
             dct[mapping[field]] = value
         return collection.objects(Q(**dct))
 

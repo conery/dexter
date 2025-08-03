@@ -117,10 +117,10 @@ def select(args):
     cls = validate_options(args)
     kwargs = collect_parameters(cls, args)
 
-    for arg in ['account', 'credit', 'debit']:
-        if val := kwargs.get(arg):
-            if val.startswith('@'):
-                kwargs[arg] = r'\b' + val + r'\b'
+    # for arg in ['account', 'credit', 'debit']:
+    #     if val := kwargs.get(arg):
+    #         if val.startswith('@'):
+    #             kwargs[arg] = r'\b' + val + r'\b'
 
     logging.debug(f'kwargs {str(kwargs)}')
 

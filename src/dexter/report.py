@@ -1,12 +1,12 @@
 # Report generators
 
-import datetime
+from datetime import date, timedelta
 import logging
 import re
 
 from rich.table import Table, Column
 
-from .DB import DB, Transaction, Entry, Column as ColType, Tag
+from .DB import DB, Entry, Column as ColType, Tag
 from .console import console, format_amount
 from .config import Config
 
@@ -20,34 +20,40 @@ def print_balance_report(args):
     '''
     DB.open(args.dbname)
     logging.debug(f'expense report {vars(args)}')
-    
-    if args.grouped:
-        print_grouped_report(args)
-    else:
-        print_detailed_report(args)
 
-def print_grouped_report(args):
+    accounts = []
+    for acct in args.accts:
+        if re.match(r'.*:\d+$', acct):
+            lst = DB.expand_node(acct)
+            accounts += lst
+        else:
+            accounts.append(acct)
+    logging.debug(f'report: accounts = {accounts}')
+
+    if args.grouped:
+        print_grouped_report(args, accounts)
+    else:
+        print_detailed_report(args, accounts)
+
+def print_grouped_report(args, accounts):
     '''
     Print a one-line summary of the balance of each account.
     '''
     start_date = args.start_date or Config.DB.start_date
-    end_date = args.end_date or datetime.date.today()
+    end_date = args.end_date or date.today()
 
-    accts = []
     starts = []
+    debits = []
+    credits = []
     ends = []
     
-    for spec in (args.accts or DB.account_glob()):
-        if alist := DB.account_glob(spec):
-            for aname in alist:
-                logging.debug(f'report (grouped):  balances for {aname}')
-                accts.append(aname)
-                starts.append(DB.balance(aname, ending=start_date, nobudget=args.no_budget))
-                ends.append(DB.balance(aname, ending=end_date, nobudget=args.no_budget))
-        else:
-            logging.error(f'report: bad spec: {spec}')
+    for aname in accounts:
+        starts.append(DB.balance(aname, ending=start_date-timedelta(days=1), nobudget=args.no_budget))
+        debits.append(DB.column_sum(aname, ColType.dr, starting=start_date, ending=end_date, nobudget=args.no_budget))
+        credits.append(-DB.column_sum(aname, ColType.cr, starting=start_date, ending=end_date, nobudget=args.no_budget))
+        ends.append(starts[-1] + debits[-1] + credits[-1])
 
-    title = f'Account Balance   {start_date} to {end_date}'
+    title = f'Account Balances   {start_date} to {end_date}'
     if not args.no_budget:
         title += '  ✉️'
 
@@ -58,47 +64,43 @@ def print_grouped_report(args):
         title = title,        
     )
 
-    if args.start_date and args.end_date:
-        t.add_column('starting', width=12, justify='right')
-        t.add_column('ending', width=12, justify='right')
-        t.add_column('difference', width=12, justify='right')
-    else:
-        t.add_column('balance', width=12, justify='right')
+    t.add_column('starting', width=12, justify='right')
+    t.add_column('debits', width=12, justify='right')
+    t.add_column('credits', width=12, justify='right')
+    t.add_column('ending', width=12, justify='right')
 
-    for i in range(len(accts)):
-        row = [accts[i]]
-        if args.start_date and args.end_date:
-            row.append(format_amount(starts[i], dollar_sign=True))
-            row.append(format_amount(ends[i], dollar_sign=True))
-            row.append(format_amount(ends[i]-starts[i], dollar_sign=True))
-        elif args.start_date:
-            row.append(format_amount(starts[i], dollar_sign=True))
-        else:
-            row.append(format_amount(ends[i], dollar_sign=True))
+    for i in range(len(accounts)):
+        name = accounts[i]
+        if name.endswith('$'):
+            name = name[:-1]
+        row = [name]
+        row.append(format_amount(starts[i], dollar_sign=True))
+        row.append(format_amount(debits[i], dollar_sign=True))
+        row.append(format_amount(credits[i], dollar_sign=True))
+        row.append(format_amount(ends[i], dollar_sign=True))
         t.add_row(*row)
+    t.add_section()
+    row = ['[blue italic]total']
+    for col in [starts, debits, credits, ends]:
+        row.append(format_amount(sum(col), dollar_sign=True))
+    t.add_row(*row)
     console.print()
     console.print(t)
 
-def print_detailed_report(args):
+def print_detailed_report(args, accounts):
     '''
     Detailed expense report, with one line for each transaction
     in the date range.
     '''
     start_date = args.start_date or Config.DB.start_date
-    end_date = args.end_date or datetime.date.today()
+    end_date = args.end_date or date.today()
     entries = {}
 
-    for spec in (args.accts or DB.account_glob()):
-        if alist := DB.account_glob(spec):
-            for aname in alist:
-                logging.debug(f'report:  transactions for {aname}')
-                entries[aname] = DB.select(Entry, account=aname, start_date=start_date, end_date=end_date).order_by('date')
-        else:
-            logging.error(f'report: bad spec: {spec}')
+    for aname in accounts:
+        entries[aname] = DB.select(Entry, account=aname, start_date=start_date, end_date=end_date).order_by('date')
 
     for acct, elist in entries.items():
         print_detail_table(acct, elist, start_date, args.no_budget)
-
 
 def print_detail_table(acct, entries, start, nobudget):
     '''
@@ -110,6 +112,8 @@ def print_detail_table(acct, entries, start, nobudget):
         entries:  list of entries for the account
         start: date to use for starting balance
     '''
+    if acct.endswith('$'):
+        acct = acct[:-1]
 
     title=acct
     if not nobudget:
@@ -118,11 +122,9 @@ def print_detail_table(acct, entries, start, nobudget):
     t = Table(
         Column(header='date', width=12),
         Column(header='description', width=25, no_wrap=True),
-        # Column(header='account', width=22, no_wrap=True),
         Column(header='credit', width=20, no_wrap=True),
         Column(header='debit', width=20, no_wrap=True),
         Column(header='amount', width=12, justify='right'),
-        # Column(header='credit', width=12, justify='right'),
         Column(header='balance', width=12, justify='right'),
         title=title,
         title_justify='left',
@@ -169,7 +171,7 @@ def print_detail_table(acct, entries, start, nobudget):
                     debit = DB.display_name(x.account, markdown=True)
             row.append(trans.description)
         else:
-            row.append('[blue italic]unpaired')
+            row.append('[red italic]unpaired')
         row.append(credit)
         row.append(debit)
         row.append(format_amount(e.value, dollar_sign=True))
