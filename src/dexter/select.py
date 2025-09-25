@@ -55,7 +55,7 @@ def collect_parameters(cls, args):
     return kwargs
 
 # Table mapping action names (from the command line) with functions that
-# implement the action:
+# implement the action.
 
 def not_implemented(recs, args):
     print('not implemented')
@@ -117,11 +117,6 @@ def select(args):
     cls = validate_options(args)
     kwargs = collect_parameters(cls, args)
 
-    # for arg in ['account', 'credit', 'debit']:
-    #     if val := kwargs.get(arg):
-    #         if val.startswith('@'):
-    #             kwargs[arg] = r'\b' + val + r'\b'
-
     logging.debug(f'kwargs {str(kwargs)}')
 
     if (cls == Transaction) and ('account' in kwargs):
@@ -136,12 +131,13 @@ def select(args):
         return
 
     if col := args.order_by:
-        # recs = recs.order_by(args.order_by)
         recs = sorted(recs, key=lambda x: x[cls.order_by.get(col)])
 
-    for aname in actions.keys():
-        if vars(args).get(aname):
-            actions[aname](recs,args)
-            break
+    # find the intersection of the set of action names and the set of
+    # command line options that have values -- if one of the actions was
+    # specified the intersection will have that action name
+
+    if aname := set(actions.keys()) & {x for (x,y) in vars(args).items() if y}:
+        actions[aname.pop()](recs, args)
     else:
         print_transaction_table(recs, args)

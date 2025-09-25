@@ -41,7 +41,7 @@ def setup_logging(arg):
     logging.basicConfig(
         level=level,
         format='%(message)s',
-        handlers = [RichHandler(markup=True, rich_tracebacks=True)],
+        handlers = [RichHandler(markup=True, rich_tracebacks=True, show_time=False, show_path=(arg=='debug'))],
     )
 
     for name, logger in logging.root.manager.loggerDict.items():

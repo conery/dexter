@@ -6,7 +6,7 @@ import re
 
 from rich.table import Table, Column
 
-from .DB import DB, Entry, Column as ColType, Tag
+from .DB import DB, Transaction, Entry, Column as ColType, Tag
 from .console import console, format_amount
 from .config import Config
 
@@ -181,8 +181,15 @@ def print_detail_table(acct, entries, start, nobudget):
     console.print(t)
 
 def print_audit_report(args):
-    print('audit report', vars(args))
+    '''
+    Top level function for the 'audit' command.  
+    
+    Arguments:
+        args:  command line arguments
+    '''
+    DB.open(args.dbname)
+    logging.debug(f'audit report {vars(args)}')
 
-def print_compact_transaction(obj):
-    print('compact', obj)
-
+    for cls in [Transaction, Entry]:
+        for obj, reason in DB.validate(cls):
+            console.print(f'{reason}: {obj}')        

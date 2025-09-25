@@ -1,7 +1,9 @@
 # Unit tests for the DB module
 
+import pytest
+
 from datetime import date
-from dexter.DB import DB, Document, Account, Category, Entry, Transaction, Column
+from dexter.DB import DB, Document, Account, Category, Entry, Transaction, Column, Tag
 
 class TestDB:
     '''
@@ -294,3 +296,54 @@ class TestDB:
         assert DB.balance('expenses:food', nobudget=True) == 400
         assert DB.balance('expenses:food', ending='2024-01-31') == -250
         assert DB.balance('expenses:food', ending='2024-01-31', nobudget=True) == 250
+
+    def test_transaction_audit(self, db):
+        '''
+        Test the method that checks for inconsistencies in Transaction objects.
+        First make sure valid transactions pass the test, then edit transactions
+        to introduce errors and make sure the method catches them.
+        '''
+        lst = Transaction.objects(description='Safeway')
+        for t in lst:
+            assert DB.validate_transaction(t) is None
+
+        with pytest.raises(AssertionError) as err:
+            t = lst[0]
+            del t.entries[0]
+            DB.validate_transaction(t)
+        assert "fewer than two entries" in str(err.value)
+
+        with pytest.raises(AssertionError) as err:
+            t = lst[1]
+            t.entries[0].amount = 200.0
+            DB.validate_transaction(t)
+        assert "unbalanced" in str(err.value)
+
+    def test_entry_audit(self, db):
+        '''
+        Test the method that checks for inconsistencies in Entry objects.
+        First make sure valid entries pass the test, then edit objects
+        to introduce errors and make sure the method catches them.
+        '''
+        lst = Transaction.objects(description='Safeway')
+        for e in lst[0].entries:
+            assert DB.validate_entry(e) is None
+
+        with pytest.raises(AssertionError) as err:
+            e = lst[0].entries[0]
+            e.tags.append(Tag.U)
+            DB.validate_entry(e)
+        assert "tref in unpaired" in str(err.value)
+
+        with pytest.raises(AssertionError) as err:
+            e = lst[1].entries[0]
+            e.tref = None
+            DB.validate_entry(e)
+        assert "missing tref" in str(err.value)
+
+        with pytest.raises(AssertionError) as err:
+            e = lst[2].entries[0]
+            e.tref = lst[3].entries[0].tref
+            DB.validate_entry(e)
+        assert "not linked to parent" in str(err.value)
+

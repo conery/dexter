@@ -12,6 +12,8 @@ import logging
 import os
 from pathlib import Path
 
+from pypdf import PdfReader
+
 from .DB import DB, Account, Entry, Transaction, RegExp, Tag
 from .config import Config
 from .console import print_records, print_grid, print_info_table
@@ -104,7 +106,10 @@ def import_records(args):
         else:
             logging.error(f'import: file not found: {p}')
 
-    if args.regexp:
+    if args.extract_text:
+        extract_text(paths[0])
+        return
+    elif args.regexp:
         recs = parse_csv_regexp(paths[0])
         if not args.preview:
             DB.delete_regexps()
@@ -219,6 +224,7 @@ def restore_records(args):
                     DB.restore_from_json(collection, doc)
             except Exception as err:
                 logging.error(err)
+
 
 #######################
 #
@@ -398,3 +404,13 @@ def make_balance_transaction(rec, lst):
     )
     lst.append(trans)
 
+def extract_text(fn):
+    '''
+    A tool for developing parsers for bank and card statements.  Prints
+    all the text that can be extracted from a PDF.
+    '''
+    logging.info(f'extract text {fn}')
+    reader = PdfReader(fn)
+    for p in reader.pages:
+        for line in p.extract_text().split('\n'):
+            print(line)

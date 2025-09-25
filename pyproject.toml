@@ -23,6 +23,9 @@ authors = [
 dex = "dexter.main:main"
 
 [tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:.*UuidRepresentation.*:DeprecationWarning",
+]
 
 [tool.hatch.version]
 path = "src/dexter/__about__.py"

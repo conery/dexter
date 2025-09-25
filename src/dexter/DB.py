@@ -143,7 +143,7 @@ class Entry(Document):
     
     def clean(self):
         if self.uid is None:
-            logging.debug(f'uid: {self.hash}')
+            logging.debug(f'Entry.uid: {self.hash}')
             self.uid = self.hash
 
 class Transaction(Document):
@@ -240,7 +240,7 @@ class Transaction(Document):
         Otherwise save each entry, then call the base class method.
         '''
         if len(self.entries) == 0:
-            logging.debug(f'transaction has no entries, skipping {self}')
+            logging.debug(f'Transaction.save: transaction has no entries, skipping {self}')
             return
         for e in self.entries:
             e.save()
@@ -369,7 +369,7 @@ class DB:
             raise ValueError('DB.open: specify a database name with --db or DEX_DB')   
         if dbname not in DB.dexters:
             raise ValueError(f'DB.open: no Dexter database named {dbname} on the server')
-        logging.debug(f'DB: open {dbname}')
+        logging.debug(f'DB.open {dbname}')
 
         DB.connection = connect(dbname, UuidRepresentation='standard')
         DB.database = DB.connection[dbname]
@@ -391,7 +391,7 @@ class DB:
         Arguments:
             dbname:  name of the database
         '''
-        logging.debug(f'DB: create {dbname}')
+        logging.debug(f'DB.create {dbname}')
 
         DB.connection = connect(dbname, UuidRepresentation='standard')
         if dbname in DB.dexters:
@@ -421,7 +421,7 @@ class DB:
             collection:  the name of the collection
             doc:  a JSON string with the document descriptio
         '''
-        logging.debug(f'{collection} {doc}')
+        logging.debug(f'  {collection} {doc}')
         cls = DB.collections[collection]
         obj = cls.from_json(doc, True)
         obj.save()
@@ -686,7 +686,7 @@ class DB:
             collection:  the collection to search (Entry or Transaction)
             constraints:  a dictionary of field names and values
         '''
-        logging.debug(f'select: {constraints}')
+        logging.debug(f'DB.select: {constraints}')
         if collection not in [Entry, Transaction]:
             raise ValueError('select: collection must be Entry or Transaction')
         
@@ -697,5 +697,45 @@ class DB:
                 raise ValueError(f'select: unknown constraint: {field}')
             dct[mapping[field]] = value
         return collection.objects(Q(**dct))
+    
+    @staticmethod
+    def validate(cls):
+        '''
+        Run consistenct checks on Transactions or Entries.  Returns a list tuples with
+        objects that don't satisfy their constraints and the reason for the failure.
+        '''
+        assert cls in [Transaction, Entry]
+        validator = DB.validate_transaction if cls == Transaction else DB.validate_entry
+        failed = []
+        for t in cls.objects():
+            try:
+                validator(t)
+            except AssertionError as reason:
+                failed.append((t,reason.args[0]))
+        return failed
 
+    @staticmethod
+    def validate_transaction(t):
+        '''
+        Check a Transaction object, verify
+        * there are at least two Entry objects
+        * the first Entry is from a CSV file
+        * the sum of the amounts of all Entry objects equals 0
+        '''
+        logging.debug(f'validating {t}')
+        assert len(t.entries) >= 2, "fewer than two entries"
+        assert sum(e.value for e in t.entries) == 0, "unbalanced"
 
+    @staticmethod
+    def validate_entry(e):
+        '''
+        Check an Entry object, verify
+        * an unpaired Entry does not belong to any Transaction
+        * the transaction reference in a paired Entry refers to a valid Transaction
+        '''
+        logging.debug(f'validating {e}')
+        if Tag.U in e.tags:
+            assert e.tref is None, "tref in unpaired entry"
+        else:
+            assert e.tref is not None, "missing tref in entry"
+            assert e in e.tref.entries, "not linked to parent transaction"

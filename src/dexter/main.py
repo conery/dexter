@@ -66,6 +66,7 @@ def init_cli():
     import_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     import_parser.add_argument('--month', metavar='M', choices=months, help='add records only for this month')
     import_parser.add_argument('--regexp', action='store_true', help='CSV files have regular expression definitions')
+    import_parser.add_argument('--extract_text', action='store_true', help='print lines of text in a PDF file')
 
     export_parser = subparsers.add_parser('export', help='write transactions to file')
     export_parser.set_defaults(dispatch=export_records)
