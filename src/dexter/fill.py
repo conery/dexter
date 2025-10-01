@@ -131,7 +131,7 @@ def add_debits(trans, lst, date):
             account =  rec.pcredit,
             column = Column.dr,
             amount = rec.pamount,
-            tags = [Tag.B],
+            tags = [Tag.B.value],
         )
         trans.entries.append(e)
         logging.debug(f'fill: debit: {e}')
@@ -156,7 +156,7 @@ def add_credits(trans, lst, date, avail):
             account = credit,
             column = Column.cr,
             amount = rec['amount'],
-            tags = [Tag.B],
+            tags = [Tag.B.value],
         )
         trans.entries.append(e)
         alloc += rec['amount']

@@ -179,7 +179,7 @@ class JournalParser:
         col = 'credit' if amount < 0 else 'debit'
         trans = self._transactions[-1]
         if trans.isbudget:
-            tags.append(Tag.B)
+            tags.append(Tag.B.value)
         entry = Entry(
             date = self._transaction_date,
             description = comment.strip(),

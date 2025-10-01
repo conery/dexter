@@ -107,7 +107,8 @@ def make_row(rec, row_type, abbrev):
         row.append(format_amount(rec.amount, dollar_sign=True))
         row.append(rec.column.value)
         row.append(rec.description)
-        row.append(", ".join([f'{s.value}' for s in rec.tags]))
+        # row.append(", ".join([f'{s.value}' for s in rec.tags]))
+        row.append(', '.join(rec.tags))
         # row.append(str(rec.tref)[:10])
     else:
         cr = DB.abbrev(rec.pcredit) if abbrev else DB.display_name(rec.pcredit, markdown=True)

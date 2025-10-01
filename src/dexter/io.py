@@ -117,12 +117,16 @@ def import_records(args):
         anames = set(DB.account_names(with_parts=False).keys())
         recs = []
         for path in paths:
+            logging.debug(f'arg: {path}')
             match path.suffix:
                 case '.journal':
                     _, new_recs = parse_journal(path, anames, DB.uids())
                 case '.csv':
+                    # if args.account:
+                    #     alist = DB.
                     basename = args.account or path.stem
                     alist = DB.find_account(basename)
+                    logging.debug(f'alist: {alist}')
                     if len(alist) == 0:
                         logging.error(f'import: no account name matches {basename}')
                         continue
@@ -333,7 +337,7 @@ def parse_csv_transactions(fn, pname, account, starting, ending, previous):
                 'amount': cmap['amount'](rec),
                 'column': 'credit' if cmap['credit'](rec) else 'debit',
                 'account': account,
-                'tags': [Tag.U],
+                'tags': [Tag.U.value],
             }
             e = Entry(**desc)
             if e.hash in previous:

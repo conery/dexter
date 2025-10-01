@@ -88,7 +88,8 @@ class Entry(Document):
     account = StringField(required=True)
     column = EnumField(Column, required=True) 
     amount = FloatField(required=True)
-    tags = ListField(EnumField(Tag))
+    # tags = ListField(EnumField(Tag))
+    tags = ListField(StringField())
     tref = ReferenceField('Transaction')
 
     meta = {'strict': False}
@@ -106,7 +107,7 @@ class Entry(Document):
         'max_amount': 'amount__lte',
         'account': 'account__iregex',
         'column': 'column',
-        'tag': 'tags',
+        'tag': None,         # placeholder, will be filled by app
     }
 
     order_by = {
@@ -167,7 +168,7 @@ class Transaction(Document):
         'max_amount': 'pamount__lte',
         'debit': 'pdebit__iregex',
         'credit': 'pcredit__iregex',
-        'tag': 'tags',
+        'tag': None,         # placeholder, will be filled by app
         'account': None,         # placeholder, will be filled by app
     }
 
@@ -413,7 +414,7 @@ class DB:
         DB.connection.drop_database(DB.dbname)
 
     @staticmethod
-    def restore_from_json(collection: str, doc: str):
+    def restore_from_json(collection: str, doc: str, save=True):
         '''
         Add a new record to a collection.
 
@@ -424,7 +425,10 @@ class DB:
         logging.debug(f'  {collection} {doc}')
         cls = DB.collections[collection]
         obj = cls.from_json(doc, True)
-        obj.save()
+        if save:
+            obj.save()
+        else:
+            return obj
 
     @staticmethod
     def save_as_json(f):
@@ -621,7 +625,7 @@ class DB:
         total = Entry.objects(**kwargs).sum('amount')
         logging.debug(f'   total: {total}')
         if nobudget:
-            kwargs['tags'] = Tag.B
+            kwargs['tags'] = Tag.B.value
             tagged = Entry.objects(**kwargs).sum('amount')
             logging.debug(f'   tagged: {tagged}')
             total -= tagged
@@ -695,7 +699,14 @@ class DB:
         for field, value in constraints.items():
             if field not in mapping:
                 raise ValueError(f'select: unknown constraint: {field}')
-            dct[mapping[field]] = value
+            if field == 'tag':
+                if value.startswith('^'):
+                    dct['tags__not__iregex'] = value[1:]
+                else:
+                    dct['tags__iregex'] = value
+            else:
+                dct[mapping[field]] = value
+        logging.debug(f'DB.select: constraints = {dct}')
         return collection.objects(Q(**dct))
     
     @staticmethod
@@ -734,7 +745,7 @@ class DB:
         * the transaction reference in a paired Entry refers to a valid Transaction
         '''
         logging.debug(f'validating {e}')
-        if Tag.U in e.tags:
+        if Tag.U.value in e.tags:
             assert e.tref is None, "tref in unpaired entry"
         else:
             assert e.tref is not None, "missing tref in entry"

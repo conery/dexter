@@ -18,7 +18,7 @@ def pair_entries(args):
     DB.open(args.dbname)
     logging.debug(f'pair {vars(args)}')
 
-    unpaired = DB.select(Entry, tag=Tag.U)
+    unpaired = DB.select(Entry, tag=Tag.U.value)
 
     new_transactions = []
     credits = {}
@@ -127,7 +127,7 @@ def save_matched_transactions(lst):
     #     except Exception as err:
     #         logging.error(f'pair: error while saving transaction: {err}')
     for obj in lst:
-        obj.entries[0].tags.remove(Tag.U)
+        obj.entries[0].tags.remove(Tag.U.value)
     DB.save_records(lst)
 
 def xfer_part(entry, regexp, credits, debits):
@@ -179,5 +179,5 @@ def save_xfers(lst):
     '''
     for obj in lst:
         for e in obj.entries:
-            e.tags.remove(Tag.U)
+            e.tags.remove(Tag.U.value)
     DB.save_records(lst)

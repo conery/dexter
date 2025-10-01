@@ -136,7 +136,7 @@ def print_detail_table(acct, entries, start, nobudget):
     fills = []
     nonfills = []
     for e in entries:
-        if Tag.B in e.tags:
+        if Tag.B.value in e.tags:
             fills.append(e)
         else:
             nonfills.append(e)
