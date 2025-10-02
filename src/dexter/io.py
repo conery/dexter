@@ -188,11 +188,13 @@ def save_records(args):
     
     try:
         mode = 'w' if args.force else 'x'
-        with open(args.file, mode) as f:
-            DB.save_as_json(f)
+        f = open(args.file, mode)
     except FileExistsError as err:
         logging.error(f'file exists: {args.file}, use --force to overwrite')
         exit(1)
+    msg = input('Log message: ')
+    DB.add_message(msg)
+    DB.save_as_json(f)
 
 #######################
 #

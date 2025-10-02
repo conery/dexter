@@ -56,6 +56,10 @@ class Dexter(Document):
 
     def __str__(self):
         return f'<DB created {self.date}>'
+    
+class Message(Document):
+    date = DateTimeField(required=True, default=datetime.utcnow)
+    text = StringField()
 
 class Account(Document):
     name = StringField(required=True)
@@ -445,6 +449,17 @@ class DB:
             for obj in cls.objects:
                 print(f'{collection}: {obj.to_json()}', file=f)
 
+    @staticmethod
+    def add_message(s):
+        '''
+        Add a messaage to the database.
+        '''
+        rec = Message(text=s)
+        rec.save()
+
+    @staticmethod
+    def fetch_messages():
+        return sorted(Message.objects, key=lambda m: m.date)
 
     @staticmethod
     def save_records(lst):
