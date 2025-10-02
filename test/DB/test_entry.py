@@ -66,6 +66,30 @@ class TestEntry:
         assert len(lst) == 16
         assert all(e.column == Column.dr for e in lst)
 
+    def test_select_entries_tagged(self, db):
+        '''
+        Test the select method when tags are constraints
+        '''
+        groceries = DB.select(Entry, account='groceries')
+        for e in groceries:
+            assert e.tags == []
+        groceries[0].update(push__tags=Tag.U.value)
+        lst = DB.select(Entry, account='groceries', tag='#unpaired')     # match complete tag string
+        assert len(lst) == 1 and lst[0] == groceries[0]
+        lst = DB.select(Entry, account='groceries', tag='unp')           # match partial string
+        assert len(lst) == 1 and lst[0] == groceries[0]
+
+    def test_select_entries_untagged(self, db):
+        '''
+        Test the select method to find objects that do not contain a tag
+        '''
+        groceries = DB.select(Entry, account='groceries')
+        groceries[0].update(push__tags=Tag.U.value)
+        lst = DB.select(Entry, account='groceries', tag='^#unpaired')     # match complete tag string
+        assert len(lst) == 3 and groceries[0] not in lst
+        lst = DB.select(Entry, account='groceries', tag='^unp')           # match partial string
+        assert len(lst) == 3 and groceries[0] not in lst
+
     def test_entry_attributes(self, db):
         lst = DB.select(Entry, column='credit')
         e = lst[0]

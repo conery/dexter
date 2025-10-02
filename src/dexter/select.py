@@ -24,6 +24,9 @@ def validate_options(args):
             if getattr(args,opt):
                 raise ValueError(f'select: --{opt} cannot be used with --entry')
         cls = Entry
+        tags = { x.name for x in Tag }
+        if args.tag in tags:
+            args.tag = Tag[args.tag].value
     else:
         for opt in ['repl']:
             if getattr(args,opt):
