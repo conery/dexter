@@ -622,6 +622,14 @@ class DB:
             elif post.count(':') == level:
                 res.append(name)
         return res
+    
+    @staticmethod
+    def card_accounts():
+        '''
+        Return a list of credit card accounts -- liability accounts that have a 
+        parser.
+        '''
+        return [a for a in Account.objects(category='liabilities') if a.parser]
 
     @staticmethod
     def column_sum(account, column, starting=None, ending=None, nobudget=False):

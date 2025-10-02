@@ -312,6 +312,7 @@ def parse_csv_transactions(fn, pname, account, starting, ending, previous):
         fn:  the name of the CSV file
         pname:  the name of a parser (column mapping) that specifies
             which columns to use
+        account:  account name
         starting:  start date
         ending:  end date
         pevious:  set of UIDS of previously added entries
@@ -323,6 +324,8 @@ def parse_csv_transactions(fn, pname, account, starting, ending, previous):
     res = []
     cmap = Config.CSV.colmaps[pname]
     logging.debug(f'  parser {pname} colmap {cmap}')
+    cards = { a.name for a in DB.card_accounts() }
+    logging.debug(f'  credit card accounts: {cards}')
     with(open(fn, newline='', encoding='utf-8-sig')) as csvfile:
         reader = csv.DictReader(csvfile)
         for rec in reader:
@@ -341,6 +344,8 @@ def parse_csv_transactions(fn, pname, account, starting, ending, previous):
                 'account': account,
                 'tags': [Tag.U.value],
             }
+            if account in cards:
+                desc['tags'].append(Tag.P.value)
             e = Entry(**desc)
             if e.hash in previous:
                 continue
