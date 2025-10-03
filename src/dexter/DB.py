@@ -111,7 +111,18 @@ class Entry(Document):
         'max_amount': 'amount__lte',
         'account': 'account__iregex',
         'column': 'column',
-        'tag': None,         # placeholder, will be filled by app
+        'tag': None,             # placeholder, will be filled by app
+        'update': None,          # placeholder, will be filled by app
+        'delete': None,          # placeholder, will be filled by app
+    }
+
+    updaters = {
+        'date':  'set__date',
+        'description': 'set__description',
+        'amount':  'set__amount',
+        'account':  'set__account',
+        'column': 'set__column',
+        'tag': None,             # placeholder, will be filled by app
     }
 
     order_by = {
@@ -172,8 +183,16 @@ class Transaction(Document):
         'max_amount': 'pamount__lte',
         'debit': 'pdebit__iregex',
         'credit': 'pcredit__iregex',
-        'tag': None,         # placeholder, will be filled by app
+        'tag': None,             # placeholder, will be filled by app
         'account': None,         # placeholder, will be filled by app
+        'update': None,          # placeholder, will be filled by app
+        'delete': None,          # placeholder, will be filled by app
+    }
+
+    updaters = {
+        'description': 'set__description',
+        'comment':  'set__comment',
+        'tag': None,             # placeholder, will be filled by app
     }
 
     order_by = {
@@ -727,10 +746,28 @@ class DB:
                     dct['tags__not__iregex'] = value[1:]
                 else:
                     dct['tags__iregex'] = value
-            else:
+            elif field not in ['update', 'delete']:
                 dct[mapping[field]] = value
-        logging.debug(f'DB.select: constraints = {dct}')
-        return collection.objects(Q(**dct))
+        if spec := constraints.get('update'):
+            upfield, upvalue = spec
+            if upfield not in collection.updaters:
+                raise ValueError(f'select: cannot update {upfield} in {collection._class_name}')
+            if upfield == 'tag':
+                if upvalue.startswith('^'):
+                    cmnd = 'pull__tags'
+                    upvalue = upvalue[1:]
+                else:
+                    cmnd = 'push__tags'
+            else:
+                cmnd = collection.updaters[upfield]
+            upargs = {cmnd: upvalue}
+            logging.debug(f'  objects {dct} update {upargs}')
+            collection.objects(Q(**dct)).update(**upargs)
+            res = []
+        else:
+            logging.debug(f'  objects {dct}')
+            res = collection.objects(Q(**dct))
+        return res
     
     @staticmethod
     def validate(cls):

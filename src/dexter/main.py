@@ -16,14 +16,11 @@ from .util import setup_logging, parse_date, date_range
 from .fill import fill
 from .io import print_info, init_database, save_records, restore_records, import_records, export_records
 from .pair import pair_entries
+from .reconcile import reconcile_statements
 from .report import print_audit_report, print_balance_report
-# from .review import review_unpaired
 from .select import select
 
 # Stub functions for commands (will be moved to modules)
-
-def reconcile_statements(args):
-    logging.error('reconcile not implemented')
 
 def add_transaction(args):
     logging.error('add not implemented')
@@ -99,6 +96,7 @@ def init_cli():
 
     reconcile_parser = subparsers.add_parser('reconcile', help='reconcile statements')
     reconcile_parser.set_defaults(dispatch=reconcile_statements)
+    reconcile_parser.add_argument('--card', metavar='C', help='card name')
 
     audit_parser = subparsers.add_parser('audit', help='print an audit report')
     audit_parser.set_defaults(dispatch=print_audit_report)
@@ -138,13 +136,12 @@ def init_cli():
     select_parser.add_argument('--total', action='store_true', help='show total amount of selected transactions')
     select_parser.add_argument('--unpaired', action='store_true', help='set --entry and --tag #unpaired')
     actions = select_parser.add_mutually_exclusive_group()
+    actions.add_argument('--update', metavar='F V', nargs=2, help='update fields')
+    actions.add_argument('--delete', action='store_true', help='delete selected records')
     actions.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
     actions.add_argument('--journal', action='store_true', help='print in Journal format (transaction)')
     actions.add_argument('--repl', action='store_true', help='show selection in command line REPL')
     actions.add_argument('--panel', action='store_true', help='show selection in a GUI')
-    actions.add_argument('--update', metavar='F V', nargs=2, help='update fields')
-    actions.add_argument('--delete', action='store_true', help='delete selected records')
-    actions.add_argument('--set_tag', metavar='T', help='add or remove tag on selected records')
 
     if len(sys.argv) == 1:
         parser.print_usage()

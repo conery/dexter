@@ -68,9 +68,6 @@ actions = {
     'journal':    print_journal_transactions,
     'repl':       repl,
     'panel':      not_implemented,
-    'update':     not_implemented,
-    'delete':     not_implemented,
-    'set_tag':    not_implemented,
 }
 
 def select(args):
