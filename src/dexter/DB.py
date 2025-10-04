@@ -50,6 +50,7 @@ class Tag(Enum):
     P = '#pending'
     U = '#unpaired'
     X = '#xfer'
+    Z = '#payment'
 
 class Dexter(Document):
     date = DateField(required=True)
@@ -144,7 +145,7 @@ class Entry(Document):
             f'{style}{amt:>15s}',
             f'{DB.abbrev(self.account)}',
             self.description[:50],
-            # ', '.join(t.value for t in self.tags),
+            ', '.join(self.tags),
             self.tref
         ]
 

@@ -345,7 +345,8 @@ def parse_csv_transactions(fn, pname, account, starting, ending, previous):
                 'tags': [Tag.U.value],
             }
             if account in cards:
-                desc['tags'].append(Tag.P.value)
+                tag = Tag.Z.value if cmap['payment'](rec) else Tag.P.value
+                desc['tags'].append(tag)
             e = Entry(**desc)
             if e.hash in previous:
                 continue

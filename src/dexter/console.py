@@ -81,16 +81,16 @@ transaction_header_format = {
     'amount':       {'width': 12, 'justify': 'right'},
     'description':  {'width': 30, 'no_wrap': True},
     'comment':      {'width': 15, 'no_wrap': True},
-    'tags':         {'width': 15},
+    'tags':         {'width': 30},
 }
 
 entry_header_format = {
     'date':    {'width': 12},
-    'account': {'width': 25},
+    'account': {'width': 30},
     'amount':  {'width': 15, 'justify': 'right'},
     'column':  {'width': 10, 'justify': 'center'},
     'description':  {'width': 30, 'no_wrap': True},
-    'tags':    {'width': 15},
+    'tags':    {'width': 40},
     # 'tref':    {'width': 12},
 }
 

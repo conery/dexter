@@ -30,24 +30,28 @@ description = 'rec["Description"]'
 date = 'rec["Post Date"]'
 amount = 'abs(float(rec["Amount"]))'
 credit = 'rec["Amount"].startswith("-")'
+payment = 'rec["Type"] == "Payment"'
 
 [csv.citi]
 description = 'rec["Description"]'
 date = 'rec["Date"]'
 amount = 'abs(float(rec["Debit"] or rec["Credit"]))'
 credit = 'rec["Debit"]'
+payment = '"AUTOPAY" in rec["Description"]'
 
 [csv.amex]
 description = 'rec["Description"]'
 date = 'rec["Date"]'
 amount = 'abs(float(rec["Amount"]))'
 credit = 'float(rec["Amount"]) > 0'
+payment = '"PAYMENT" in rec["Description"]'
 
 [csv.apple]
 description = 'rec["Description"]'
 date = 'rec["Clearing Date"]'
 amount = 'abs(float(rec["Amount (USD)"]))'
 credit = 'float(rec["Amount (USD)"]) > 0'
+payment = 'rec["Category"] == "Payment"'
 
 [select]
 fill_mode = 2

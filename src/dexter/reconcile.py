@@ -6,7 +6,7 @@ import logging
 import click
 from rich.table import Table, Row
 
-from .DB import DB, Entry, Tag
+from .DB import DB, Entry, Tag, Column
 from .console import console, format_amount
 from .subset_sum import find_subset
 from .util import debugging
@@ -18,20 +18,32 @@ from .util import debugging
 
 def collect_card_transactions(cardname):
     '''
-    Find all the Entry objects tagged `#pending`, organize them by account
-    name with separate lists for debits and credits.
+    Find pending transactions for cards.  Returns two items for each card:  
+    the earliest pending card payment and a list of entries (either credits
+    or debits) with dates earlier than the payment.  
+    
+    Note: if a transaction is a return it is put at the front of the list
+    of purchases (card companies process these immedediately).
     '''
     kwargs = {'tag': Tag.P.value}
     if cardname is not None:
         kwargs['account'] = cardname
     res = { }
     for e in DB.select(Entry, **kwargs):
-        dct = res.setdefault(e.account, {'debit': [], 'credit': []})
-        dct[e.column.value].append(e)
+        dct = res.setdefault(e.account, {'payment': [], 'entries': []})
+        if Tag.Z.value in e.tags:
+            dct['payment'].append(e)
+        elif e.column == Column.dr:
+            dct['entries'].insert(0,e)
+        else:
+            dct['entries'].append(e)
 
     for card in res:
-        cutoff = max(e.date for e in res[card]['debit'])
-        res[card]['credit'] = [e for e in res[card]['credit'] if e.date <= cutoff]
+        if len(res[card]['payment']) == 0:
+            res[card]['entries'] = []
+        else:
+            res[card]['payment'].sort(key = lambda e: e.date)
+            res[card]['entries'] = [e for e in res[card]['entries'] if e.date < res[card]['payment'][0].date]
 
     return res
 
@@ -39,9 +51,14 @@ def subset_sum(card):
     '''
     Convert transaction amounts to integer number of cents, call the subset sum
     method to find a subset of purchases that total to the sum of payments.
+
+    To prevent roundoff errors, all amounts are rounded to the nearest integer
+    and converted to an integer number of cents.
     '''
-    target = int(100 * sum(e.amount for e in card['debit']))
-    purchases = [int(100*e.amount) for e in card['credit']]
+    logging.debug(f'subset sum {card}')
+    target = int(round(100*card['payment'][0].amount))
+    purchases = [int(round(-100*e.value)) for e in card['entries']]
+    logging.debug(f'{target} {purchases}')
     node = find_subset(purchases, target)
     return node.members() if node else []
 
@@ -75,23 +92,22 @@ def reconcile_main_loop(recs):
             # if i in selected:
             #     desc = '[blue]' + desc
             style = 'highlight' if i in selected else ''
-            g.add_row(str(e.date), desc, format_amount(e.amount, dollar_sign=True), style=style)
+            g.add_row(str(e.date), desc, format_amount(e.value, dollar_sign=True), style=style)
         console.print(g)
         console.print()
 
     def display_card_recs(account, card, selected):
         console.clear()
         console.print(account, style='table_header')
-        # tsum = sum(purchases[i].amount for i in selected)
-        # g.add_row('payment amount', format_amount(rec.amount,dollar_sign=True))
-        # if round(tsum,2) == round(rec.amount,2):
-        #     g.add_row('purchases and credits', format_amount(round(tsum,2),dollar_sign=True),'✅')
-        # else:
-        #     delta = round(tsum-rec.amount,2)
-        #     g.add_row('difference', format_amount(delta,dollar_sign=True),'❌')
         console.print()
-        print_grid('Payments and Returns', card['debit'], [])
-        print_grid('Purchases', card['credit'], selected)
+        print_grid('Payment', card['payment'], [])
+        print_grid('Purchases', card['entries'], selected)
+
+    def display_no_transactions(account):
+        console.clear()
+        console.print(account, style='table_header')
+        console.print()
+        console.print(f'[red]No transactions for {account}')
 
     card_names = sorted(recs.keys())
     row = 0
@@ -99,11 +115,14 @@ def reconcile_main_loop(recs):
     try:
         if not debugging():
             console.set_alt_screen(True)
-        while len(recs) > 0:
+        while len(card_names) > 0:
             account = card_names[row]
             card = recs[account]
-            selected = subset_sum(card)
-            display_card_recs(account, card, selected)
+            if card['payment'] and card['entries']:
+                selected = subset_sum(card)
+                display_card_recs(account, card, selected)
+            else:
+                display_no_transactions(account)
             key = click.getchar()
             match key:
                 case KEY.PREV:
@@ -147,10 +166,11 @@ def reconcile_statements(args):
     if args.preview:
         for c, dct in recs.items():
             print(c)
-            for e in dct['debit']:
+            for e in dct['payment']:
                 print_csv_rec(e)
-            for e in dct['credit']:
+            for e in dct['entries']:
                 print_csv_rec(e)
+            print()
     else:
         reconcile_main_loop(recs)
 

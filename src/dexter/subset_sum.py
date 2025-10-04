@@ -5,6 +5,8 @@
 # is a branch-and-bound search of a binary tree where each node is a BBNode object.  
 #
 
+import logging
+
 class BBNode:
     
     items = []
@@ -75,10 +77,12 @@ def find_subset(ints, target):
         
     pq = [ BBNode() ]
     
-    safety_valve = 100*len(ints)
-    
+    safety_valve = 10*len(ints)
+
+    logging.debug(f'target: {target}')   
     while pq:
         node = heapq.heappop(pq)
+        logging.debug(f'{node._level} {node._csum} {node._psum} {node._members}')
         succ = node.expand()
         if not succ:
             continue
