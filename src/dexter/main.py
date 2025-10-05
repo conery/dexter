@@ -97,6 +97,10 @@ def init_cli():
     reconcile_parser = subparsers.add_parser('reconcile', help='reconcile statements')
     reconcile_parser.set_defaults(dispatch=reconcile_statements)
     reconcile_parser.add_argument('--card', metavar='C', help='card name')
+    actions = reconcile_parser.add_mutually_exclusive_group()
+    actions.add_argument('--csv', action='store_true', help='print payments and purchases in CSV format')
+    actions.add_argument('--repl', action='store_true', help='show each card in command line REPL')
+    actions.add_argument('--apply', action='store_true', help='update cards if fully reconciled')
 
     audit_parser = subparsers.add_parser('audit', help='print an audit report')
     audit_parser.set_defaults(dispatch=print_audit_report)
