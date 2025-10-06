@@ -36,12 +36,12 @@ def pair_entries(args):
             else:
                 logging.debug('    apply failed')
                 unmatched.append(entry)
-        elif regexp := DB.find_first_regexp(entry.description, Action.X):
-            logging.debug(f'  xfer {regexp}')
-            xfer_part(entry, regexp, credits, debits)
         elif regexp := DB.find_first_regexp(entry.description, Action.F):
             logging.debug(f'  fill {regexp}')
             fillable.append(entry)
+        elif regexp := DB.find_first_regexp(entry.description, Action.X):
+            logging.debug(f'  xfer {regexp}')
+            xfer_part(entry, regexp, credits, debits)
         else:
             logging.debug(f'    no match')
             unmatched.append(entry)
@@ -76,7 +76,7 @@ def preview_transfers(lst):
     print_records(lst, name='Transfers', count=len(lst))
 
 def preview_unmatched(lst, title):
-    print_grid([[DB.abbrev(e.account), e.description] for e in lst], name=title, count=len(lst))
+    print_grid([[DB.abbrev(e.account), str(e.date), e.description] for e in lst], name=title, count=len(lst))
 
 def matching_transaction(entry, regexp):
     '''

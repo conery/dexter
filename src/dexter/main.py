@@ -20,10 +20,10 @@ from .reconcile import reconcile_statements
 from .report import print_audit_report, print_balance_report
 from .select import select
 
-# Stub functions for commands (will be moved to modules)
+# # Stub functions for commands (will be moved to modules)
 
-def add_transaction(args):
-    logging.error('add not implemented')
+# def add_transaction(args):
+#     logging.error('add not implemented')
 
 
 def init_cli():
@@ -45,15 +45,29 @@ def init_cli():
     
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
+    # add_trans_parser = subparsers.add_parser('add', help='add a new transaction')
+    # add_trans_parser.set_defaults(dispatch=add_transaction)
+
+    audit_parser = subparsers.add_parser('audit', help='print an audit report')
+    audit_parser.set_defaults(dispatch=print_audit_report)
+    audit_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    audit_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
+    audit_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
+
     config_parser = subparsers.add_parser('config', help='print default config file')
 
-    info_parser = subparsers.add_parser('info', help='print DB status')
-    info_parser.set_defaults(dispatch=print_info)
+    export_parser = subparsers.add_parser('export', help='write transactions to file')
+    export_parser.set_defaults(dispatch=export_records)
+    export_parser.add_argument('file', metavar='F', type=Path, help='name of output file')
+    export_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
+    export_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
+    export_parser.add_argument('--month', metavar='M', choices=months, help='add records only for this month')
 
-    init_db_parser = subparsers.add_parser('init', help='initialize a database')
-    init_db_parser.set_defaults(dispatch=init_database)
-    init_db_parser.add_argument('file', metavar='F', help='name of file with account definitions')
-    init_db_parser.add_argument('--force', action='store_true', help='replace an existing database')
+    fill_parser = subparsers.add_parser('fill', help='fill envelopes')
+    fill_parser.set_defaults(dispatch=fill)
+    fill_parser.add_argument('files', metavar='F', nargs='*', help='TOML files with budget')
+    fill_parser.add_argument('--date', metavar='D', type=parse_date, help='transaction date')
+    fill_parser.add_argument('--month', metavar='M', choices=months, help='infer date from month name')
 
     import_parser = subparsers.add_parser('import', help='add new records from files')
     import_parser.set_defaults(dispatch=import_records)
@@ -65,34 +79,16 @@ def init_cli():
     import_parser.add_argument('--regexp', action='store_true', help='CSV files have regular expression definitions')
     import_parser.add_argument('--extract_text', action='store_true', help='print lines of text in a PDF file')
 
-    export_parser = subparsers.add_parser('export', help='write transactions to file')
-    export_parser.set_defaults(dispatch=export_records)
-    export_parser.add_argument('file', metavar='F', type=Path, help='name of output file')
-    export_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
-    export_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
-    export_parser.add_argument('--month', metavar='M', choices=months, help='add records only for this month')
+    info_parser = subparsers.add_parser('info', help='print DB status')
+    info_parser.set_defaults(dispatch=print_info)
 
-    save_recs_parser = subparsers.add_parser('save', help='save a database to a text file')
-    save_recs_parser.set_defaults(dispatch=save_records)
-    save_recs_parser.add_argument('file', metavar='F', help='name of output file')
-    save_recs_parser.add_argument('--force', action='store_true', help='overwrite existing file')
-
-    restore_recs_parser = subparsers.add_parser('restore', help='load documents into a database')
-    restore_recs_parser.set_defaults(dispatch=restore_records)
-    restore_recs_parser.add_argument('file', metavar='F', help='name of file with records to restore')
-    restore_recs_parser.add_argument('--force', action='store_true', help='replace an existing database')
+    init_db_parser = subparsers.add_parser('init', help='initialize a database')
+    init_db_parser.set_defaults(dispatch=init_database)
+    init_db_parser.add_argument('file', metavar='F', help='name of file with account definitions')
+    init_db_parser.add_argument('--force', action='store_true', help='replace an existing database')
 
     pair_parser = subparsers.add_parser('pair', help='make transactions from matching entries')
     pair_parser.set_defaults(dispatch=pair_entries)
-
-    fill_parser = subparsers.add_parser('fill', help='fill envelopes')
-    fill_parser.set_defaults(dispatch=fill)
-    fill_parser.add_argument('files', metavar='F', nargs='*', help='TOML files with budget')
-    fill_parser.add_argument('--date', metavar='D', type=parse_date, help='transaction date')
-    fill_parser.add_argument('--month', metavar='M', choices=months, help='infer date from month name')
-
-    add_trans_parser = subparsers.add_parser('add', help='add a new transaction')
-    add_trans_parser.set_defaults(dispatch=add_transaction)
 
     reconcile_parser = subparsers.add_parser('reconcile', help='reconcile statements')
     reconcile_parser.set_defaults(dispatch=reconcile_statements)
@@ -101,12 +97,6 @@ def init_cli():
     actions.add_argument('--csv', action='store_true', help='print payments and purchases in CSV format')
     actions.add_argument('--repl', action='store_true', help='show each card in command line REPL')
     actions.add_argument('--apply', action='store_true', help='update cards if fully reconciled')
-
-    audit_parser = subparsers.add_parser('audit', help='print an audit report')
-    audit_parser.set_defaults(dispatch=print_audit_report)
-    audit_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
-    audit_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
-    audit_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
 
     report_parser = subparsers.add_parser('report', help='print a balance report')
     report_parser.set_defaults(dispatch=print_balance_report)
@@ -117,6 +107,16 @@ def init_cli():
     report_parser.add_argument('--no_budget', action='store_true', help='remove budget transactions')
     report_parser.add_argument('--abbrev', action='store_true', help='print abbreviated names')
     report_parser.add_argument('--grouped', action='store_true', help='group by account name')
+
+    restore_recs_parser = subparsers.add_parser('restore', help='load documents into a database')
+    restore_recs_parser.set_defaults(dispatch=restore_records)
+    restore_recs_parser.add_argument('file', metavar='F', help='name of file with records to restore')
+    restore_recs_parser.add_argument('--force', action='store_true', help='replace an existing database')
+
+    save_recs_parser = subparsers.add_parser('save', help='save a database to a text file')
+    save_recs_parser.set_defaults(dispatch=save_records)
+    save_recs_parser.add_argument('file', metavar='F', help='name of output file')
+    save_recs_parser.add_argument('--force', action='store_true', help='overwrite existing file')
 
     select_parser = subparsers.add_parser('select', help='select transactions or postings')
     select_parser.set_defaults(dispatch=select)

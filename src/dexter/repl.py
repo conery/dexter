@@ -434,6 +434,6 @@ def verify_and_save_transaction(trans):
     else:
         if 'tags' in trans.edited:
             trans.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', trans.tags)]
-        trans.entries[0].tags.remove(Tag.U)
+        trans.entries[0].tags.remove(Tag.U.value)
         DB.save_records([trans])
         return True

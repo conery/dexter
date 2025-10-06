@@ -101,7 +101,9 @@ def import_records(args):
 
     for fn in args.files:
         p = Path(fn)
-        if p.exists():
+        if p.is_dir():
+            continue
+        if p.is_file():
             paths.append(p)
         else:
             logging.error(f'import: file not found: {p}')
