@@ -1,6 +1,8 @@
 # Print or update transactions
 
+import csv
 import logging
+import sys
 
 from .DB import DB, Transaction, Entry, Tag
 from .config import Config
@@ -56,6 +58,19 @@ def collect_parameters(cls, args):
         kwargs['start_date'] = Config.DB.start_date
 
     return kwargs
+
+def print_unpaired_csv(recs, args):
+    '''
+    Special case for CSV output, reformats unknowns for easier display in
+    a spreadsheet.
+    '''
+    colnames = ['date','account','amount','category','description','note']
+    writer = csv.DictWriter(sys.stdout, colnames)
+    writer.writeheader()
+    for rec in recs:
+        desc = rec.description[:rec.description.find(' §')]
+        row = [rec.date, DB.abbrev(rec.account), -rec.value, 'fill me', desc,'']
+        writer.writerow(dict(zip(colnames,row)))
 
 # Table mapping action names (from the command line) with functions that
 # implement the action.
@@ -133,11 +148,16 @@ def select(args):
     if col := args.order_by:
         recs = sorted(recs, key=lambda x: x[cls.order_by.get(col)])
 
-    # find the intersection of the set of action names and the set of
+    # Find the intersection of the set of action names and the set of
     # command line options that have values -- if one of the actions was
-    # specified the intersection will have that action name
+    # specified the intersection will have that action name.
+    #
+    # Special case -- printing unpaired in CSV reformats entries for
+    # more readable display in spreadsheet
 
-    if aname := set(actions.keys()) & {x for (x,y) in vars(args).items() if y}:
+    if args.unpaired and args.csv:
+        print_unpaired_csv(recs, args)
+    elif aname := set(actions.keys()) & {x for (x,y) in vars(args).items() if y}:
         actions[aname.pop()](recs, args)
     else:
         print_transaction_table(recs, args)

@@ -25,30 +25,39 @@ def collect_card_transactions(cardname):
     Note: if a transaction is a return it is put at the front of the list
     of purchases (card companies process these immedediately).
     '''
-    kwargs = {'tag': Tag.P.value}
-    if cardname is not None:
-        kwargs['account'] = cardname
-        
-    res = { c.name: {'payment': list(), 'entries': list()} for c in DB.card_accounts() }
-    for e in DB.select(Entry, **kwargs):
-        dct = res[e.account]
-        if Tag.Z.value in e.tags:
-            dct['payment'].append(e)
-        elif e.column == Column.dr:
-            dct['entries'].insert(0,e)
-        else:
-            dct['entries'].append(e)
 
-    empty = []
-    for card, dct in res.items():
-        if not (dct['payment'] and dct['entries']):
-            empty.append(card)
+    def find_payment(card):
+        lst = []
+        for e in DB.select(Entry, account=card, tag=Tag.Z.value):
+            if Tag.U.value not in e.tags:
+                lst.append(e)
+        if lst:
+            lst.sort(key = lambda e: e.date)
+            pmt = lst[0]
         else:
-            dct['payment'].sort(key = lambda e: e.date)
-            dct['entries'] = [e for e in dct['entries'] if e.date < dct['payment'][0].date]
+            pmt = None
+        return pmt
+    
+    def find_purchases(card, cutoff):
+        return DB.select(Entry, account=card, tag=Tag.P.value, end_date=cutoff)
+    
+    cards = [cardname] if cardname else [c.name for c in sorted(DB.card_accounts(), key=lambda a: a.abbrev)]
+    res = {}
 
-    for c in empty:
-        del res[c]
+    for c in cards:
+        logging.debug(f'collect for {c}')
+        pmt = find_payment(c)
+        if pmt:
+            purch = []
+            for e in find_purchases(c, pmt.date):
+                if e.column == Column.dr:
+                    purch.insert(0,e)
+                else:
+                    purch.append(e)
+        else:
+            purch = []
+        res[c] = {'payment': pmt, 'entries': purch}
+        logging.debug(f'  {res[c]}')
 
     return res
 
@@ -61,7 +70,7 @@ def subset_sum(card):
     and converted to an integer number of cents.
     '''
     logging.debug(f'subset sum {card}')
-    target = int(round(100*card['payment'][0].amount))
+    target = int(round(100*card['payment'].amount))
     purchases = [int(round(-100*e.value)) for e in card['entries']]
     logging.debug(f'{target} {purchases}')
     node = find_subset(purchases, target)
@@ -100,8 +109,6 @@ def reconcile_main_loop(recs):
         g.add_column(justify='right')
         for i, e in enumerate(data):
             desc = e.tref.description if e.tref else '[red]missing tref; run "dex audit" to fix'
-            # if i in selected:
-            #     desc = '[blue]' + desc
             style = 'highlight' if i in selected else ''
             g.add_row(str(e.date), desc, format_amount(e.value, dollar_sign=True), style=style)
         console.print(g)
@@ -111,14 +118,8 @@ def reconcile_main_loop(recs):
         console.clear()
         console.print(account, style='table_header')
         console.print()
-        print_grid('Payment', card['payment'], [])
+        print_grid('Payment', [card['payment']], [])
         print_grid('Purchases', card['entries'], selected)
-
-    def display_no_transactions(account):
-        console.clear()
-        console.print(account, style='table_header')
-        console.print()
-        console.print(f'[red]No transactions for {account}')
 
     card_names = sorted(recs.keys())
     row = 0
@@ -162,11 +163,10 @@ def reconcile_and_apply(recs):
     '''
     for card, dct in recs.items():
         row = [card]
-        if lst := dct['payment']:
-            selected = subset_sum(dct)
-            if selected == set(range(len(selected))):
-                logging.info(f'reconcile: remove tags from {card}')
-                remove_tags(dct, selected)
+        selected = subset_sum(dct)
+        if selected == set(range(len(selected))):
+            logging.info(f'reconcile: remove tags from {card}')
+            remove_tags(dct, selected)
 
 def print_csv_rec(e):
     '''
@@ -192,8 +192,8 @@ def print_preview(recs):
     )
     for card, dct in recs.items():
         row = [card]
-        if lst := dct['payment']:
-            row.append(str(lst[0].date))
+        if pmt := dct['payment']:
+            row.append(str(pmt.date))
             row.append(str(len(dct['entries'])))
             selected = subset_sum(dct)
             if selected == set(range(len(selected))):
@@ -215,8 +215,8 @@ def remove_tags(card, selected):
 
     TODO:  add method to DB class API to remove the tags
     '''
-    logging.debug(f'remove tag from {card['payment'][0]}')
-    card['payment'][0].update(pull__tags=Tag.Z.value)
+    logging.debug(f'remove tag from {card['payment']}')
+    card['payment'].update(pull__tags=Tag.Z.value)
     for i in selected:
         card['entries'][i].update(pull__tags=Tag.P.value)
 
@@ -248,14 +248,17 @@ def reconcile_statements(args):
 
     recs = collect_card_transactions(args.card)
 
+    if args.repl or args.apply:
+        recs = {c: dct for c, dct in recs.items() if (dct['payment'] and dct['entries'])}
+
     if args.csv:
         for c, dct in recs.items():
             print(c)
-            for e in dct['payment']:
-                print_csv_rec(e)
-            for e in dct['entries']:
-                print_csv_rec(e)
-            print()
+            if (dct['payment'] and dct['entries']):
+                print_csv_rec(dct['payment'])
+                for e in dct['entries']:
+                    print_csv_rec(e)
+                print()
     elif args.repl:
         reconcile_main_loop(recs)
     elif args.apply:
