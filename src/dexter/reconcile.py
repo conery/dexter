@@ -39,7 +39,8 @@ def collect_card_transactions(cardname):
         return pmt
     
     def find_purchases(card, cutoff):
-        return DB.select(Entry, account=card, tag=Tag.P.value, end_date=cutoff)
+        plist = DB.select(Entry, account=card, tag=Tag.P.value, end_date=cutoff)
+        return sorted(plist, key=lambda rec: rec.date)
     
     cards = [cardname] if cardname else [c.name for c in sorted(DB.card_accounts(), key=lambda a: a.abbrev)]
     res = {}
