@@ -123,7 +123,7 @@ def import_records(args):
             match path.suffix:
                 case '.journal':
                     _, new_recs = parse_journal(path, anames, DB.uids())
-                case '.csv':
+                case '.csv' | '.CSV':
                     # if args.account:
                     #     alist = DB.
                     basename = args.account or path.stem

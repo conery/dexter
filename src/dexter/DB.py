@@ -146,7 +146,7 @@ class Entry(Document):
             f'{DB.abbrev(self.account)}',
             self.description[:50],
             ', '.join(self.tags),
-            self.tref
+            self.tref.id if self.tref else 'None',
         ]
 
     @property
@@ -796,7 +796,7 @@ class DB:
         '''
         logging.debug(f'validating {t}')
         assert len(t.entries) >= 2, "fewer than two entries"
-        assert sum(e.value for e in t.entries) == 0, "unbalanced"
+        assert round(sum(e.value for e in t.entries), 2) == 0, "unbalanced"
 
     @staticmethod
     def validate_entry(e):
@@ -806,6 +806,7 @@ class DB:
         * the transaction reference in a paired Entry refers to a valid Transaction
         '''
         logging.debug(f'validating {e}')
+        assert e.value == round(e.value,2), "roundoff error"
         if Tag.U.value in e.tags:
             assert e.tref is None, "tref in unpaired entry"
         else:

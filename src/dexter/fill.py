@@ -95,7 +95,9 @@ def budget_transaction(date, dct):
     dist = add_credits(trans, dct['allocation'], date, available)
     logging.debug(f'fill: distributed {dist}')
     if available > dist:
-        spec = [{ 'category': dct['remainder'], 'amount': available-dist}]
+        rem = round(available-dist,2)
+        logging.debug(f'fill: remainder {rem}')
+        spec = [{ 'category': dct['remainder'], 'amount': rem}]
         add_credits(trans, spec, date, available)
     return trans, deposits
 

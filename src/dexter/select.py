@@ -6,7 +6,7 @@ import sys
 
 from .DB import DB, Transaction, Entry, Tag
 from .config import Config
-from .console import print_transaction_table, print_csv_transactions, print_journal_transactions
+from .console import console, print_transaction_table, print_csv_transactions, print_journal_transactions
 from .repl import repl
 
 
@@ -54,7 +54,7 @@ def collect_parameters(cls, args):
             kwargs[name] = val
             logging.debug(f'  {name} = {val}')
 
-    if 'start_date' not in kwargs:
+    if ('start_date' not in kwargs) and ('date' not in kwargs):
         kwargs['start_date'] = Config.DB.start_date
 
     return kwargs
@@ -72,6 +72,15 @@ def print_unpaired_csv(recs, args):
         row = [rec.date, DB.abbrev(rec.account), -rec.value, 'fill me', desc,'']
         writer.writerow(dict(zip(colnames,row)))
 
+# Delete selected records
+
+def delete(recs, args):
+    console.print('[blue]Delete Records')
+    for obj in recs:
+        console.print(f'  {obj.row()}')
+        if not args.preview:
+            obj.delete()
+
 # Table mapping action names (from the command line) with functions that
 # implement the action.
 
@@ -79,10 +88,11 @@ def not_implemented(recs, args):
     print('not implemented')
 
 actions = {
-    'csv':        print_csv_transactions,
-    'journal':    print_journal_transactions,
-    'repl':       repl,
+    'csv':        print_csv_transactions,           # defined in .console
+    'journal':    print_journal_transactions,       # defined in .console
+    'repl':       repl,                             # defined in .repl
     'panel':      not_implemented,
+    'delete':     delete,
 }
 
 def select(args):

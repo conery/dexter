@@ -190,6 +190,14 @@ def print_audit_report(args):
     DB.open(args.dbname)
     logging.debug(f'audit report {vars(args)}')
 
+    errs = {}
+
     for cls in [Transaction, Entry]:
         for obj, reason in DB.validate(cls):
-            console.print(f'{reason}: {obj}')        
+            lst = errs.setdefault(reason, list())
+            lst.append(obj)
+
+    for reason, lst in errs.items():
+        console.print(f'\n[bold blue]{reason}')
+        for obj in lst:
+            console.print(f'  {obj.row()}')        
