@@ -7,6 +7,7 @@ import sys
 from .DB import DB, Transaction, Entry, Tag
 from .config import Config
 from .console import console, print_transaction_table, print_csv_transactions, print_journal_transactions
+from .gui import start_gui
 from .repl import repl
 
 
@@ -84,14 +85,11 @@ def delete(recs, args):
 # Table mapping action names (from the command line) with functions that
 # implement the action.
 
-def not_implemented(recs, args):
-    print('not implemented')
-
 actions = {
     'csv':        print_csv_transactions,           # defined in .console
     'journal':    print_journal_transactions,       # defined in .console
     'repl':       repl,                             # defined in .repl
-    'panel':      not_implemented,
+    'gui':        start_gui,                        # defined in .gui
     'delete':     delete,
 }
 
@@ -108,7 +106,7 @@ def select(args):
         --csv               display records as CSV (for import to a spreadsheet)
         --journal           display using Journal format [transactions only]
         --repl              show records one at a time in a command line REPL (entry only)
-        --panel             display records in a GUI
+        --gui               display records in a GUI (allows editing records)
         --update            bulk update of a specified attribute in all selected records
         --tag               add or remove a tag on all selected records
         --delete            delete all selected records

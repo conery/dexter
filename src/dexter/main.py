@@ -145,7 +145,7 @@ def init_cli():
     actions.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
     actions.add_argument('--journal', action='store_true', help='print in Journal format (transaction)')
     actions.add_argument('--repl', action='store_true', help='show selection in command line REPL')
-    actions.add_argument('--panel', action='store_true', help='show selection in a GUI')
+    actions.add_argument('--gui', action='store_true', help='show selection in a GUI')
 
     if len(sys.argv) == 1:
         parser.print_usage()
