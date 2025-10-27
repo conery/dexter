@@ -5,8 +5,9 @@
 # from textual import log
 from textual.app import App, ComposeResult
 from textual.containers import HorizontalGroup, VerticalScroll
-from textual.widgets import Footer, Header, Log, Input, Tree
+from textual.widgets import Footer, Header, Log, DataTable, Input, Tree
 
+from .console import transaction_header_format, entry_header_format, make_row
 from .util import debugging
 
 # Main app calls this method to launch the GUI
@@ -46,7 +47,13 @@ class TUI(App):
         header = Header()
         header.tall = True
 
+        self.table = DataTable()
+        self.table.cursor_type = 'row'
+        self.table.cell_padding = 3
+        self.table.header_height = 2
+
         yield header
+        yield self.table
         yield Footer()
 
         if debugging():
@@ -60,6 +67,21 @@ class TUI(App):
     def on_mount(self):
         self.title = '\nDexter'
         self.sub_title = 'Double Entry Expense Tracker'
+        self.fill_table()
 
-    def on_ready(self):
-        self.add_message(f'display {len(self.records)} records')
+    # def on_ready(self):
+    #     self.add_message(f'display {len(self.records)} records')
+
+    def fill_table(self):
+        if self.args.entry:
+            self.add_message(f'make entry table with {len(self.records)} records')
+            header = entry_header_format
+            row_type = 'entry'
+        else:
+            self.add_message(f'make transaction table with {len(self.records)} records')
+            header = transaction_header_format
+            row_type = 'transaction'
+        for col, spec in header.items():
+            self.table.add_column(col, width=spec['width'])
+        for rec in self.records:
+            self.table.add_row(*make_row(rec, row_type, True))
