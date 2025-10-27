@@ -2,3 +2,8 @@
 DataTable {
 
 }
+
+Log {
+    height: 10;
+    dock: bottom;
+}
