@@ -134,8 +134,9 @@ class Entry(Document):
     }
 
     def __str__(self):
-        e = '+' if self.column == Column.dr else '-'
-        return f'<En {self.date} {self.account} {e}${self.amount} {self.tags}>'
+        # e = '+' if self.column == Column.dr else '-'
+        # return f'<En {self.date} {self.account} {e}${self.amount} {self.tags}>'
+        return f'<En {self.date} {self.account} {self.column} ${self.amount} {self.tags}>'
     
     def row(self):
         amt = f'${self.amount:.02f}'

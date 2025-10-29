@@ -56,16 +56,23 @@ dark_terminal = Theme({
 console = Console(theme=dark_terminal, emoji=None)
 # console = Console(theme=light_terminal)
 
-def format_amount(n, dollar_sign=False):
+def format_amount(n, dollar_sign=False, accounting=False):
     '''
-    Return a string to print for a dollar amount.  If dollar_sign is true include
-    a dollar sign at the front and include commas as a thousands separator.
+    Return a string to print for a dollar amount, optionally including dollar signs and
+    commas.
     '''
-    sign = '−' if n < 0 else ''
-    if dollar_sign:
-        return f'{sign}${round(abs(n),2):,.2f}'
+    if accounting or dollar_sign:
+        res = f'{round(abs(n),2):,.2f}'
     else:
-        return f'{sign}{round(abs(n),2):.2f}'
+        res = f'{round(abs(n),2):.2f}'
+    if accounting and n < 0:
+        res = f'(${res})'
+    elif dollar_sign:
+        if n < 0:
+            res = f'−${res}'
+        else:
+            res = f'${res}'
+    return res
 
 def format_date(date):
     '''Return a date string to use in reports'''

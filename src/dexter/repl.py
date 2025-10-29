@@ -108,6 +108,7 @@ def repl(recs, args):
                     reset_transaction(tlist[row])
                 case KEY.ACCEPT:
                     if verify_and_save_transaction(tlist[row]):
+                        previous_entries.append(tlist[row])
                         del tlist[row]
                         if tlist:
                             row = row % len(tlist)
