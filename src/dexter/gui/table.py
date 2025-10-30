@@ -4,6 +4,7 @@
 
 from rich.text import Text
 
+from textual.binding import Binding
 from textual.message import Message
 from textual.widgets import DataTable
 
@@ -90,6 +91,10 @@ class TransactionTable(DataTable):
     Display entries or transactions in a data table
     '''
 
+    BINDINGS = [
+        Binding('ctrl+o,enter', 'open_editor', description='Open Editor', key_display='^O'),
+    ]
+
     def __init__(self) -> None:
         super().__init__()
         self.cursor_type = 'row'
@@ -105,10 +110,16 @@ class TransactionTable(DataTable):
             for spec in headers:
                 row.append(spec[2](rec, spec[3]))
             self.add_row(*row)
-        self.post_message(self.LogMessage(f'added {len(records)} rows to table'))
+        self.log(f'added {len(records)} rows to table')
+
+    def action_open_editor(self) -> None:
+        self.log('action!')
 
     class LogMessage(Message):
 
         def __init__(self, msg: str) -> None:
             self.text = msg
             super().__init__()
+
+    def log(self, msg):
+        self.post_message(self.LogMessage(msg))
