@@ -7,7 +7,7 @@ import sys
 from .DB import DB, Transaction, Entry, Tag
 from .config import Config
 from .console import console, print_transaction_table, print_csv_transactions, print_journal_transactions
-from .gui import start_gui
+from .gui.app import start_gui
 from .repl import repl
 
 

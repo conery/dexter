@@ -1,16 +1,14 @@
 #
-# TUI (Terminal User Interface) implemented with Textual
+# TUI widget for displaying tables of transactions
 #
 
 from rich.text import Text
 
-from textual.app import App, ComposeResult
-from textual.containers import HorizontalGroup, VerticalScroll
-from textual.widgets import Footer, Header, Log, DataTable, Input, Tree
+from textual.message import Message
+from textual.widgets import DataTable
 
-from .console import format_amount
-from .DB import DB, Tag, Column as DBColumn
-from .util import debugging
+from dexter.console import format_amount
+from dexter.DB import DB, Tag, Column as DBColumn
 
 def format_flag(rec, col):
     lst = rec[col]
@@ -86,73 +84,31 @@ class ColSpec:
     
     def width(self):
         return self.width
-
-# Main app calls this method to launch the GUI
-
-def start_gui(recs, args):
+    
+class TransactionTable(DataTable):
     '''
-    Create the Textual app and start it
-    '''
-    app = TUI(recs, args)
-    app.run()
-
-
-class TUI(App):
-    '''
-    A Textual app for displaying and editing Dexter objects.
+    Display entries or transactions in a data table
     '''
 
-    def __init__(self, recs, args) -> None:
-        '''
-        Constructor for the top level app.
-
-        Arguments:
-            recs:  list of objects to display in the table
-            args:  command line arguments
-        '''
-        self.records = recs
-        self.args = args
+    def __init__(self) -> None:
         super().__init__()
+        self.cursor_type = 'row'
+        self.cell_padding = 2
+        self.header_height = 2
 
-    CSS_PATH = "dex.tcss"
-
-    def compose(self) -> ComposeResult:
-        '''
-        Lay out the top level window with a header, footer, and content
-        area
-        '''
-        header = Header()
-        header.tall = True
-
-        self.table = DataTable()
-        self.table.cursor_type = 'row'
-        self.table.cell_padding = 2
-        self.table.header_height = 2
-
-        yield header
-        yield self.table
-        yield Footer()
-
-        if debugging():
-            yield Log()
-
-    def on_mount(self):
-        self.title = '\nDexter'
-        self.sub_title = 'Double Entry Expense Tracker'
-        self.fill_table()
-
-    def add_message(self, message):
-        if debugging():
-            w = self.query_one(Log)
-            w.write_line(message)
-
-    def fill_table(self):
-        headers = entry_columns if self.args.entry else transaction_columns
+    def add_records(self, records, args):
+        headers = entry_columns if args.entry else transaction_columns
         for spec in headers:
-            self.table.add_column(spec[0], width=spec[1])
-        for rec in self.records:
+            self.add_column(spec[0], width=spec[1])
+        for rec in records:
             row = []
             for spec in headers:
                 row.append(spec[2](rec, spec[3]))
-            self.table.add_row(*row)
-            # self.add_message(f'{rec["date"]}')
+            self.add_row(*row)
+        self.post_message(self.LogMessage(f'added {len(records)} rows to table'))
+
+    class LogMessage(Message):
+
+        def __init__(self, msg: str) -> None:
+            self.text = msg
+            super().__init__()
