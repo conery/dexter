@@ -14,6 +14,7 @@ from dexter.DB import DB, Tag, Column as DBColumn
 from dexter.util import debugging
 
 from .table import TransactionTable
+from .modal import TransactionScreen
 
 class TUI(App):
     '''
@@ -62,6 +63,9 @@ class TUI(App):
 
     def on_transaction_table_log_message(self, msg: TransactionTable.LogMessage) -> None:
         self.add_message(msg.text)
+
+    def on_transaction_table_open_modal(self, msg: TransactionTable.OpenModal) -> None:
+        self.push_screen(TransactionScreen(), msg.cb)
 
 # Main app calls this method to launch the GUI
 

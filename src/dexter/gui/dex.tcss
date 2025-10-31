@@ -3,6 +3,10 @@ DataTable {
 
 }
 
+TransactionScreen {
+    align: center middle;
+}
+
 Log {
     height: 10;
     dock: bottom;

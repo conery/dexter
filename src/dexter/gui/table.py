@@ -4,6 +4,7 @@
 
 from rich.text import Text
 
+from textual.app import App
 from textual.binding import Binding
 from textual.message import Message
 from textual.widgets import DataTable
@@ -113,7 +114,16 @@ class TransactionTable(DataTable):
         self.log(f'added {len(records)} rows to table')
 
     def action_open_editor(self) -> None:
-        self.log('action!')
+        self.post_message(self.OpenModal(self.validate_transaction))
+
+    def validate_transaction(self, resp: bool) -> None:
+        self.log('done')
+
+    class OpenModal(Message):
+
+        def __init__(self, cb):
+            self.cb = cb
+            super().__init__()
 
     class LogMessage(Message):
 
