@@ -3,6 +3,45 @@ DataTable {
 
 }
 
+Date {
+    width: 20;
+    height: 3;
+}
+
+TextArea:disabled {
+    color: white;
+}
+
+#description {
+    width: 50;
+    height: 3;
+}
+
+#comment {
+    width: 30;
+    height: 3;
+}
+
+#tags {
+    width: 20;
+    height: 3;
+}
+
+.placeholder {
+    text-style: italic;
+}
+
+THeader {
+    /* border: green; */
+}
+
+TransactionGroup {
+    width: 150;
+    height: 20;
+    border: yellow;
+    padding: 1;
+}
+
 TransactionScreen {
     align: center middle;
 }

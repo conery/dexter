@@ -65,7 +65,7 @@ class TUI(App):
         self.add_message(msg.text)
 
     def on_transaction_table_open_modal(self, msg: TransactionTable.OpenModal) -> None:
-        self.push_screen(TransactionScreen(), msg.cb)
+        self.push_screen(TransactionScreen(msg.rec), msg.cb)
 
 # Main app calls this method to launch the GUI
 

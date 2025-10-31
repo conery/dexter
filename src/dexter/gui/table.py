@@ -10,7 +10,7 @@ from textual.message import Message
 from textual.widgets import DataTable
 
 from dexter.console import format_amount
-from dexter.DB import DB, Tag, Column as DBColumn
+from dexter.DB import DB, Transaction, Entry, Tag, Column as DBColumn
 
 def format_flag(rec, col):
     lst = rec[col]
@@ -101,8 +101,10 @@ class TransactionTable(DataTable):
         self.cursor_type = 'row'
         self.cell_padding = 2
         self.header_height = 2
+        self.records = None
 
     def add_records(self, records, args):
+        self.records = records
         headers = entry_columns if args.entry else transaction_columns
         for spec in headers:
             self.add_column(spec[0], width=spec[1])
@@ -114,15 +116,21 @@ class TransactionTable(DataTable):
         self.log(f'added {len(records)} rows to table')
 
     def action_open_editor(self) -> None:
-        self.post_message(self.OpenModal(self.validate_transaction))
+        rec = self.records[self.cursor_row]
+        if isinstance(rec, Entry):
+            self.log('coming soon...')
+            return
+        cb = self.validate_transaction
+        self.post_message(self.OpenModal(rec, cb))
 
     def validate_transaction(self, resp: bool) -> None:
         self.log('done')
 
     class OpenModal(Message):
 
-        def __init__(self, cb):
+        def __init__(self, rec, cb):
             self.cb = cb
+            self.rec = rec
             super().__init__()
 
     class LogMessage(Message):
