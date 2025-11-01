@@ -21,10 +21,11 @@ class Date(TextArea):
         super().__init__()
         self.text = self.date
         self.disabled = True
+        self.can_focus = False
 
-    def allow_focus(self):
-        super().allow_focus()
-        return False
+    # def allow_focus(self):
+    #     super().allow_focus()
+    #     return False
 
     # def on_mount(self):
     #     self.disabled = True
@@ -52,6 +53,9 @@ class TextLine(TextArea):
     def on_mount(self):
         self.action_cursor_line_end()
         return super().on_mount()
+    
+    def _on_blur(self, event):
+        self.rec[self.id] = self.text
     
 class TagLine(TextLine):
 
