@@ -40,6 +40,8 @@ TextArea:disabled {
 #message {
     width: 70;
     margin: 1 10 0 10;
+    text-style: italic;
+    color: red;
 }
 
 Button {

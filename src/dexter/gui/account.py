@@ -30,21 +30,22 @@ class Accounts(Tree):
     Display list widgets
     '''
 
-    def __init__(self, root='category', categories=[Category.E, Category.I]) -> None:
+    def __init__(self, id='', root='category', categories=[Category.E, Category.I]) -> None:
         '''
         Create a tree widget populated by names of accounts.
         '''
-        super().__init__(root)
+        super().__init__(root, id=id)
         self.auto_expand = True
         accts = fetch_names(categories)
         path = [self.root]
         self.fullname = {}
-        self.nodes = {}
+        # self.nodes = {}
         for i, a in enumerate(accts):
             interior = (i < len(accts)-1) and accts[i+1].startswith(a)
             parts = a.split(':')
             label = parts[-1]
-            self.fullname[label] = a
+            if DB.fullname(a):
+                self.fullname[label] = a
             if interior:
                 n = len(parts)
                 if n == len(path):
@@ -56,7 +57,16 @@ class Accounts(Tree):
                     path[n] = node
             else:
                 node = path[len(parts)-1].add_leaf(label)
-            self.nodes[label] = node
+            # self.nodes[label] = node
+
+    @property
+    def selection(self):
+        '''
+        If the current node corresponds to a full account name return that
+        name, otherwise return None
+        '''
+        name = str(self.cursor_node.label)
+        return self.fullname.get(name)
 
     def on_tree_node_selected(self, event):
         pass

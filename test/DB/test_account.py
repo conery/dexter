@@ -33,6 +33,22 @@ class TestAccount:
         lst = DB.find_account("yoyo")
         assert len(lst) == 1 and lst[0].name == 'income:yoyodyne'
 
+
+    def test_find_no_account(self, db):
+        '''
+        Call find_account with a string that does matche an account name
+        '''
+        lst = DB.find_account("trust")
+        assert len(lst) == 0       
+
+
+    def test_many_accounts(self, db):
+        '''
+        Call find_account with a string that matches several names
+        '''
+        lst = DB.find_account("assets")
+        assert len(lst) == 2
+
     def test_all_name_parts(self, db):
         '''
         Test the method that separates names into parts

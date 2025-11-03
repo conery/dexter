@@ -116,7 +116,7 @@ class Entry(HorizontalGroup):
     def compose(self) -> ComposeResult:
         self.unpaired = Label(' ', id='unpaired')
         self.date = Date(self.rec.date)
-        self.account = Accounts()
+        self.account = Accounts(id='account_selection')
         self.amount = Amount(self.rec.amount)
         self.description = ConstText(self.rec.description, id='description')
         yield self.unpaired
@@ -171,7 +171,19 @@ class TransactionScreen(ModalScreen):
         self.dismiss(None)
 
     def action_save_exit(self):
-        self.dismiss({'account': 'expenses:car:fuel', 'description': 'Fuel!'})
+        errs = []
+        account_widget = self.query_one(Accounts)
+        if not account_widget.selection:
+            errs.append(f'No account selected')
+        header_widget = self.query_one(THeader)
+        if len(header_widget.description.text) == 0:
+            errs.append('Empty transaction description')
+        if errs:
+            message_widget = self.query_one('#message')
+            message = ', '.join(errs)
+            message_widget.content = Content(message)
+        else:
+            self.dismiss({'account': account_widget.selection})
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == 'cancel':
