@@ -20,27 +20,45 @@ from dexter.DB import DB, Tag, Transaction, Column as DBColumn
 from dexter.gui.account import Accounts
 
 class Amount(Label):
+    '''
+    A label for displaying a dollar amount.
+    '''
    
     def __init__(self, a:float) -> None:
         super().__init__(format_amount(a, dollar_sign=True))
 
 class ConstText(Label):
+    '''
+    A widget to display uneditable text.  Truncates the text to fit
+    the width of the widget.
+    '''
 
     def __init__(self, text: str, id: str) -> None:
         super().__init__(text, id=id)
 
     def on_show(self, event):
+        '''
+        Figure out how wide the widget is, truncate the text to fit.
+        '''
         if len(self.content) > self.content_size.width:
             s = self.content[:self.content_size.width-2] + '…'
             self.content = Content(s)
         return super()._on_show(event)
 
 class Date(Label):
+    '''
+    A label to display a date.
+    '''
    
     def __init__(self, d:date) -> None:
         super().__init__(str(d))
 
 class TextLine(TextArea):
+    '''
+    A widget that displays editable text, limited to a single line (it
+    captures and ignores enter keys).  When the text is empty the placeholder
+    is displayed, highlighted by a different style.
+    '''
 
     def __init__(self, rec:Transaction, field:str) -> None:
         super().__init__()
@@ -100,7 +118,7 @@ class FixedEntry(HorizontalGroup):
         self.date = Date(self.rec.date)
         self.account = ConstText(self.rec.account, id='account')
         self.amount = Amount(self.rec.amount)
-        self.description = ConstText(self.rec.description, id='description')
+        self.description = ConstText(self.rec.description, id='entry_description')
         yield self.unpaired
         yield self.date
         yield self.account
@@ -118,7 +136,7 @@ class Entry(HorizontalGroup):
         self.date = Date(self.rec.date)
         self.account = Accounts(id='account_selection')
         self.amount = Amount(self.rec.amount)
-        self.description = ConstText(self.rec.description, id='description')
+        self.description = ConstText(self.rec.description, id='entry_description')
         yield self.unpaired
         yield self.date
         yield self.account
@@ -153,6 +171,11 @@ class TransactionGroup(VerticalScroll):
 
 
 class TransactionScreen(ModalScreen):
+    '''
+    A modal dialog for editing a single transaction, which is displayed in Journal
+    format (top line for transaction data, lines indented below that for each
+    entry).
+    '''
 
     BINDINGS = [
         Binding('ctrl+c', 'cancel_exit'),
@@ -170,7 +193,7 @@ class TransactionScreen(ModalScreen):
     def action_cancel_exit(self):
         self.dismiss(None)
 
-    def action_save_exit(self):
+    def check_required_fields(self):
         errs = []
         account_widget = self.query_one(Accounts)
         if not account_widget.selection:
@@ -178,12 +201,21 @@ class TransactionScreen(ModalScreen):
         header_widget = self.query_one(THeader)
         if len(header_widget.description.text) == 0:
             errs.append('Empty transaction description')
-        if errs:
+        return ', '.join(errs)
+
+    def action_save_exit(self):
+        if msg := self.check_required_fields():
             message_widget = self.query_one('#message')
-            message = ', '.join(errs)
-            message_widget.content = Content(message)
-        else:
-            self.dismiss({'account': account_widget.selection})
+            message_widget.content = Content(msg)
+            return False
+        res = {}
+        for id in ['description', 'comment', 'tags']:
+            widget = self.query_one(f'#{id}')
+            if s := widget.text:
+                res[id] = s
+        tree = self.query_one(Accounts)
+        res['account'] = tree.selection
+        self.dismiss(res)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == 'cancel':

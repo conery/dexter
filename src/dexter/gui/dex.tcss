@@ -60,7 +60,7 @@ Button {
 }
 
 
-#description {
+#description, #entry_description {
     width: 50;
     height: 3;
 }
