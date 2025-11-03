@@ -8,6 +8,7 @@ from rich.text import Text
 
 from textual import events
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.content import Content
 from textual.containers import HorizontalGroup, VerticalScroll, Center, Right
 from textual.screen import ModalScreen
@@ -144,22 +145,37 @@ class TransactionGroup(VerticalScroll):
         yield THeader(self.rec)
         yield FixedEntry(self.rec.entries[0])
         yield Entry(self.rec.entries[1])
-        yield Static('messages here...', id='message')
+        yield Static('', id='message')
         with Center():
             with HorizontalGroup(id='button_group'):
-                yield ModalButton('Cancel', id='cancel', variant='warning')
-                yield ModalButton('Save', id='save', variant='success')
+                yield ModalButton('Cancel (⌃C)', id='cancel', variant='warning')
+                yield ModalButton('Save (⌃S)', id='save', variant='success')
 
 
 class TransactionScreen(ModalScreen):
 
+    BINDINGS = [
+        Binding('ctrl+c', 'cancel_exit'),
+        Binding('ctrl+s', 'save_exit'),
+    ]
+
     def __init__(self, rec):
         self.rec = rec
+        self.event = None
         super().__init__()
 
     def compose(self) -> ComposeResult:
         yield TransactionGroup(self.rec)
 
+    def action_cancel_exit(self):
+        self.dismiss(None)
+
+    def action_save_exit(self):
+        self.dismiss({'account': 'expenses:car:fuel', 'description': 'Fuel!'})
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.dismiss(True)
+        if event.button.id == 'cancel':
+            self.action_cancel_exit()
+        else:
+            self.action_save_exit()
 

@@ -14,63 +14,6 @@ from dexter.DB import DB, Transaction, Entry, Tag, Column as DBColumn
 from dexter.repl import make_candidate, apply_regexp
 from dexter.util import parse_date
 
-# def format_flag(rec, col):
-#     lst = rec[col]
-#     sym = '🔴' if Tag.U.value in lst else ' '
-#     return Text(sym, justify='center')
-
-# def format_date(rec, col):
-#     val = rec[col]
-#     return Text(str(val))
-
-# def format_account(rec, col):
-#     return Text(rec[col])
-
-# def format_account_abbrev(rec, col):
-#     return Text(DB.abbrev(rec[col]))
-
-# def format_string(rec, col):
-#     return Text(rec[col] or '')
-
-# def format_unsigned_amount(rec, col):
-#     s = format_amount(rec[col], dollar_sign=True)
-#     return Text(s, justify='right')
-
-# def format_signed_amount(rec, col):
-#     amount = rec[col]
-#     style = ''
-#     if rec['column'] == DBColumn.cr:
-#         amount = -amount
-#         style = 'red'
-#     # s = format_amount(amount, dollar_sign=True, accounting=True)
-#     s = format_amount(amount, dollar_sign=True)
-#     return Text(s, justify='right',style=style)
-
-# def format_tags(rec, col):
-#     lst = rec[col]
-#     if Tag.U.value in lst:
-#         lst.remove(Tag.U.value)    
-#     return Text(', '.join(lst))
-
-# entry_columns = [
-#     (' ', 3, format_flag, 'tags'),
-#     ('Date', 10, format_date, 'date'),
-#     ('Account', 30, format_account, 'account'),
-#     ('Amount', 12, format_signed_amount, 'amount'),
-#     ('Description', 40, format_string, 'description'),
-#     ('Tags', 30, format_tags, 'tags'),
-# ]
-
-# transaction_columns = [
-#     ('Date', 10, format_date, 'pdate'),
-#     ('Credit', 15, format_account_abbrev, 'pcredit'),
-#     ('Debit', 15, format_account_abbrev, 'pdebit'),
-#     ('Amount', 12, format_unsigned_amount, 'pamount'),
-#     ('Description', 40, format_string, 'description'),
-#     ('Comment', 30, format_string, 'comment'),
-#     ('Tags', 30, format_tags, 'tags'),
-# ]
-
 class ColSpec:
     '''
     Create an instance of this class for each column in a table.  The object
@@ -315,14 +258,14 @@ class TransactionTable(DataTable):
         cb = self.update_transaction
         self.post_message(self.OpenModal(rec, cb))
 
-    def update_transaction(self, resp: bool) -> None:
+    def update_transaction(self, resp: dict) -> None:
         # col = 'Description'
         # new_content = 'Yay!'
         # rec = self.records[self.cursor_row]
         # spec = self.colspec[col]
         # val = self.colspec[col].render(rec, new_content)
         # self.update_cell(self.row_keys[self.cursor_row], col, val)
-        pass
+        self.log(f'response: {resp}')
 
     class OpenModal(Message):
 
