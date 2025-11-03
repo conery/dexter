@@ -251,7 +251,7 @@ def make_candidate(e, prev):
     '''
     new_entry = Entry(
         date = e.date,
-        description = "repl " + e.description,
+        description = "@" + e.uid[:8],
         column = e.column.opposite(),
         amount = e.amount,
     )

@@ -230,6 +230,10 @@ class Transaction(Document):
             # self.comment,
             ', '.join(self.tags),
         ]
+    
+    @property
+    def uid(self):
+        return self.entries[0].uid if self.entries else None
 
     @property
     def accounts(self):

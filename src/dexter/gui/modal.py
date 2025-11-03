@@ -1,34 +1,43 @@
 #
 # TUI widget for the modal window that displays a single transaction
 #
+
 from datetime import date
 
 from rich.text import Text
 
 from textual import events
 from textual.app import ComposeResult
-from textual.containers import HorizontalGroup, VerticalScroll
+from textual.content import Content
+from textual.containers import HorizontalGroup, VerticalScroll, Center, Right
 from textual.screen import ModalScreen
-from textual.widgets import Button, TextArea
+from textual.widgets import Button, Label, TextArea, Static
 
 from dexter.console import format_amount
 from dexter.DB import DB, Tag, Transaction, Column as DBColumn
 
-class Date(TextArea):
+from dexter.gui.account import Accounts
+
+class Amount(Label):
+   
+    def __init__(self, a:float) -> None:
+        super().__init__(format_amount(a, dollar_sign=True))
+
+class ConstText(Label):
+
+    def __init__(self, text: str, id: str) -> None:
+        super().__init__(text, id=id)
+
+    def on_show(self, event):
+        if len(self.content) > self.content_size.width:
+            s = self.content[:self.content_size.width-2] + '…'
+            self.content = Content(s)
+        return super()._on_show(event)
+
+class Date(Label):
    
     def __init__(self, d:date) -> None:
-        self.date = str(d)
-        super().__init__()
-        self.text = self.date
-        self.disabled = True
-        self.can_focus = False
-
-    # def allow_focus(self):
-    #     super().allow_focus()
-    #     return False
-
-    # def on_mount(self):
-    #     self.disabled = True
+        super().__init__(str(d))
 
 class TextLine(TextArea):
 
@@ -53,9 +62,7 @@ class TextLine(TextArea):
     def on_mount(self):
         self.action_cursor_line_end()
         return super().on_mount()
-    
-    def _on_blur(self, event):
-        self.rec[self.id] = self.text
+
     
 class TagLine(TextLine):
 
@@ -80,6 +87,53 @@ class THeader(HorizontalGroup):
         yield(self.comment)
         yield(self.tags)
 
+class FixedEntry(HorizontalGroup):
+
+    def __init__(self, rec):
+        self.rec = rec
+        super().__init__()
+
+    def compose(self) -> ComposeResult:
+        marker = '🔴' if Tag.U.value in self.rec.tags else ' '
+        self.unpaired = Label(marker, id='unpaired')
+        self.date = Date(self.rec.date)
+        self.account = ConstText(self.rec.account, id='account')
+        self.amount = Amount(self.rec.amount)
+        self.description = ConstText(self.rec.description, id='description')
+        yield self.unpaired
+        yield self.date
+        yield self.account
+        yield self.amount
+        yield self.description
+
+class Entry(HorizontalGroup):
+
+    def __init__(self, rec):
+        self.rec = rec
+        super().__init__()
+
+    def compose(self) -> ComposeResult:
+        self.unpaired = Label(' ', id='unpaired')
+        self.date = Date(self.rec.date)
+        self.account = Accounts()
+        self.amount = Amount(self.rec.amount)
+        self.description = ConstText(self.rec.description, id='description')
+        yield self.unpaired
+        yield self.date
+        yield self.account
+        yield self.amount
+        yield self.description
+
+    def on_show(self, event):
+        self.account.focus()
+        return super()._on_show(event)
+    
+class ModalButton(Button):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.can_focus = False
+
 class TransactionGroup(VerticalScroll):
 
     def __init__(self, rec):
@@ -88,7 +142,13 @@ class TransactionGroup(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         yield THeader(self.rec)
-        yield Button('Aloha!')
+        yield FixedEntry(self.rec.entries[0])
+        yield Entry(self.rec.entries[1])
+        yield Static('messages here...', id='message')
+        with Center():
+            with HorizontalGroup(id='button_group'):
+                yield ModalButton('Cancel', id='cancel', variant='warning')
+                yield ModalButton('Save', id='save', variant='success')
 
 
 class TransactionScreen(ModalScreen):

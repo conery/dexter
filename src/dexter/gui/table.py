@@ -11,6 +11,7 @@ from textual.widgets import DataTable
 
 from dexter.console import format_amount
 from dexter.DB import DB, Transaction, Entry, Tag, Column as DBColumn
+from dexter.repl import make_candidate, apply_regexp
 from dexter.util import parse_date
 
 # def format_flag(rec, col):
@@ -118,7 +119,7 @@ class ColSpec:
         In the base class items are stored as strings and the value
         returned is a string.
         '''
-        return x
+        return x or ''
 
 
 class AccountSpec(ColSpec):
@@ -275,7 +276,7 @@ class TransactionTable(DataTable):
         self.cell_padding = 2
         self.header_height = 2
         self.records = None
-        self.current_record = None
+        self.row_keys = []
         self.reversed = {}
         self.colspec = {}
 
@@ -286,11 +287,11 @@ class TransactionTable(DataTable):
             self.add_column(spec.name, width=spec.width, key=spec.name)
             self.reversed[spec.name] = False
             self.colspec[spec.name] = spec
-        for rec in records:
+        for i, rec in enumerate(records):
             row = []
             for spec in headers:
                 row.append(spec.render(rec, spec.attr))
-            self.add_row(*row)
+            self.row_keys.append(self.add_row(*row))
         self.log(f'added {len(records)} rows to table')
 
     def on_data_table_header_selected(self, msg):
@@ -299,17 +300,29 @@ class TransactionTable(DataTable):
         self.reversed[col] = not self.reversed[col]
 
     def action_open_editor(self) -> None:
-        rec = self.records[self.cursor_row]
-        if isinstance(rec, Entry):
-            self.log('coming soon...')
-            return
-        cb = self.validate_transaction
-        self.current_record = rec
+        obj = self.records[self.cursor_row]
+        if isinstance(obj, Entry):
+            if Tag.U.value in obj.tags:
+                rec = make_candidate(obj, [])
+                rec.pdate = rec.entries[0].date
+                rec.description = apply_regexp(rec.entries[0].description)
+            elif obj.tref:
+                rec = obj.tref
+            else:
+                raise ValueError(f'TransactionTable: badly formed entry: {obj}')
+        else:
+            rec = obj
+        cb = self.update_transaction
         self.post_message(self.OpenModal(rec, cb))
 
-    def validate_transaction(self, resp: bool) -> None:
-        self.log(self.current_record.description)
-        self.update_cell(self.cursor_row, 'Description', 'Yay!')
+    def update_transaction(self, resp: bool) -> None:
+        # col = 'Description'
+        # new_content = 'Yay!'
+        # rec = self.records[self.cursor_row]
+        # spec = self.colspec[col]
+        # val = self.colspec[col].render(rec, new_content)
+        # self.update_cell(self.row_keys[self.cursor_row], col, val)
+        pass
 
     class OpenModal(Message):
 
