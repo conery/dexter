@@ -2,6 +2,8 @@
 # TUI widget for displaying tables of transactions
 #
 
+import re
+
 from rich.text import Text
 
 from textual.app import App
@@ -93,7 +95,7 @@ class DateSpec(ColSpec):
         '''
         return parse_date(x)
 
-class FlagSpec(ColSpec):
+class MarkerSpec(ColSpec):
     '''
     Special purpose column for entry tables, displays a red dot if the
     tags field includes an 'unpaired' tag.
@@ -111,6 +113,10 @@ class FlagSpec(ColSpec):
         self._width = width
         self._attr = None
 
+    @property
+    def key(self):
+        return 'marker'
+        
     def render(self, rec, _):
         return '🔴' if Tag.U.value in rec.tags else ' '
 
@@ -185,7 +191,7 @@ class UnsignedAmountSpec(ColSpec):
     
 entry_columns = [
     ColSpec('UID', 0, 'uid'),
-    FlagSpec(' ', 3),
+    MarkerSpec(' ', 3),
     DateSpec('Date', 10, 'date'),
     ColSpec('Account', 30, 'account'),
     SignedAmountSpec('Amount', 12, 'amount'),
@@ -227,7 +233,7 @@ class TransactionTable(DataTable):
         self.records = records
         headers = entry_columns if args.entry else transaction_columns
         for spec in headers:
-            self.add_column(spec.name, width=spec.width, key=spec.name)
+            self.add_column(spec.name, width=spec.width, key=spec.key)
             self.reversed[spec.name] = False
             self.colspec[spec.name] = spec
         for i, rec in enumerate(records):
@@ -249,23 +255,49 @@ class TransactionTable(DataTable):
                 rec = make_candidate(obj, [])
                 rec.pdate = rec.entries[0].date
                 rec.description = apply_regexp(rec.entries[0].description)
+                self.mode = 'unpaired'
             elif obj.tref:
                 rec = obj.tref
+                self.mode = 'entry'
             else:
                 raise ValueError(f'TransactionTable: badly formed entry: {obj}')
         else:
             rec = obj
+            self.mode = 'transaction'
+        self.log(f'edit mode {self.mode}')
+        self.editing = rec
         cb = self.update_transaction
         self.post_message(self.OpenModal(rec, cb))
 
     def update_transaction(self, resp: dict) -> None:
+        self.log(f'response: {resp}')
+        if resp is not None:
+            self.update_DB_transaction(resp)
+            self.update_table_row(resp)
+
         # col = 'Description'
         # new_content = 'Yay!'
         # rec = self.records[self.cursor_row]
         # spec = self.colspec[col]
         # val = self.colspec[col].render(rec, new_content)
         # self.update_cell(self.row_keys[self.cursor_row], col, val)
-        self.log(f'response: {resp}')
+
+    def update_DB_transaction(self, resp) -> None:
+        obj = self.editing
+        obj.entries[1].account = resp['account']
+        obj.description = resp['description']
+        obj.comment = resp.get('comment')
+        if tag_string := resp.get('tags'):
+            obj.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', tag_string)]
+        obj.entries[0].tags.remove(Tag.U.value)
+        DB.save_records([obj])
+
+    def update_table_row(self, resp) -> None:
+        i = self.row_keys[self.cursor_row]
+        if self.mode == 'unpaired':
+            self.update_cell(i, 'marker', ' ')
+            if self.cursor_row < len(self.records):
+                self.move_cursor(row = self.cursor_row + 1)
 
     class OpenModal(Message):
 

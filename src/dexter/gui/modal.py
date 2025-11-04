@@ -78,9 +78,9 @@ class TextLine(TextArea):
         if event.character == '\r':
             event.prevent_default()
 
-    def on_mount(self):
-        self.action_cursor_line_end()
-        return super().on_mount()
+    # def on_mount(self):
+    #     self.action_cursor_line_end()
+    #     return super().on_mount()
 
     
 class TagLine(TextLine):
