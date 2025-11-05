@@ -10,7 +10,7 @@ from textual import events
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.content import Content
-from textual.containers import HorizontalGroup, VerticalScroll, Center, Right
+from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll, Center, Right
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label, TextArea, Static
 
@@ -144,7 +144,8 @@ class Entry(HorizontalGroup):
         yield self.description
 
     def on_show(self, event):
-        self.account.focus()
+        self.description.focus()
+        self.account.add_class('collapsed')
         return super()._on_show(event)
     
 class ModalButton(Button):
@@ -153,17 +154,18 @@ class ModalButton(Button):
         super().__init__(*args, **kwargs)
         self.can_focus = False
 
-class TransactionGroup(VerticalScroll):
+class TransactionGroup(VerticalGroup):
 
     def __init__(self, rec):
         self.rec = rec
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield THeader(self.rec)
-        yield FixedEntry(self.rec.entries[0])
-        yield Entry(self.rec.entries[1])
-        yield Static('', id='message')
+        with VerticalGroup():
+            yield THeader(self.rec)
+            yield FixedEntry(self.rec.entries[0])
+            yield Entry(self.rec.entries[1])
+            yield Static('', id='message')
         with Center():
             with HorizontalGroup(id='button_group'):
                 yield ModalButton('Cancel (⌃C)', id='cancel', variant='warning')
