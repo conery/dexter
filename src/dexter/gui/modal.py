@@ -154,6 +154,12 @@ class ModalButton(Button):
         super().__init__(*args, **kwargs)
         self.can_focus = False
 
+class ButtonGroup(HorizontalGroup):
+
+    def compose(self) -> ComposeResult:
+        yield ModalButton('Cancel (⌃C)', id='cancel', variant='warning')
+        yield ModalButton('Save (⌃S)', id='save', variant='success')
+
 class TransactionGroup(VerticalGroup):
 
     def __init__(self, rec):
@@ -161,16 +167,21 @@ class TransactionGroup(VerticalGroup):
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        with VerticalGroup():
-            yield THeader(self.rec)
-            yield FixedEntry(self.rec.entries[0])
-            yield Entry(self.rec.entries[1])
-            yield Static('', id='message')
-        with Center():
-            with HorizontalGroup(id='button_group'):
-                yield ModalButton('Cancel (⌃C)', id='cancel', variant='warning')
-                yield ModalButton('Save (⌃S)', id='save', variant='success')
+        yield THeader(self.rec)
+        yield FixedEntry(self.rec.entries[0])
+        yield Entry(self.rec.entries[1])
+        yield Static('', id='message')
 
+class TransactionPanel(VerticalGroup):
+
+    def __init__(self, rec):
+        self.rec = rec
+        super().__init__()
+
+    def compose(self) -> ComposeResult:
+        yield TransactionGroup(self.rec)
+        with Center():
+            yield ButtonGroup()
 
 class TransactionScreen(ModalScreen):
     '''
@@ -190,7 +201,7 @@ class TransactionScreen(ModalScreen):
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield TransactionGroup(self.rec)
+        yield TransactionPanel(self.rec)
 
     def action_cancel_exit(self):
         self.dismiss(None)

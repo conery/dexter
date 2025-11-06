@@ -50,15 +50,15 @@ class Completer:
         self.name_chars |= { ch.lower() for ch in acct }
 
     def process_keystroke(self, key):
-        if key in self.name_chars:
-            self.buffer.append(key)
-        elif key == 'backspace' and len(self.buffer):
-            self.buffer.pop()
-        elif key == 'escape' and self.ring:
+        if key == 'escape' and self.ring:
             self.ring_index = (self.ring_index+1) % len(self.ring)
-        if self.buffer:
+        else:
+            if key in self.name_chars:
+                self.buffer.append(key)
+            elif key == 'backspace' and len(self.buffer):
+                self.buffer.pop()
             t = self.token
-            if self.trie.has_node(t):
+            if t and self.trie.has_node(t):
                 self.ring = sorted(sum(self.trie[t:], []))
                 self.ring_index = 0
             else:
@@ -130,7 +130,8 @@ class Accounts(Tree):
 
     def on_key(self, event: events.Key) -> None:
         if self.completer.process_keystroke(event.key):
-            self.post_message(self.LogMessage(self.completer.token))
+            # self.post_message(self.LogMessage(f'{event.key} {self.completer.token} {self.completer.ring} {self.completer.ring_index}'))
+            self.post_message(self.LogMessage(f'> {self.completer.token}'))
             if next := self.completer.selected():
                 self.root.expand_all()
                 self.move_cursor_to_line(next+1)
