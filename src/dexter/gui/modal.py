@@ -225,3 +225,6 @@ class TransactionScreen(ModalScreen):
         else:
             self.action_save_exit()
 
+    def on_accounts_log_message(self, msg: Accounts.LogMessage) -> None:
+        message_widget = self.query_one('#message')
+        message_widget.content = Content(msg.text)
