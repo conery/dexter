@@ -15,7 +15,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Label, TextArea, Static
 
 from dexter.console import format_amount
-from dexter.DB import DB, Tag, Transaction, Column as DBColumn
+from dexter.DB import DB, Tag, Transaction, Column as DBColumn, Category
 
 from dexter.gui.account import Accounts
 
@@ -24,7 +24,9 @@ class Amount(Label):
     A label for displaying a dollar amount.
     '''
    
-    def __init__(self, a:float) -> None:
+    def __init__(self, a:float, col:DBColumn) -> None:
+        if col == DBColumn.cr:
+            a = -a
         super().__init__(format_amount(a, dollar_sign=True))
 
 class ConstText(Label):
@@ -60,12 +62,12 @@ class TextLine(TextArea):
     is displayed, highlighted by a different style.
     '''
 
-    def __init__(self, rec:Transaction, field:str) -> None:
+    def __init__(self, rec:Transaction, field:str, text=None) -> None:
         super().__init__()
         self.rec = rec
         self.id = field
         self.placeholder = field
-        self.text = rec[field] if rec[field] else ''
+        self.text = text or rec[field] or ''
         if len(self.text) == 0:
             self.add_class('placeholder')
 
@@ -86,8 +88,8 @@ class TextLine(TextArea):
 class TagLine(TextLine):
 
     def __init__(self, rec:Transaction):
-        super().__init__(rec, 'tags')
-        self.text = ' ,'.join(rec.tags) if rec.tags else ''
+        text = ' ,'.join(rec.tags) if rec.tags else ''
+        super().__init__(rec, 'tags', text)
 
 class THeader(HorizontalGroup):
 
@@ -101,6 +103,10 @@ class THeader(HorizontalGroup):
         self.comment = TextLine(self.rec, 'comment')
         self.tags = TagLine(self.rec)
 
+        self.original_description = self.description.text
+        self.original_comment = self.comment.text
+        self.original_tags = self.tags.text
+
         yield(self.date)
         yield(self.description)
         yield(self.comment)
@@ -113,11 +119,11 @@ class FixedEntry(HorizontalGroup):
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        marker = '🔴' if Tag.U.value in self.rec.tags else ' '
-        self.unpaired = Label(marker, id='unpaired')
+        marker = '🚩' if Tag.U.value in self.rec.tags else ' '
+        self.unpaired = Label(marker, id='marker')
         self.date = Date(self.rec.date)
         self.account = ConstText(self.rec.account, id='account')
-        self.amount = Amount(self.rec.amount)
+        self.amount = Amount(self.rec.amount, self.rec.column)
         self.description = ConstText(self.rec.description, id='entry_description')
         yield self.unpaired
         yield self.date
@@ -129,14 +135,26 @@ class Entry(HorizontalGroup):
 
     def __init__(self, rec):
         self.rec = rec
+        self.initial_account = None
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        self.unpaired = Label(' ', id='unpaired')
+        marker = '🔹' if self.rec.column == DBColumn.cr else ''
+        self.unpaired = Label(marker, id='marker')
         self.date = Date(self.rec.date)
-        self.account = Accounts(id='account_selection')
-        self.amount = Amount(self.rec.amount)
+        self.amount = Amount(self.rec.amount, self.rec.column)
         self.description = ConstText(self.rec.description, id='entry_description')
+
+        if acct := self.rec.account:
+            if acct.startswith((Category.A.value, Category.L.value)):
+                self.account = ConstText(self.rec.account, id='fixed_account')
+            else:
+                self.account = Accounts(id='account_selection')
+                self.account.set_selection(acct)
+                self.initial_account = acct
+        else:
+            self.account = Accounts(id='account_selection')
+
         yield self.unpaired
         yield self.date
         yield self.account
@@ -144,9 +162,14 @@ class Entry(HorizontalGroup):
         yield self.description
 
     def on_show(self, event):
+        if self.account.id == 'account_selection':
+            self.account.add_class('collapsed')
         self.description.focus()
-        self.account.add_class('collapsed')
         return super()._on_show(event)
+    
+    def account_changed(self):
+        acct = self.account.selection
+        return acct != self.initial_account and acct
     
 class ModalButton(Button):
 
@@ -222,12 +245,17 @@ class TransactionScreen(ModalScreen):
             message_widget.content = Content(msg)
             return False
         res = {}
-        for id in ['description', 'comment', 'tags']:
-            widget = self.query_one(f'#{id}')
-            if s := widget.text:
-                res[id] = s
-        tree = self.query_one(Accounts)
-        res['account'] = tree.selection
+        # TODO:  🤢 rewrite, passing name of field to method in THeader class
+        widget = self.query_one(THeader)
+        if widget.description.text != widget.original_description:
+            res['description'] = widget.description.text
+        if widget.comment.text != widget.original_comment:
+            res['comment'] = widget.comment.text
+        if widget.tags.text != widget.original_tags:
+            res['tags'] = widget.tags.text
+        widget = self.query_one(Entry)
+        if acct := widget.account_changed():
+            res['account'] = acct
         self.dismiss(res)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:

@@ -76,7 +76,10 @@ class AccountSpec(ColSpec):
         '''
         Convert a date to a string
         '''
-        return DB.abbrev(rec[x])
+        if acct := rec[x]:
+            return DB.abbrev(acct)
+        else:
+            return '🚩'
 
 class DateSpec(ColSpec):
     '''
@@ -97,7 +100,7 @@ class DateSpec(ColSpec):
 
 class MarkerSpec(ColSpec):
     '''
-    Special purpose column for entry tables, displays a red dot if the
+    Special purpose column for entry tables, displays a marker if the
     tags field includes an 'unpaired' tag.
     '''
 
@@ -118,7 +121,7 @@ class MarkerSpec(ColSpec):
         return 'marker'
         
     def render(self, rec, _):
-        return '🔴' if Tag.U.value in rec.tags else ' '
+        return '🚩' if Tag.U.value in rec.tags else ' '
 
 class ListSpec(ColSpec):
     '''
@@ -189,18 +192,45 @@ class UnsignedAmountSpec(ColSpec):
         s = x.plain
         return float(s.replace('$','').replace(',',''))
     
-entry_columns = [
-    ColSpec('UID', 0, 'uid'),
-    MarkerSpec(' ', 3),
-    DateSpec('Date', 10, 'date'),
-    ColSpec('Account', 30, 'account'),
-    SignedAmountSpec('Amount', 12, 'amount'),
-    ColSpec('Description', 40, 'description'),
-    ListSpec('Tags', 30, 'tags'),
-]
+class UIDSpec(ColSpec):
+    '''
+    A column for object keys (based on the UID field of a transaction).
+    The column is hidden so width is 0 and we don't need a value method.
+    '''
+
+    def __init__(self) -> None:
+        '''
+        Initialize a new object.
+
+        Arguments:
+            name:  the column name
+            width:  column width
+        '''
+        self._name = 'UID'
+        self._width = 0
+        self._attr = None
+
+    def render(self, rec, _) -> str:
+        '''
+        Return the object's UID
+        '''
+        return str(rec.uid)
+
+
+# From an earlier version that displayed two different table formats...
+
+# entry_columns = [
+#     ColSpec('UID', 0, 'uid'),
+#     MarkerSpec(' ', 3),
+#     DateSpec('Date', 10, 'date'),
+#     ColSpec('Account', 30, 'account'),
+#     SignedAmountSpec('Amount', 12, 'amount'),
+#     ColSpec('Description', 40, 'description'),
+#     ListSpec('Tags', 30, 'tags'),
+# ]
 
 transaction_columns = [
-    # ColSpec('UID', 0, 'uid'),
+    UIDSpec(),
     DateSpec('Date', 10, 'pdate'),
     AccountSpec('Credit', 15, 'pcredit'),
     AccountSpec('Debit', 15, 'pdebit'),
@@ -224,24 +254,72 @@ class TransactionTable(DataTable):
         self.cursor_type = 'row'
         self.cell_padding = 2
         self.header_height = 2
-        self.records = None
-        self.row_keys = []
+        self.records = {}
         self.reversed = {}
         self.colspec = {}
 
-    def add_records(self, records, args):
-        self.records = records
-        headers = entry_columns if args.entry else transaction_columns
-        for spec in headers:
+    def make_candidate(self, obj):
+        '''
+        Make a transaction that has obj as the first entry and placeholders for
+        remaining fields.
+        '''
+        new_entry = Entry(
+            date = obj.date,
+            description = "@" + obj.uid[:8],
+            column = obj.column.opposite(),
+            amount = obj.amount,
+        )
+        new_transaction = Transaction()
+        new_transaction.entries.append(obj) 
+        new_transaction.entries.append(new_entry)
+        new_transaction.description = apply_regexp(obj.description)
+        new_transaction.pdate = obj.date
+        new_transaction.pamount = obj.amount
+        if obj.column == DBColumn.cr:
+            new_transaction.pcredit = obj.account
+            new_transaction.pdebit = ''
+        else:
+            new_transaction.pcredit = ''
+            new_transaction.pdebit = obj.account
+        return new_transaction
+
+    def preprocess(self, records):
+        '''
+        If the objects fetched from the database are entries this method converts
+        them to transactions.  Transactions for unpaired entries have placeholders for
+        required information.
+        '''
+        res = []
+        trefs = set()
+        for obj in records:
+            if Tag.U.value in obj.tags:
+                rec = self.make_candidate(obj)
+                res.append(rec)
+            elif obj.tref.uid not in trefs:
+                rec = obj.tref
+                trefs.add(obj.tref.uid)
+                res.append(rec)
+        return res
+    
+    def add_records(self, recs, args):
+        '''
+        Fill the table with values from objects fetched from the database.  Save
+        them in a table so we can look them up later (e.g. after sort).
+        '''
+        records = self.preprocess(recs) if args.entry else recs
+        # headers = entry_columns if args.entry else transaction_columns
+        for spec in transaction_columns:
             self.add_column(spec.name, width=spec.width, key=spec.key)
             self.reversed[spec.name] = False
             self.colspec[spec.name] = spec
         for i, rec in enumerate(records):
             row = []
-            for spec in headers:
+            for spec in transaction_columns:
                 row.append(spec.render(rec, spec.attr))
-            self.row_keys.append(self.add_row(*row))
-        self.log(f'added {len(records)} rows to table')
+            self.add_row(*row, key=rec.uid)
+            self.records[rec.uid] = rec
+        self.move_down_on_save = args.unpaired
+        self.log(f'added {len(self.records)} rows to table')
 
     def on_data_table_header_selected(self, msg):
         col = msg.column_key
@@ -249,55 +327,60 @@ class TransactionTable(DataTable):
         self.reversed[col] = not self.reversed[col]
 
     def action_open_editor(self) -> None:
-        obj = self.records[self.cursor_row]
-        if isinstance(obj, Entry):
-            if Tag.U.value in obj.tags:
-                rec = make_candidate(obj, [])
-                rec.pdate = rec.entries[0].date
-                rec.description = apply_regexp(rec.entries[0].description)
-                self.mode = 'unpaired'
-            elif obj.tref:
-                rec = obj.tref
-                self.mode = 'entry'
-            else:
-                raise ValueError(f'TransactionTable: badly formed entry: {obj}')
-        else:
-            rec = obj
-            self.mode = 'transaction'
-        self.log(f'edit mode {self.mode}')
-        self.editing = rec
+        row = self.get_row_at(self.cursor_row)
+        obj = self.records[row[0]]
+        self.log(f'edit "{obj.description}"')
+        self.editing = obj
         cb = self.update_transaction
-        self.post_message(self.OpenModal(rec, cb))
+        self.post_message(self.OpenModal(obj, cb))
 
     def update_transaction(self, resp: dict) -> None:
         self.log(f'response: {resp}')
-        if resp is not None:
+        if resp:
             self.update_DB_transaction(resp)
             self.update_table_row(resp)
-
-        # col = 'Description'
-        # new_content = 'Yay!'
-        # rec = self.records[self.cursor_row]
-        # spec = self.colspec[col]
-        # val = self.colspec[col].render(rec, new_content)
-        # self.update_cell(self.row_keys[self.cursor_row], col, val)
+            if self.move_down_on_save and self.cursor_row < len(self.records):
+                self.move_cursor(row=self.cursor_row+1)
 
     def update_DB_transaction(self, resp) -> None:
+        '''
+        Method called when the save button clicked in the modal screen.  If
+        the screen showed an unpaired entry this method won't be called unless
+        all required fields are filled in, so we can remove the unpaired tag.
+        '''
         obj = self.editing
-        obj.entries[1].account = resp['account']
-        obj.description = resp['description']
-        obj.comment = resp.get('comment')
+        if acct := resp.get('account'):
+            obj.entries[1].account = acct
+        if desc := resp.get('description'):
+            obj.description = desc
+        if comm := resp.get('comment'):
+            obj.comment = comm
         if tag_string := resp.get('tags'):
             obj.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', tag_string)]
-        obj.entries[0].tags.remove(Tag.U.value)
+        if Tag.U.value in obj.entries[0].tags:
+            obj.entries[0].tags.remove(Tag.U.value)
         DB.save_records([obj])
 
     def update_table_row(self, resp) -> None:
-        i = self.row_keys[self.cursor_row]
-        if self.mode == 'unpaired':
-            self.update_cell(i, 'marker', ' ')
-            if self.cursor_row < len(self.records):
-                self.move_cursor(row = self.cursor_row + 1)
+        '''
+        Method called after save button clicked, updates the table view.
+        '''
+        obj = self.editing
+        for column in ['Description','Comment','Tags']:
+            if column.lower() in resp:
+                spec = self.colspec[column]
+                self.update_cell(obj.uid, column, spec.render(obj,spec.attr))
+        if 'account' in resp:
+            for column in ['Credit','Debit']:
+                spec = self.colspec[column]
+                self.update_cell(obj.uid, column, spec.render(obj,spec.attr))
+
+        # i = self.row_keys[self.cursor_row]
+        # if self.mode == 'unpaired':
+        #     self.update_cell(i, 'marker', ' ')
+        #     if self.cursor_row < len(self.records):
+        #         self.move_cursor(row = self.cursor_row + 1)
+        pass
 
     class OpenModal(Message):
 

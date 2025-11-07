@@ -86,7 +86,7 @@ Button {
     height: 3;
 }
 
-#unpaired {
+#marker {
     width: 7;
     height: 3;
     content-align: center middle;

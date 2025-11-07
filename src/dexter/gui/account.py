@@ -87,12 +87,14 @@ class Accounts(Tree):
         accts = fetch_names(categories)
         path = [self.root]
         self.fullname = []
+        self.account_row = {}
         self.completer = Completer()
         for i, a in enumerate(accts):
             interior = (i < len(accts)-1) and accts[i+1].startswith(a)
             parts = a.split(':')
             label = parts[-1]
             self.fullname.append(a)
+            self.account_row[a] = i+1
             self.completer.add_name(label, i)
             if interior:
                 n = len(parts)
@@ -112,8 +114,23 @@ class Accounts(Tree):
         If the current node corresponds to a full account name return that
         name, otherwise return None
         '''
-        name = str(self.cursor_node.label)
-        return self.fullname.get(name)
+        # name = str(self.cursor_node.label)
+        # return self.fullname.get(name)
+        if isinstance(self.cursor_node.data, int):
+            acct = self.fullname[self.cursor_node.data]
+        elif self.root.label != self.root_name:
+            acct = str(self.root.label)
+        else:
+            acct = None
+        return acct
+        
+        
+    def set_selection(self, account):
+        # self.root.expand_all()
+        # self.move_cursor_to_line(self.account_row[account])
+        self.root.label = account
+        self.prev_line = self.account_row[account]
+        self.move_cursor_to_line(0)
 
     def on_blur(self, event) -> None:
         self.add_class('collapsed')
@@ -126,6 +143,7 @@ class Accounts(Tree):
         self.remove_class('collapsed')
         self.root.label = self.root_name
         if self.prev_line:
+            self.root.expand_all()
             self.move_cursor_to_line(self.prev_line)
 
     def on_key(self, event: events.Key) -> None:
