@@ -45,7 +45,7 @@ class Completer:
         return ''.join(self.buffer)
 
     def add_name(self, acct, row):
-        lst = self.trie.setdefault(acct, [])
+        lst = self.trie.setdefault(acct.lower(), [])
         lst.append(row)
         self.name_chars |= { ch.lower() for ch in acct }
 
@@ -53,8 +53,8 @@ class Completer:
         if key == 'escape' and self.ring:
             self.ring_index = (self.ring_index+1) % len(self.ring)
         else:
-            if key in self.name_chars:
-                self.buffer.append(key)
+            if key.lower() in self.name_chars:
+                self.buffer.append(key.lower())
             elif key == 'backspace' and len(self.buffer):
                 self.buffer.pop()
             t = self.token
@@ -138,15 +138,21 @@ class Accounts(Tree):
             self.root.label = self.fullname[self.cursor_node.data]
             self.prev_line = self.cursor_line
             self.move_cursor_to_line(0)
+        if self.completer.token:
+            self.post_message(self.LogMessage(f'hide'))
 
     def on_focus(self, event) -> None:
         self.remove_class('collapsed')
+        if self.completer.token:
+            self.post_message(self.LogMessage(f'reveal'))
         self.root.label = self.root_name
         if self.prev_line:
             self.root.expand_all()
             self.move_cursor_to_line(self.prev_line)
 
     def on_key(self, event: events.Key) -> None:
+        # if event.character == '\r':
+        #     self.screen.focus_next()
         if self.completer.process_keystroke(event.key):
             # self.post_message(self.LogMessage(f'{event.key} {self.completer.token} {self.completer.ring} {self.completer.ring_index}'))
             self.post_message(self.LogMessage(f'> {self.completer.token}'))

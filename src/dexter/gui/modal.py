@@ -266,4 +266,9 @@ class TransactionScreen(ModalScreen):
 
     def on_accounts_log_message(self, msg: Accounts.LogMessage) -> None:
         message_widget = self.query_one('#message')
-        message_widget.content = Content(msg.text)
+        if msg.text == 'hide':
+            message_widget.visible = False
+        elif msg.text == 'reveal':
+            message_widget.visible = True
+        else:
+            message_widget.content = Content(msg.text)
