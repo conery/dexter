@@ -142,6 +142,7 @@ def init_cli():
     actions = select_parser.add_mutually_exclusive_group()
     actions.add_argument('--update', metavar='F V', nargs=2, help='update fields')
     actions.add_argument('--delete', action='store_true', help='delete selected records')
+    actions.add_argument('--split', action='store_true', help='add new debits to a record')
     actions.add_argument('--csv', action='store_true', help='print in CSV format, with a header line')
     actions.add_argument('--journal', action='store_true', help='print in Journal format (transaction)')
     actions.add_argument('--repl', action='store_true', help='show selection in command line REPL')

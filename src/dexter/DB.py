@@ -817,3 +817,26 @@ class DB:
         else:
             assert e.tref is not None, "missing tref in entry"
             assert e in e.tref.entries, "not linked to parent transaction"
+
+    @staticmethod
+    def split_transaction(trans, account, amount):
+        '''
+        Add a new split to a transaction.  Descrease the amount on the last
+        entry, then copy the last entry to make a new one, setting the 
+        account name and amount on the new entry.
+        '''
+        prev = trans.entries[-1]
+        prev.amount -= amount
+        new_entry = Entry(
+            date = prev.date,
+            description = "split " + prev.description,
+            account = account,
+            column = prev.column,
+            amount = amount,
+        )
+        trans.entries.append(new_entry)
+        note = ' (split)'
+        if not trans.description.endswith(note):
+            trans.description += note
+        trans.save()
+

@@ -4,11 +4,11 @@
 
 import calendar
 import csv
-import logging
+import readline
 import sys
 
 from .config import Config
-from .DB import DB, Entry, Column
+from .DB import DB, Entry, Category
 
 from rich.console import Console
 from rich.theme import Theme
@@ -273,3 +273,48 @@ def print_records(docs, name=None, count=0):
             grid.add_row(*row)
         console.print(grid)
     console.print()
+
+# Functions used to get user input from the terminal using GNU readline
+
+def completer_function(tokens):
+    '''
+    Create a function to pass to readline.
+
+    Arguments:
+        tokens:  a list of all strings that appear in the account name hierarchy.
+
+    Returns:
+        a function that will be passed the characters typed on the console and an
+        index i; it will look up all tokens that starts with the characters
+        and return the token in location i in the list.
+    '''
+
+    def completer(text, state):
+        matches = [s for s in tokens if s.startswith(text)]
+        return matches[state]
+
+    return completer
+
+def get_account_name():
+    '''
+    Use GNU readline to get the name of an account.  After the user types a
+    string on the terminal and hits the enter/return key look look up and return
+    all account names in the database that start with that string.  
+    
+    Before printing the prompt initialize the completer so that if the tab key 
+    is hit readline will fill out the rest of the input with the remaining
+    characters.
+
+    Returns:
+        A set of account names.  If the user types a complete account name 
+        the return value is a set of length one containing that name.  If 
+        they enter a token that is part of an account name the return value 
+        is a set of all accounts that contain that token.  If they enter a 
+        string that is not a name or part of a name the empty set is returned.
+    '''
+    account_parts = list(DB.account_name_parts(Category.E) | DB.account_name_parts(Category.I))
+    account_names = DB.account_names(Category.E) | DB.account_names(Category.I)
+    readline.parse_and_bind('tab: complete')
+    readline.set_completer(completer_function(account_parts))
+    text = input('account> ')
+    return account_names.get(text)

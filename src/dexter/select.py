@@ -2,11 +2,12 @@
 
 import csv
 import logging
+import re
 import sys
 
 from .DB import DB, Transaction, Entry, Tag
 from .config import Config
-from .console import console, print_transaction_table, print_csv_transactions, print_journal_transactions
+from .console import console, print_transaction_table, print_csv_transactions, print_journal_transactions, get_account_name
 from .gui.app import start_gui
 from .repl import repl
 
@@ -82,6 +83,65 @@ def delete(recs, args):
         if not args.preview:
             obj.delete()
 
+# Split a transaction by adding a new debit
+
+def split(recs, args):
+
+    def prompt_for_account_name() -> str:
+        '''
+        Get the account name from the console.  Keep calling get_account_name
+        until the user enters a unique name.  Return that name or None if the
+        user exits the loop with ^C or ^D.
+        '''
+        try:
+            while True:
+                names = get_account_name()
+                if names is None or len(names) == 0:
+                    console.print(f'[red]unknown account name')
+                elif len(names) == 1:
+                    break
+                else:
+                    console.print(f'[red]ambiguous, choose from {names}')
+        except KeyboardInterrupt:
+            return None
+        return names.pop()
+    
+    def prompt_for_amount(max_amount: float) -> float:
+        '''
+        Get an amount from the console.  Iterate until the user enters a
+        value 0 < n < max_amount. Return m or None if the user exits the loop with
+        ^C or ^D. 
+        '''
+        try:
+            while True:
+                text = input('amount> ')
+                if not re.match(r'^\d+(\.\d{2})?$', text):
+                    console.print('[red]not a number')
+                    continue
+                amount = float(text)
+                if amount > 0 and amount < max_amount:
+                    break
+                console.print(f'[red]enter a value between 0 and {max_amount}')            
+        except KeyboardInterrupt:
+            return None
+        return amount
+
+    if len(recs) != 1 or not isinstance(recs[0], Transaction):
+        raise ValueError('split: use constraints to select a single transaction')
+    
+    console.print(f'[blue]Current Transaction:')
+    print_journal_transactions(recs)
+    trans = recs[0]
+
+    if account := prompt_for_account_name():
+        amount = prompt_for_amount(trans.pamount)
+
+    if account is None or amount is None:
+        console.print(f'[blue]exit')
+        return
+    
+    DB.split_transaction(trans, account, amount)
+
 # Table mapping action names (from the command line) with functions that
 # implement the action.
 
@@ -91,6 +151,7 @@ actions = {
     'repl':       repl,                             # defined in .repl
     'gui':        start_gui,                        # defined in .gui
     'delete':     delete,
+    'split':      split,
 }
 
 def select(args):
