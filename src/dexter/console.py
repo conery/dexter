@@ -148,6 +148,7 @@ def print_transaction_table(lst, args):
         name = 'Transactions'
 
     colnames = header.keys()
+    total = 0
 
     t = Table(
         title=name,
@@ -160,9 +161,13 @@ def print_transaction_table(lst, args):
     for rec in lst:
         row = make_row(rec, row_type, args.abbrev)
         t.add_row(*row)
+        total += rec.value if args.entry else rec.pamount
 
     console.print()
     console.print(t)
+
+    if args.total:
+        console.print(f'[blue]Total: {format_amount(total, dollar_sign=True)}')
 
 def print_csv_transactions(lst, args = None):
     '''

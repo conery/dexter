@@ -121,6 +121,7 @@ def init_cli():
     select_parser = subparsers.add_parser('select', help='select transactions or postings')
     select_parser.set_defaults(dispatch=select)
     select_parser.add_argument('--entry', action='store_true', help='select individual debits or credits')
+    select_parser.add_argument('--uid', metavar='X', help='unique object ID (entry)')
     select_parser.add_argument('--date', metavar='D', type=parse_date, help='transaction or posting date')
     select_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     select_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')

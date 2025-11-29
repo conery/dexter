@@ -111,20 +111,18 @@ class Accounts(Tree):
     @property
     def selection(self):
         '''
-        If the current node corresponds to a full account name return that
-        name, otherwise return None
+        If the widget is expanded and an interior node is selected return the text
+        associated with that node.  If it is not expanded, see if the label was set
+        when the widget was blurred, and if so return that label.        
         '''
         # name = str(self.cursor_node.label)
         # return self.fullname.get(name)
         if isinstance(self.cursor_node.data, int):
-            acct = self.fullname[self.cursor_node.data]
-        elif self.root.label != self.root_name:
-            acct = str(self.root.label)
+            label = self.fullname[self.cursor_node.data]
         else:
-            acct = None
-        return acct
-        
-        
+            label = self.root.label.plain
+        return None if label == self.root_name else label
+            
     def set_selection(self, account):
         # self.root.expand_all()
         # self.move_cursor_to_line(self.account_row[account])

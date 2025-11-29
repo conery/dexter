@@ -32,7 +32,7 @@ def validate_options(args):
         if args.tag in tags:
             args.tag = Tag[args.tag].value
     else:
-        for opt in ['repl']:
+        for opt in ['repl', 'uid']:
             if getattr(args,opt):
                 raise ValueError(f'select: --{opt} requires --entry')
         cls = Transaction

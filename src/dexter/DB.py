@@ -103,6 +103,7 @@ class Entry(Document):
     # object attributes 
 
     constraints = {
+        'uid': 'uid__iregex',
         'description': 'description__iregex',
         'date':  'date',
         'start_date': 'date__gte',
@@ -157,12 +158,14 @@ class Entry(Document):
     @property
     def hash(self):
         s = f'{self.account}{self.date}{self.amount}{self.description}'
-        return md5(bytes(s, 'utf-8')).hexdigest()
+        h = md5(bytes(s, 'utf-8')).hexdigest()
+        logging.debug(f'hash {s} -> {h}')
+        return h
     
     def clean(self):
         if self.uid is None:
-            logging.debug(f'Entry.uid: {self.hash}')
             self.uid = self.hash
+            logging.debug(f'Entry.uid: {self.uid}')
 
 class Transaction(Document):
     description = StringField(required=True)
@@ -826,7 +829,7 @@ class DB:
         account name and amount on the new entry.
         '''
         prev = trans.entries[-1]
-        prev.amount -= amount
+        prev.amount = round(prev.amount-amount,2)
         new_entry = Entry(
             date = prev.date,
             description = "split " + prev.description,
@@ -834,6 +837,7 @@ class DB:
             column = prev.column,
             amount = amount,
         )
+        new_entry.tref = trans
         trans.entries.append(new_entry)
         note = ' (split)'
         if not trans.description.endswith(note):

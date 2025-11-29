@@ -53,6 +53,13 @@ amount = 'abs(float(rec["Amount (USD)"]))'
 credit = 'float(rec["Amount (USD)"]) > 0'
 payment = 'rec["Category"] == "Payment"'
 
+[csv.capital]
+description = 'rec["Description"]'
+date = 'rec["Transaction Date"]'
+amount = 'abs(float(rec["Debit"] or rec["Credit"]))'
+credit = 'rec["Debit"]'
+payment = '"AUTOPAY" in rec["Description"]'
+
 [select]
 fill_mode = 2
 min_similarity = 50

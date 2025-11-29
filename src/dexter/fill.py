@@ -48,10 +48,10 @@ def fill(args):
         print_journal_transactions(tlist)
         print_csv_transactions(dlist)
     else:
+        DB.save_records(tlist)
         for t in dlist:
             t.tags = [Tag.A.value]
             t.save()
-        DB.save_records(tlist)
 
 def transaction_date(args):
     '''
