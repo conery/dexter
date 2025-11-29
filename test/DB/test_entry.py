@@ -24,7 +24,7 @@ class TestEntry:
         '''
         # all entries
         lst = DB.select(Entry)
-        assert len(lst) == 40
+        assert len(lst) == 58
 
         # select by date
         lst = DB.select(Entry, date=date(2024,1,5))
@@ -32,7 +32,7 @@ class TestEntry:
         assert all(e.date == date(2024,1,5) for e in lst)
 
         lst = DB.select(Entry, start_date=date(2024,1,5))
-        assert len(lst) == 30
+        assert len(lst) == 48
         assert all(e.date >= date(2024,1,5) for e in lst)
 
         lst = DB.select(Entry, end_date=date(2024,1,5))
@@ -41,29 +41,29 @@ class TestEntry:
 
         # select by amount
         lst = DB.select(Entry, amount=500)
-        assert len(lst) == 10
+        assert len(lst) == 12
         assert all(e.amount == 500 for e in lst)
 
         lst = DB.select(Entry, max_amount=500)
-        assert len(lst) == 26
+        assert len(lst) == 40
         assert all(e.amount <= 500 for e in lst)
 
         lst = DB.select(Entry, min_amount=500)
-        assert len(lst) == 24
+        assert len(lst) == 30
         assert all(e.amount >= 500 for e in lst)
 
         # select by account
         lst = DB.select(Entry, account='groceries')
-        assert len(lst) == 4
+        assert len(lst) == 6
         assert all(e.account == 'expenses:food:groceries' for e in lst)
 
         # select by column
         lst = DB.select(Entry, column='credit')
-        assert len(lst) == 24
+        assert len(lst) == 33
         assert all(e.column == Column.cr for e in lst)
 
         lst = DB.select(Entry, column='debit')
-        assert len(lst) == 16
+        assert len(lst) == 25
         assert all(e.column == Column.dr for e in lst)
 
     def test_select_entries_tagged(self, db):
@@ -86,9 +86,9 @@ class TestEntry:
         groceries = DB.select(Entry, account='groceries')
         groceries[0].update(push__tags=Tag.U.value)
         lst = DB.select(Entry, account='groceries', tag='^#unpaired')     # match complete tag string
-        assert len(lst) == 3 and groceries[0] not in lst
+        assert len(lst) == 5 and groceries[0] not in lst
         lst = DB.select(Entry, account='groceries', tag='^unp')           # match partial string
-        assert len(lst) == 3 and groceries[0] not in lst
+        assert len(lst) == 5 and groceries[0] not in lst
 
     def test_entry_attributes(self, db):
         lst = DB.select(Entry, column='credit')
@@ -108,8 +108,8 @@ class TestEntry:
         Test the balance of a specified account, with and without budget
         transactions and with and without dates
         '''
-        assert DB.balance('expenses:food') == -600
-        assert DB.balance('expenses:food', nobudget=True) == 400
+        assert DB.balance('expenses:food') == -525
+        assert DB.balance('expenses:food', nobudget=True) == 475
         assert DB.balance('expenses:food', ending='2024-01-31') == -250
         assert DB.balance('expenses:food', ending='2024-01-31', nobudget=True) == 250
 

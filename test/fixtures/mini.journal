@@ -44,6 +44,10 @@ account liabilities:chase:visa      ; type: liabilities, abbrev: visa, parser: c
     expenses:travel       $-500.00
     equity                $-500.00
 
+2024-02-02 Mar paycheck ; 
+    assets:bank:checking     $5,000.00
+    income:yoyodyne         $-5,000.00
+
 # Car expenses
 
 2024-01-05 car payment 
@@ -54,13 +58,25 @@ account liabilities:chase:visa      ; type: liabilities, abbrev: visa, parser: c
     expenses:car:payment        $500.00
     assets:bank:checking       $-500.00
 
+2024-03-05 car payment 
+    expenses:car:payment        $500.00
+    assets:bank:checking       $-500.00
+
 2024-01-10 Shell Oil 
     expenses:car:fuel          $50.00
-    liabilities:chase:visa       $-50.00
+    liabilities:chase:visa    $-50.00
 
 2024-02-26 Shell Oil 
     expenses:car:fuel          $60.00
-    liabilities:chase:visa       $-60.00
+    liabilities:chase:visa    $-60.00           ; pending:
+
+2024-03-10 Shell Oil 
+    expenses:car:fuel          $20.00
+    liabilities:chase:visa    $-20.00           ; pending:
+
+2024-03-21 Shell Oil 
+    expenses:car:fuel          $50.00
+    liabilities:chase:visa    $-50.00           ; pending:
 
 # Mortgage payments
 
@@ -72,6 +88,10 @@ account liabilities:chase:visa      ; type: liabilities, abbrev: visa, parser: c
     expenses:home:mortgage    $1,800.00        ; Feb
     assets:bank:checking     $-1,800.00
 
+2024-03-04 Rocket Mortgage ; 
+    expenses:home:mortgage    $1,800.00        ; Mar
+    assets:bank:checking     $-1,800.00
+
 # groceries
 
 2024-01-07  Safeway ; weekly groceries
@@ -79,23 +99,41 @@ account liabilities:chase:visa      ; type: liabilities, abbrev: visa, parser: c
     assets:bank:checking        $-75.00         ; read from CSV
 
 2024-01-21  Safeway 
-    expenses:food:groceries     $175.00          ; big party this weekend
-    liabilities:chase:visa        $-175.00
+    expenses:food:groceries     $175.00         ; big party this weekend
+    liabilities:chase:visa        $-175.00      ; pending: 
 
 2024-02-07  Safeway
     expenses:food:groceries      $75.00
-    assets:bank:checking        $-75.00
+    liabilities:chase:visa      $-75.00         ; pending: 
 
 2024-02-21  Safeway
     expenses:food:groceries      $75.00
-    liabilities:chase:visa         $-75.00
+    assets:bank:checking        $-75.00
+
+2024-03-01  Safeway
+    expenses:food:groceries      $25.00
+    liabilities:chase:visa      $-25.00         ; pending: 
+
+2024-03-10  Safeway
+    expenses:food:groceries      $50.00
+    liabilities:chase:visa      $-50.00         ; pending: 
 
 ; Buy something for the house using a card, return part of it
 
 2024-03-10 Home Depot
     expenses:home:household      $50.00         ; paint
-    liabilities:chase:visa               $-50.00
+    liabilities:chase:visa      $-50.00         ; pending: 
 
 2024-03-12 Home Depot
-    expenses:home:household     $-25.00        ; didn't use pink
-    liabilities:chase:visa                $25.00
+    expenses:home:household     $-25.00         ; didn't use pink
+    liabilities:chase:visa       $25.00         ; pending: 
+
+; Credit card payments
+
+2024-02-15 Chase Payment
+    assets:bank:checking        $-100.00        ; Feb
+    liabilities:chase:visa       $100.00
+
+2024-03-15 Chase Payment
+    assets:bank:checking        $-225.00        ; Mar
+    liabilities:chase:visa       $225.00        ; pending:

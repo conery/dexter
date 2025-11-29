@@ -40,7 +40,7 @@ class TestTransaction:
         '''
         # all transactions
         lst = DB.select(Transaction)
-        assert len(lst) == 16
+        assert len(lst) == 25
 
         # select by date
         lst = DB.select(Transaction, date=date(2024,1,21))
@@ -48,7 +48,7 @@ class TestTransaction:
         assert lst[0].pdate == date(2024,1,21)
 
         lst = DB.select(Transaction, start_date=date(2024,1,21))
-        assert len(lst) == 10
+        assert len(lst) == 19
         assert all(t.pdate >= date(2024,1,21) for t in lst)
 
         lst = DB.select(Transaction, end_date=date(2024,1,21))
@@ -61,16 +61,16 @@ class TestTransaction:
         assert all(t.pamount == 75 for t in lst)
 
         lst = DB.select(Transaction, max_amount=75)
-        assert len(lst) == 7
+        assert len(lst) == 11
         assert all(t.pamount <= 75 for t in lst)
 
         lst = DB.select(Transaction, min_amount=75)
-        assert len(lst) == 12
+        assert len(lst) == 17
         assert all(t.pamount >= 75 for t in lst)
 
         # select by descriptiom
         lst = DB.select(Transaction, description = r'^s')
-        assert len(lst) == 6
+        assert len(lst) == 10
         assert all(t.description.startswith('S') for t in lst)
 
         lst = DB.select(Transaction, comment = r'budget')
@@ -83,7 +83,7 @@ class TestTransaction:
         assert all('home' in t.pcredit for t in lst)
 
         lst = DB.select(Transaction, debit='expenses:home')
-        assert len(lst) == 3
+        assert len(lst) == 4
         assert all('home' in t.pdebit for t in lst)
 
     def test_select_transactions_multi(self, db):
@@ -96,7 +96,7 @@ class TestTransaction:
         assert lst[0].pamount > 100
 
         lst = DB.select(Transaction, start_date = date(2024,2,1), credit='visa')
-        assert len(lst) == 3
+        assert len(lst) == 7
         assert all('visa' in t.pcredit and t.pdate >= date(2024,2,1) for t in lst)
 
     def test_transaction_audit(self, db):

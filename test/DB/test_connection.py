@@ -31,5 +31,5 @@ class TestDB:
         test data.
         '''
         assert db.command('count','account')['n'] == 15
-        assert db.command('count','entry')['n'] == 40
-        assert db.command('count','transaction')['n'] == 16
+        assert db.command('count','entry')['n'] == 58
+        assert db.command('count','transaction')['n'] == 25
