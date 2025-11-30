@@ -10,28 +10,44 @@ from enum import Enum
 import logging
 import os
 from pathlib import Path
+from shutil import copy2
 import tomllib
 
 from .util import parse_date
 
 ###
+#
+# This function is called to initialize a new project directory.  Copy
+# the default config file to the directory, and if the --tutorial option
+# was specified copy the tutorial data to the directory.
+
+CONFIG_FILE_NAME = 'dex.toml'
+TUTORIAL_DATA_FILE_NAME = 'demo.journal'
+
+def setup(args):
+    '''
+    Initialize a new project directory.
+    '''
+
+    def copy_item(fn):
+        dest = Path.cwd() / fn
+        if dest.exists():
+            raise FileExistsError(dest)
+        src = Path(__file__).parent / fn
+        copy2(src,dest)
+        logging.info(f'{src} => {dest}')
+        
+    copy_item(CONFIG_FILE_NAME)
+    if args.tutorial:
+        copy_item(TUTORIAL_DATA_FILE_NAME)
+
+###
 # 
-# A ColMap tuple tells the parser where to find essential
-# information in a CSV file
+# A ColMap tuple tells a CSV parser where to find essential
+# information in a file
 #
 
 ColMap = namedtuple('ColMap', ['description', 'date', 'amount', 'column'])
-
-# ###
-# #
-# # Tags for Transaction and Entry objects
-
-# class Tag(Enum):
-#     A = '#allocated'
-#     B = '#budget'
-#     P = '#pending'
-#     U = '#unpaired'
-#     X = '#xfer'
 
 ###
 # 
@@ -56,14 +72,6 @@ class Config:
         fill_mode = 2
         min_similarity = 70
         max_similar = 5
-
-def print_default_config():
-    '''
-    Print a copy of the default config file to the terminal.
-    '''
-    path = Path(__file__).parent / 'dex.toml'
-    with open(path) as f:
-        print(f.read())
 
 def initialize_config(fn = None):
     '''

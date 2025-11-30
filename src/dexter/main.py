@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 import sys
 
-from .config import Config, initialize_config
+from .config import Config, initialize_config, setup
 from .console import console
 from .DB import DB, Transaction, Entry
 from .util import setup_logging, parse_date, date_range
@@ -20,15 +20,9 @@ from .reconcile import reconcile_statements
 from .report import print_audit_report, print_balance_report
 from .select import select
 
-# # Stub functions for commands (will be moved to modules)
-
-# def add_transaction(args):
-#     logging.error('add not implemented')
-
-
 def init_cli():
     """
-    Use argparse to create the command line API, initialize the logger
+    Use argparse to create the command line API, then initialize the logger
     to print status messages on the console.
 
     Returns:
@@ -45,16 +39,11 @@ def init_cli():
     
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
-    # add_trans_parser = subparsers.add_parser('add', help='add a new transaction')
-    # add_trans_parser.set_defaults(dispatch=add_transaction)
-
     audit_parser = subparsers.add_parser('audit', help='print an audit report')
     audit_parser.set_defaults(dispatch=print_audit_report)
     audit_parser.add_argument('--start_date', metavar='D', type=parse_date, help='starting date')
     audit_parser.add_argument('--end_date', metavar='D', type=parse_date, help='ending date')
     audit_parser.add_argument('--month', metavar='M', choices=months, help='define start and end dates based on month name')
-
-    config_parser = subparsers.add_parser('config', help='print default config file')
 
     export_parser = subparsers.add_parser('export', help='write transactions to file')
     export_parser.set_defaults(dispatch=export_records)
@@ -149,19 +138,26 @@ def init_cli():
     actions.add_argument('--repl', action='store_true', help='show selection in command line REPL')
     actions.add_argument('--gui', action='store_true', help='show selection in a GUI')
 
+    setup_parser = subparsers.add_parser('setup', help='initialize a project directory')
+    setup_parser.add_argument('--tutorial', action='store_true', help='copy tutorial data to new project')
+
     if len(sys.argv) == 1:
         parser.print_usage()
         exit(1)
 
     args = parser.parse_args()
+    setup_logging(args.log)
 
     if args.command is None:
         print('command required')
         parser.print_usage()
         exit(1)
 
-    if args.command == 'config':
-        Config.print_default_config()
+    if args.command == 'setup':
+        try:
+            setup(args)
+        except FileExistsError as err:
+            logging.error(f'File exists: {err}')
         exit(0)
 
     if 'month' in vars(args):
@@ -170,7 +166,6 @@ def init_cli():
             args.start_date = ds
             args.end_date = de
 
-    setup_logging(args.log)
     logging.debug('command line arguments:')
     for name, val in vars(args).items():
         if val is not None:

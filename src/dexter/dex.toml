@@ -1,21 +1,8 @@
 # Default configuration settings
 
 [database]
-name = "finances"
-start_date = 2025-01-01     # note: no quotes around date!
-
-# [budget]
-# income = [
-#     { source = "income:yoyodyne", account = "checking" },
-#     { source = "interest", account = "checking" },
-# ]
-# allocation = [
-#     { category = "expenses:food", amount = 500 },
-#     { category = "expenses:home", amount = 2550 },
-#     { category = "expenses:car", amount = 1000 },
-#     { category = "equity", amount = 500 },
-# ]
-# remainder = 'expenses:travel'
+name = "pytest"
+start_date = 2024-01-01     # note: no quotes around date!
 
 [csv]
 
@@ -39,26 +26,12 @@ amount = 'abs(float(rec["Debit"] or rec["Credit"]))'
 credit = 'rec["Debit"]'
 payment = '"AUTOPAY" in rec["Description"]'
 
-[csv.amex]
-description = 'rec["Description"]'
-date = 'rec["Date"]'
-amount = 'abs(float(rec["Amount"]))'
-credit = 'float(rec["Amount"]) > 0'
-payment = '"PAYMENT" in rec["Description"]'
-
 [csv.apple]
 description = 'rec["Description"]'
 date = 'rec["Clearing Date"]'
 amount = 'abs(float(rec["Amount (USD)"]))'
 credit = 'float(rec["Amount (USD)"]) > 0'
 payment = 'rec["Category"] == "Payment"'
-
-[csv.capital]
-description = 'rec["Description"]'
-date = 'rec["Transaction Date"]'
-amount = 'abs(float(rec["Debit"] or rec["Credit"]))'
-credit = 'rec["Debit"]'
-payment = '"AUTOPAY" in rec["Description"]'
 
 [select]
 fill_mode = 2

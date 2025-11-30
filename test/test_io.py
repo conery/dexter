@@ -12,7 +12,7 @@ def iodb(scope='module'):
     '''
     DB.init()
     DB.create('pytest')
-    accts, trans = parse_journal('test/fixtures/mini.journal', set(), set())
+    accts, trans = parse_journal('test/fixtures/demo.journal', set(), set())
     DB.save_records(accts)
     DB.save_records(trans)
     return DB.database
