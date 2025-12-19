@@ -9,17 +9,20 @@ If you try running it with no arguments you will see a usage message:
 ```
 $ dex
 usage: dex [-h] [--dbname X] ... {config,info,init,import,export,...}
+usage: dex [-h] [--dbname X] ... {audit,export,fill,import,... setup}
 ```
 The first part of the message lists command line options common to all commands, and the last part of the line is the list of all the command names.
 
 To get help for one of the commands, type the command name and then `--help`, _e.g._
 ```bash
 $ dex init --help
-usage: dex init [-h] --file F [--force]
+usage: dex init [-h] [--force] F
+
+positional arguments:
+  F           name of file with account definitions
 
 options:
   -h, --help  show this help message and exit
-  --file F    name of file with account definitions
   --force     replace an existing database
 ```
 

@@ -1,4 +1,31 @@
 
+/* The Log is a text block at the bottom of the main window */
+
+Log {
+    height: 10;
+    dock: bottom;
+}
+
+/* 
+    A TransactionScreen is a modal window that displays a single transaction 
+    It contains only one widget, the TransactionPanel, which has two parts,
+    the Transaction (a vertical group) and a row of buttons.    
+*/
+
+TransactionScreen {
+    align: center middle;
+    layers:  base overlay;
+}
+
+TransactionPanel {
+    width: 150;
+    height: 34;
+    border: yellow;
+    padding: 1;
+    grid-rows: 75% 25%;
+}
+
+
 Accounts {
     height: 12;
     width: 40;
@@ -65,14 +92,13 @@ Button {
 #save {
 }
 
-#account {
+.static_account {
     width: 40;
     height: 3;
 }
 
-
-#description, #entry_description {
-    width: 50;
+#description {
+    width: 60;
     height: 3;
 }
 
@@ -81,15 +107,22 @@ Button {
     height: 3;
 }
 
+.entry_description {
+    width: 50;
+    height: 3;
+}
+
+.text_line {
+    height: 3;
+}
+
 #tags {
     width: 20;
     height: 3;
 }
 
-#marker {
+#hspace {
     width: 7;
-    height: 3;
-    content-align: center middle;
 }
 
 .placeholder {
@@ -105,19 +138,3 @@ TransactionGroup {
     height: 22
 }
 
-TransactionPanel {
-    width: 150;
-    height: 32;
-    border: yellow;
-    padding: 1;
-    grid-rows: 75% 25%;
-}
-
-TransactionScreen {
-    align: center middle;
-}
-
-Log {
-    height: 10;
-    dock: bottom;
-}

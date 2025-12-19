@@ -74,10 +74,13 @@ class AccountSpec(ColSpec):
 
     def render(self, rec, x) -> str:
         '''
-        Convert a date to a string
+        Convert an account name to a string
         '''
         if acct := rec[x]:
-            return DB.abbrev(acct)
+            if '/' in acct:
+                return '[italic]multiple'
+            else:
+                return DB.abbrev(acct)
         else:
             return '🚩'
 
@@ -349,38 +352,40 @@ class TransactionTable(DataTable):
         all required fields are filled in, so we can remove the unpaired tag.
         '''
         obj = self.editing
-        if acct := resp.get('account'):
-            obj.entries[1].account = acct
-        if desc := resp.get('description'):
-            obj.description = desc
-        if comm := resp.get('comment'):
-            obj.comment = comm
-        if tag_string := resp.get('tags'):
-            obj.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', tag_string)]
+        for key, val in resp.items():
+            if isinstance(key, int):
+                e = obj.entries[key]
+                for field, text in val:
+                    if field == 'account':
+                        e.account = text
+                        self.log(f'#{key}: {field} = {text}')
+            elif key == 'tags':
+                obj.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', val)]
+                self.log(f'tags: {obj.tags}')
+            else:
+                setattr(obj,key,val)
+                self.log(f'{key}: {val}')
         if Tag.U.value in obj.entries[0].tags:
             obj.entries[0].tags.remove(Tag.U.value)
+        self.log(f'{obj.pcredit} {obj.pdebit}')
         DB.save_records([obj])
+        self.log(f'{obj.pcredit} {obj.pdebit}')
 
     def update_table_row(self, resp) -> None:
         '''
         Method called after save button clicked, updates the table view.
         '''
         obj = self.editing
-        for column in ['Description','Comment','Tags']:
-            if column.lower() in resp:
-                spec = self.colspec[column]
-                self.update_cell(obj.uid, column, spec.render(obj,spec.attr))
-        if 'account' in resp:
-            for column in ['Credit','Debit']:
-                spec = self.colspec[column]
-                self.update_cell(obj.uid, column, spec.render(obj,spec.attr))
-
-        # i = self.row_keys[self.cursor_row]
-        # if self.mode == 'unpaired':
-        #     self.update_cell(i, 'marker', ' ')
-        #     if self.cursor_row < len(self.records):
-        #         self.move_cursor(row = self.cursor_row + 1)
-        pass
+        for key, val in resp.items():
+            if isinstance(key, int):
+                self.log(f'{key} {val}')
+                for col in ['Credit','Debit']:
+                    spec = self.colspec[col]
+                    self.update_cell(obj.uid, col, spec.render(obj,spec.attr))
+            else:
+                col = key.capitalize()
+                spec = self.colspec[col]
+                self.update_cell(obj.uid, col, spec.render(obj,spec.attr))
 
     class OpenModal(Message):
 

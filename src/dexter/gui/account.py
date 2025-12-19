@@ -131,6 +131,7 @@ class Accounts(Tree):
         self.move_cursor_to_line(0)
 
     def on_blur(self, event) -> None:
+        # self.styles.layer = 'base'
         self.add_class('collapsed')
         if isinstance(self.cursor_node.data, int):
             self.root.label = self.fullname[self.cursor_node.data]
@@ -140,6 +141,7 @@ class Accounts(Tree):
             self.post_message(self.LogMessage(f'hide'))
 
     def on_focus(self, event) -> None:
+        # self.styles.layer = 'overlay'
         self.remove_class('collapsed')
         if self.completer.token:
             self.post_message(self.LogMessage(f'reveal'))

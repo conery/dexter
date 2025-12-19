@@ -35,8 +35,8 @@ class ConstText(Label):
     the width of the widget.
     '''
 
-    def __init__(self, text: str, id: str) -> None:
-        super().__init__(text, id=id)
+    def __init__(self, text: str) -> None:
+        super().__init__(text)
 
     def on_show(self, event):
         '''
@@ -70,6 +70,7 @@ class TextLine(TextArea):
         self.text = text or rec[field] or ''
         if len(self.text) == 0:
             self.add_class('placeholder')
+        self.add_class('text_line')
 
     def on_key(self, event: events.Key) -> None:
         if len(self.text) == 0:
@@ -103,63 +104,76 @@ class THeader(HorizontalGroup):
         self.comment = TextLine(self.rec, 'comment')
         self.tags = TagLine(self.rec)
 
-        self.original_description = self.description.text
-        self.original_comment = self.comment.text
-        self.original_tags = self.tags.text
+        self.original = {
+            'description': self.description.text,
+            'comment': self.comment.text,
+            'tags': self.tags.text,
+        }
 
         yield(self.date)
         yield(self.description)
         yield(self.comment)
         yield(self.tags)
 
-class FixedEntry(HorizontalGroup):
-
-    def __init__(self, rec):
-        self.rec = rec
-        super().__init__()
-
-    def compose(self) -> ComposeResult:
-        marker = '🚩' if Tag.U.value in self.rec.tags else ' '
-        self.unpaired = Label(marker, id='marker')
-        self.date = Date(self.rec.date)
-        self.account = ConstText(self.rec.account, id='account')
-        self.amount = Amount(self.rec.amount, self.rec.column)
-        self.description = ConstText(self.rec.description, id='entry_description')
-        yield self.unpaired
-        yield self.date
-        yield self.account
-        yield self.amount
-        yield self.description
+    def check_required(self):
+        errs = []
+        if len(self.description.text) == 0:
+            errs.append('Header: empty transaction description')
+        return errs
+    
+    def edited_fields(self):
+        res = {}
+        for field in ['description', 'comment', 'tags']:
+            if getattr(self,field).text != self.original[field]:
+                res[field] = getattr(self,field).text
+        return res
 
 class Entry(HorizontalGroup):
 
-    def __init__(self, rec):
+    def __init__(self, rec, index):
         self.rec = rec
+        self.index = index
         self.initial_account = None
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        marker = '🔹' if self.rec.column == DBColumn.cr else ''
-        self.unpaired = Label(marker, id='marker')
+        # marker = '🔹' if self.rec.column == DBColumn.cr else ''
+        # self.unpaired = Label(marker, id='marker')
         self.date = Date(self.rec.date)
         self.amount = Amount(self.rec.amount, self.rec.column)
-        self.description = ConstText(self.rec.description, id='entry_description')
+        self.description = ConstText(self.rec.description)
+        self.description.add_class('entry_description')
 
         if acct := self.rec.account:
             if acct.startswith((Category.A.value, Category.L.value)):
-                self.account = ConstText(self.rec.account, id='fixed_account')
+                self.account = ConstText(self.rec.account)
+                self.account.add_class('static_account')
             else:
                 self.account = Accounts(id='account_selection')
                 self.account.set_selection(acct)
                 self.initial_account = acct
         else:
             self.account = Accounts(id='account_selection')
+            self.initial_account = ''
 
-        yield self.unpaired
+        # yield self.unpaired
+        yield Label(' ', id='hspace')
         yield self.date
         yield self.account
         yield self.amount
         yield self.description
+
+    def check_required(self):
+        errs = []
+        if isinstance(self.account, Accounts) and not self.account.selection:
+            errs.append(f'Entry #{self.index}: no account selected')
+        return errs
+    
+    def edited_fields(self):
+        lst = []
+        if isinstance(self.account, Accounts) and self.account.selection != self.initial_account:
+            lst.append(('account',self.account.selection))
+        return lst
 
     def on_show(self, event):
         if self.account.id == 'account_selection':
@@ -190,10 +204,26 @@ class TransactionGroup(VerticalGroup):
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield THeader(self.rec)
-        yield FixedEntry(self.rec.entries[0])
-        yield Entry(self.rec.entries[1])
-        yield Static('', id='message')
+        self.header = THeader(self.rec)
+        self.entries = [Entry(e,i) for i,e in enumerate(self.rec.entries)]
+
+        yield self.header
+        with VerticalScroll():
+            for w in self.entries:
+                yield w
+
+    def check_required(self):
+        errs = self.header.check_required()
+        for w in self.entries:
+            errs += w.check_required()
+        return '; '.join(errs)
+    
+    def edited_fields(self):
+        dct = self.header.edited_fields()
+        for i, e in enumerate(self.entries):
+            if lst := e.edited_fields():
+                dct[i] = lst
+        return dct
 
 class TransactionPanel(VerticalGroup):
 
@@ -203,6 +233,7 @@ class TransactionPanel(VerticalGroup):
 
     def compose(self) -> ComposeResult:
         yield TransactionGroup(self.rec)
+        yield Static('', id='message')
         with Center():
             yield ButtonGroup()
 
@@ -229,33 +260,19 @@ class TransactionScreen(ModalScreen):
     def action_cancel_exit(self):
         self.dismiss(None)
 
-    def check_required_fields(self):
-        errs = []
-        account_widget = self.query_one(Accounts)
-        if not account_widget.selection:
-            errs.append(f'No account selected')
-        header_widget = self.query_one(THeader)
-        if len(header_widget.description.text) == 0:
-            errs.append('Empty transaction description')
-        return ', '.join(errs)
-
     def action_save_exit(self):
-        if msg := self.check_required_fields():
+        group = self.query_one(TransactionGroup)
+        if msg := group.check_required():
             message_widget = self.query_one('#message')
             message_widget.content = Content(msg)
             return False
-        res = {}
-        # TODO:  🤢 rewrite, passing name of field to method in THeader class
-        widget = self.query_one(THeader)
-        if widget.description.text != widget.original_description:
-            res['description'] = widget.description.text
-        if widget.comment.text != widget.original_comment:
-            res['comment'] = widget.comment.text
-        if widget.tags.text != widget.original_tags:
-            res['tags'] = widget.tags.text
-        widget = self.query_one(Entry)
-        if acct := widget.account_changed():
-            res['account'] = acct
+        res = group.edited_fields()
+
+        # *** Uncomment these three lines to show the res dictionary in the message area ***
+        # message_widget = self.query_one('#message')
+        # message_widget.content = Content(str(res))
+        # return False
+        
         self.dismiss(res)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
