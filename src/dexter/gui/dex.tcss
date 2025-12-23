@@ -30,16 +30,17 @@ Accounts {
     height: 12;
     width: 40;
     /* margin: 1 0 0 0; */
-    border: dodgerblue;
+    /* border: dodgerblue; */
 }
 
 Accounts:focus {
-    border: $background;
+    border: lightblue;
 }
 
 .collapsed {
     height: 3;
-    border: lightblue;
+    padding: 1;
+    /* border: lightblue; */
 }
 
 Amount {
@@ -138,3 +139,6 @@ TransactionGroup {
     height: 22
 }
 
+.flagged {
+    border: yellow;
+}

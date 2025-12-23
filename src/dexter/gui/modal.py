@@ -3,6 +3,7 @@
 #
 
 from datetime import date
+import re
 
 from rich.text import Text
 
@@ -15,19 +16,9 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Label, TextArea, Static
 
 from dexter.console import format_amount
-from dexter.DB import DB, Tag, Transaction, Column as DBColumn, Category
+from dexter.DB import DB, Tag, Transaction, Entry as DBEntry, Column as DBColumn, Category
 
 from dexter.gui.account import Accounts
-
-class Amount(Label):
-    '''
-    A label for displaying a dollar amount.
-    '''
-   
-    def __init__(self, a:float, col:DBColumn) -> None:
-        if col == DBColumn.cr:
-            a = -a
-        super().__init__(format_amount(a, dollar_sign=True))
 
 class ConstText(Label):
     '''
@@ -85,7 +76,55 @@ class TextLine(TextArea):
     #     self.action_cursor_line_end()
     #     return super().on_mount()
 
-    
+class Amount(TextLine):
+    '''
+    A text area for displaying a dollar amount.
+    '''
+   
+    # def __init__(self, a:float, col:DBColumn) -> None:
+    def __init__(self, rec:DBEntry) -> None:
+        self.entry = rec
+        amount = rec.amount
+        if rec.column == DBColumn.cr:
+            amount = -amount
+        super().__init__(None, 'amount', text=format_amount(amount, dollar_sign=True))
+        self.prev = self.text
+        self.edited = False
+
+    def on_blur(self):
+        if self.text != self.prev:
+            self.add_class('flagged')
+            group = self.screen.query_one(TransactionGroup)
+            if group.add_split(self.text, self.entry):
+                self.prev = self.text
+                self.edited = True
+            else:
+                self.screen.set_focus(self)
+            # e = self.trans.entries[-1]
+            # e.description = 'cloned'
+            # self.trans.entries.append(e)
+            # self.screen.refresh(repaint=True, layout=True, recompose=True)
+        else:
+            self.remove_class('flagged')
+
+    def on_key(self, event: events.Key) -> None:
+        if event.character == '\r':
+            event.prevent_default()
+            self.blur()
+            # group = self.screen.query_one(TransactionGroup)
+            # i = len(group.entries)
+            # group.mount(Entry(self.rec, i))
+
+    # def on_key(self, event: events.Key) -> None:
+    #     if len(self.text) == 0:
+    #         self.add_class('placeholder')
+    #     else:
+    #         self.remove_class('placeholder')
+
+    #     if event.character == '\r':
+    #         event.prevent_default()
+
+
 class TagLine(TextLine):
 
     def __init__(self, rec:Transaction):
@@ -130,7 +169,7 @@ class THeader(HorizontalGroup):
 
 class Entry(HorizontalGroup):
 
-    def __init__(self, rec, index):
+    def __init__(self, rec:DBEntry, index:int) -> None:
         self.rec = rec
         self.index = index
         self.initial_account = None
@@ -140,7 +179,8 @@ class Entry(HorizontalGroup):
         # marker = '🔹' if self.rec.column == DBColumn.cr else ''
         # self.unpaired = Label(marker, id='marker')
         self.date = Date(self.rec.date)
-        self.amount = Amount(self.rec.amount, self.rec.column)
+        # self.amount = Amount(self.rec.amount, self.rec.column)
+        self.amount = Amount(self.rec)
         self.description = ConstText(self.rec.description)
         self.description.add_class('entry_description')
 
@@ -148,6 +188,7 @@ class Entry(HorizontalGroup):
             if acct.startswith((Category.A.value, Category.L.value)):
                 self.account = ConstText(self.rec.account)
                 self.account.add_class('static_account')
+                self.amount.disabled = True
             else:
                 self.account = Accounts(id='account_selection')
                 self.account.set_selection(acct)
@@ -224,6 +265,30 @@ class TransactionGroup(VerticalGroup):
             if lst := e.edited_fields():
                 dct[i] = lst
         return dct
+    
+    def add_split(self, astring, entry):
+        message_widget = self.screen.query_one('#message')
+        try:
+            amount = float(re.sub(r'[,$]','',astring))
+            if amount >= entry.amount or amount < 0:
+                raise ValueError(f'illegal amount: {astring}')
+        except ValueError as err:
+            message_widget.content = Content(str(err))
+            return False
+        diff = round(entry.amount-amount,2)
+        e = DBEntry(
+            date = entry.date,
+            description = f'split @{entry.uid[:8]}',
+            account = None,
+            column = entry.column,
+            amount = diff
+        )
+        w = Entry(e, len(self.entries))
+        self.entries.append(w)
+        self.mount(w)
+        message_widget.content = Content(f'split {diff} {entry}')
+        message_widget.add_class('flagged')
+        return True
 
 class TransactionPanel(VerticalGroup):
 
@@ -251,11 +316,12 @@ class TransactionScreen(ModalScreen):
 
     def __init__(self, rec):
         self.rec = rec
-        self.event = None
+        # self.event = None
         super().__init__()
 
     def compose(self) -> ComposeResult:
         yield TransactionPanel(self.rec)
+        yield Label(f'rec with {len(self.rec.entries)} entries')
 
     def action_cancel_exit(self):
         self.dismiss(None)
