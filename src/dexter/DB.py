@@ -368,7 +368,7 @@ class DB:
         '''
         Connect to the MongoDB server, make a list of Dexter databases.
         '''
-        pm = connect(alias = 'pm')
+        pm = connect(alias = 'pm', timeoutMS=100)
         for dbname in pm.list_database_names():
             if 'dexter' in pm[dbname].list_collection_names():
                 coll = pm[dbname].dexter

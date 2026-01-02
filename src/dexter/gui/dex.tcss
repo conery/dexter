@@ -148,3 +148,7 @@ TransactionGroup {
 .flagged {
     border: yellow;
 }
+
+.edited {
+    color: $accent;
+}

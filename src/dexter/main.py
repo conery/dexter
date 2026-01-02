@@ -8,6 +8,8 @@ import logging
 from pathlib import Path
 import sys
 
+from pymongo.errors import ServerSelectionTimeoutError
+
 from .config import Config, initialize_config, setup
 from .console import console
 from .DB import DB, Transaction, Entry
@@ -182,6 +184,8 @@ def main():
         initialize_config(args.config)
         DB.init()
         args.dispatch(args)
+    except ServerSelectionTimeoutError:
+        logging.error("Can't connect to MongoDB server")
     except (ValueError, FileNotFoundError, ModuleNotFoundError) as err:
         logging.error(err)
     except Exception as err:

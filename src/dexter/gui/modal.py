@@ -65,9 +65,28 @@ class TextLine(TextArea):
             self.text = rec[field] or ''
         else:
             self.text = ''
+        self.original = self.text
         if rec and len(self.text) == 0:
             self.add_class('placeholder')
         self.add_class('text_line')
+
+    @property
+    def value(self):
+        return self.text
+    
+    @property
+    def updated_value(self):
+        if self.value != self.original:
+            return self.value
+        else:
+            return None
+        
+    def check_edited(self):
+        '''
+        Called when user hits return key or tabs to a new widget.
+        '''
+        if self.value != self.original:
+            self.add_class('edited')
 
     def on_key(self, event: events.Key) -> None:
         if len(self.text) == 0:
@@ -77,6 +96,14 @@ class TextLine(TextArea):
 
         if event.character == '\r':
             event.prevent_default()
+            self.check_edited()
+
+    def on_blur(self):
+        self.check_edited()
+
+    # def on_text_area_changed(self, event):
+    #         message_widget = self.screen.query_one('#message')
+    #         message_widget.content = f'{event}'
 
 class Amount(TextLine):
     '''
@@ -84,15 +111,16 @@ class Amount(TextLine):
     '''
    
     # def __init__(self, a:float, col:DBColumn) -> None:
-    def __init__(self, rec:DBEntry) -> None:
-        super().__init__(None, 'amount')
+    def __init__(self, rec:DBEntry, index) -> None:
+        super().__init__(None, f'amount{index}')
         self.entry = rec
         amount = rec.amount
         if rec.column == DBColumn.cr:
             amount = -amount
         self.value = amount
-        self.prev = self.text
+        self.original = amount
         self.edited = False
+        self.prev = None
 
     @property
     def value(self):
@@ -108,15 +136,24 @@ class Amount(TextLine):
         s = format_amount(n, dollar_sign=True)
         self.text = s
 
-    def on_blur(self):
-        if self.text != self.prev:
+    # @property
+    # def updated_value(self):
+    #     if self.value != self.original:
+    #         return self.value
+    #     else:
+    #         return None
+
+    def check_edited(self):
+        if self.value != self.original and self.value != self.prev:
             group = self.screen.query_one(TransactionGroup)
             group.update_amounts()
+            self.prev = self.value
+        super().check_edited()
 
-    def on_key(self, event: events.Key) -> None:
-        if event.character == '\r':
-            event.prevent_default()
-            self.blur()
+    # def on_key(self, event: events.Key) -> None:
+    #     if event.character == '\r':
+    #         event.prevent_default()
+    #         self.blur()
 
     # def on_key(self, event: events.Key) -> None:
     #     if len(self.text) == 0:
@@ -187,25 +224,28 @@ class Entry(HorizontalGroup):
 
     def compose(self) -> ComposeResult:
         self.date = Date(self.rec.date)
-        self.amount = Amount(self.rec)
+        # self.amount = Amount(self.rec, self.index)
         self.description = ConstText(self.rec.description)
         self.description.add_class('entry_description')
         self.split_button = Button('＋', id=f'split{self.index}', classes='split', flat=True)
 
         self.split_button.visible = False
-        self.amount.disabled = True
+        # self.amount.disabled = True
 
         if acct := self.rec.account:
             if acct.startswith((Category.A.value, Category.L.value)):
                 self.account = ConstText(self.rec.account)
                 self.account.add_class('static_account')
+                self.amount = ConstText(format_amount(self.rec.amount, dollar_sign=True))
             else:
-                self.account = Accounts(id='account_selection')
+                self.account = Accounts(self.index, acct)
                 self.account.set_selection(acct)
-                self.initial_account = acct
+                # self.initial_account = acct
+                self.amount = Amount(self.rec, self.index)
         else:
-            self.account = Accounts(id='account_selection')
-            self.initial_account = ''
+            self.account = Accounts(self.index, '')
+            # self.initial_account = ''
+            self.amount = Amount(self.rec, self.index)
 
         yield Label(' ', id='hspace')
         yield self.date
@@ -245,7 +285,8 @@ class Entry(HorizontalGroup):
         return lst
 
     def on_show(self, event):
-        if self.account.id == 'account_selection':
+        # if self.account.id == 'account_selection':
+        if isinstance(self.account, Accounts):
             self.account.add_class('collapsed')
         self.description.focus()
         return super()._on_show(event)
@@ -282,6 +323,7 @@ class TransactionGroup(VerticalGroup):
 
     def on_mount(self):
         self.entries[-2].visible_split_button = True
+        self.entries[-2].editable = False
         self.entries[-1].editable = True
         self.entries[-1].visible = False
 
@@ -292,10 +334,12 @@ class TransactionGroup(VerticalGroup):
         return '; '.join(errs)
     
     def edited_fields(self):
-        dct = self.header.edited_fields()
-        for i, e in enumerate(self.entries):
-            if lst := e.edited_fields():
-                dct[i] = lst
+        # dct = self.header.edited_fields()
+        # for i, e in enumerate(self.entries):
+        #     if lst := e.edited_fields():
+        #         dct[i] = lst
+        dct = { w.id: w.updated_value for w in self.query(TextLine)}
+        dct |= { w.id: w.updated_value for w in self.query(Accounts)}
         return dct
     
     def reveal_split(self):
@@ -318,7 +362,7 @@ class TransactionGroup(VerticalGroup):
         if request > max_amount:
             message_widget.content = f'request must be less than {max_amount}'
             return
-        self.source.amount.value -= request
+        self.source.amount.value = self.source.amount.original - request
         self.dest.amount.value = request
         # message_widget.content = f'update {request} {max_amount}'
 
@@ -360,16 +404,16 @@ class TransactionScreen(ModalScreen):
 
     def action_save_exit(self):
         group = self.query_one(TransactionGroup)
-        if msg := group.check_required():
-            message_widget = self.query_one('#message')
-            message_widget.content = Content(msg)
-            return False
+        # if msg := group.check_required():
+        #     message_widget = self.query_one('#message')
+        #     message_widget.content = Content(msg)
+        #     return False
         res = group.edited_fields()
 
         # *** Uncomment these three lines to show the res dictionary in the message area ***
-        # message_widget = self.query_one('#message')
-        # message_widget.content = Content(str(res))
-        # return False
+        message_widget = self.query_one('#message')
+        message_widget.content = Content(str(res))
+        return False
         
         self.dismiss(res)
 

@@ -76,11 +76,12 @@ class Accounts(Tree):
     Display list widgets
     '''
 
-    def __init__(self, id='', root='category', categories=[Category.E, Category.I]) -> None:
+    def __init__(self, index, original, root='category', categories=[Category.E, Category.I]) -> None:
         '''
         Create a tree widget populated by names of accounts.
         '''
-        super().__init__(root, id=id)
+        super().__init__(root, id=f'account{index}')
+        self.original = original
         self.root_name = root
         self.auto_expand = True
         self.prev_line = None
@@ -122,6 +123,13 @@ class Accounts(Tree):
         else:
             label = self.root.label.plain
         return None if label == self.root_name else label
+    
+    @property
+    def updated_value(self):
+        if self.selection != self.original:
+            return self.selection
+        else:
+            return None
             
     def set_selection(self, account):
         # self.root.expand_all()
