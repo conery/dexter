@@ -14,6 +14,9 @@ dependencies = [
     "rich",
     "click",
     "pytest",
+    "textual",
+    "pygtrie",
+    "pypdf",
 ]
 authors = [
   { name = "John Conery", email = "jconery@icloud.com" },

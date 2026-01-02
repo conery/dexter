@@ -46,8 +46,7 @@ Accounts:focus {
 Amount {
     width: 20;
     height: 3;
-    content-align: right middle;
-    margin: 0 5 0 0;
+    text-align: right;
 }
 
 ConstText {
@@ -84,13 +83,19 @@ ButtonGroup {
 }
 
 Button {
-    margin: 0 10 0 10;
 }
 
 #cancel {
+    margin: 0 10 0 10;
 }
 
 #save {
+    margin: 0 10 0 10;
+}
+
+.split {
+    min-width: 1;
+    /* background: gray; */
 }
 
 .static_account {
@@ -109,8 +114,9 @@ Button {
 }
 
 .entry_description {
-    width: 50;
+    width: 40;
     height: 3;
+    padding: 0 0 0 5;
 }
 
 .text_line {

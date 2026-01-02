@@ -2,6 +2,7 @@
 # TUI widget for the modal window that displays a single transaction
 #
 
+from copy import deepcopy
 from datetime import date
 import re
 
@@ -58,8 +59,13 @@ class TextLine(TextArea):
         self.rec = rec
         self.id = field
         self.placeholder = field
-        self.text = text or rec[field] or ''
-        if len(self.text) == 0:
+        if text:
+            self.text = text
+        elif rec:
+            self.text = rec[field] or ''
+        else:
+            self.text = ''
+        if rec and len(self.text) == 0:
             self.add_class('placeholder')
         self.add_class('text_line')
 
@@ -72,10 +78,6 @@ class TextLine(TextArea):
         if event.character == '\r':
             event.prevent_default()
 
-    # def on_mount(self):
-    #     self.action_cursor_line_end()
-    #     return super().on_mount()
-
 class Amount(TextLine):
     '''
     A text area for displaying a dollar amount.
@@ -83,37 +85,38 @@ class Amount(TextLine):
    
     # def __init__(self, a:float, col:DBColumn) -> None:
     def __init__(self, rec:DBEntry) -> None:
+        super().__init__(None, 'amount')
         self.entry = rec
         amount = rec.amount
         if rec.column == DBColumn.cr:
             amount = -amount
-        super().__init__(None, 'amount', text=format_amount(amount, dollar_sign=True))
+        self.value = amount
         self.prev = self.text
         self.edited = False
 
+    @property
+    def value(self):
+        s = re.sub(r'[,$-]','', self.text)
+        try:
+            res = float(s)
+        except ValueError:
+            res = None
+        return res
+
+    @value.setter
+    def value(self, n):
+        s = format_amount(n, dollar_sign=True)
+        self.text = s
+
     def on_blur(self):
         if self.text != self.prev:
-            self.add_class('flagged')
             group = self.screen.query_one(TransactionGroup)
-            if group.add_split(self.text, self.entry):
-                self.prev = self.text
-                self.edited = True
-            else:
-                self.screen.set_focus(self)
-            # e = self.trans.entries[-1]
-            # e.description = 'cloned'
-            # self.trans.entries.append(e)
-            # self.screen.refresh(repaint=True, layout=True, recompose=True)
-        else:
-            self.remove_class('flagged')
+            group.update_amounts()
 
     def on_key(self, event: events.Key) -> None:
         if event.character == '\r':
             event.prevent_default()
             self.blur()
-            # group = self.screen.query_one(TransactionGroup)
-            # i = len(group.entries)
-            # group.mount(Entry(self.rec, i))
 
     # def on_key(self, event: events.Key) -> None:
     #     if len(self.text) == 0:
@@ -124,12 +127,17 @@ class Amount(TextLine):
     #     if event.character == '\r':
     #         event.prevent_default()
 
-
 class TagLine(TextLine):
 
     def __init__(self, rec:Transaction):
         text = ' ,'.join(rec.tags) if rec.tags else ''
         super().__init__(rec, 'tags', text)
+
+class ModalButton(Button):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.can_focus = False
 
 class THeader(HorizontalGroup):
 
@@ -172,23 +180,25 @@ class Entry(HorizontalGroup):
     def __init__(self, rec:DBEntry, index:int) -> None:
         self.rec = rec
         self.index = index
+        self._editable = False
+        self._visible_split_button = False
         self.initial_account = None
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        # marker = '🔹' if self.rec.column == DBColumn.cr else ''
-        # self.unpaired = Label(marker, id='marker')
         self.date = Date(self.rec.date)
-        # self.amount = Amount(self.rec.amount, self.rec.column)
         self.amount = Amount(self.rec)
         self.description = ConstText(self.rec.description)
         self.description.add_class('entry_description')
+        self.split_button = Button('＋', id=f'split{self.index}', classes='split', flat=True)
+
+        self.split_button.visible = False
+        self.amount.disabled = True
 
         if acct := self.rec.account:
             if acct.startswith((Category.A.value, Category.L.value)):
                 self.account = ConstText(self.rec.account)
                 self.account.add_class('static_account')
-                self.amount.disabled = True
             else:
                 self.account = Accounts(id='account_selection')
                 self.account.set_selection(acct)
@@ -197,12 +207,30 @@ class Entry(HorizontalGroup):
             self.account = Accounts(id='account_selection')
             self.initial_account = ''
 
-        # yield self.unpaired
         yield Label(' ', id='hspace')
         yield self.date
         yield self.account
         yield self.amount
+        yield self.split_button
         yield self.description
+
+    @property
+    def editable(self):
+        return self._editable
+    
+    @editable.setter
+    def editable(self, value):
+        self._editable = value
+        self.amount.disabled = not value
+
+    @property
+    def visible_split_button(self):
+        return self._visible_split_button
+    
+    @visible_split_button.setter
+    def visible_split_button(self, value):
+        self._visible_split_button = value
+        self.split_button.visible = value
 
     def check_required(self):
         errs = []
@@ -225,12 +253,6 @@ class Entry(HorizontalGroup):
     def account_changed(self):
         acct = self.account.selection
         return acct != self.initial_account and acct
-    
-class ModalButton(Button):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.can_focus = False
 
 class ButtonGroup(HorizontalGroup):
 
@@ -247,11 +269,21 @@ class TransactionGroup(VerticalGroup):
     def compose(self) -> ComposeResult:
         self.header = THeader(self.rec)
         self.entries = [Entry(e,i) for i,e in enumerate(self.rec.entries)]
-
+        e = deepcopy(self.rec.entries[-1])
+        e.account = None
+        e.amount = 0
+        e.description = ''
+        self.entries.append(Entry(e,len(self.rec.entries)))
+        
         yield self.header
         with VerticalScroll():
             for w in self.entries:
                 yield w
+
+    def on_mount(self):
+        self.entries[-2].visible_split_button = True
+        self.entries[-1].editable = True
+        self.entries[-1].visible = False
 
     def check_required(self):
         errs = self.header.check_required()
@@ -266,29 +298,29 @@ class TransactionGroup(VerticalGroup):
                 dct[i] = lst
         return dct
     
-    def add_split(self, astring, entry):
-        message_widget = self.screen.query_one('#message')
-        try:
-            amount = float(re.sub(r'[,$]','',astring))
-            if amount >= entry.amount or amount < 0:
-                raise ValueError(f'illegal amount: {astring}')
-        except ValueError as err:
-            message_widget.content = Content(str(err))
-            return False
-        diff = round(entry.amount-amount,2)
-        e = DBEntry(
-            date = entry.date,
-            description = f'split @{entry.uid[:8]}',
-            account = None,
-            column = entry.column,
-            amount = diff
-        )
-        w = Entry(e, len(self.entries))
-        self.entries.append(w)
-        self.mount(w)
-        message_widget.content = Content(f'split {diff} {entry}')
-        message_widget.add_class('flagged')
+    def reveal_split(self):
+        self.source = self.entries[-2]
+        self.dest = self.entries[-1]
+        self.entries[-2].visible_split_button = False
+        self.entries[-1].visible = True
+        self.entries[-1].amount.focus()
+        # message_widget = self.screen.query_one('#message')
+        # message_widget.content = 'split'
         return True
+    
+    def update_amounts(self):
+        message_widget = self.screen.query_one('#message')
+        max_amount = self.source.amount.value
+        request = self.dest.amount.value
+        if request is None:
+            message_widget.content = f"can't parse amount '{self.dest.amount.text}'"
+            return
+        if request > max_amount:
+            message_widget.content = f'request must be less than {max_amount}'
+            return
+        self.source.amount.value -= request
+        self.dest.amount.value = request
+        # message_widget.content = f'update {request} {max_amount}'
 
 class TransactionPanel(VerticalGroup):
 
@@ -342,7 +374,10 @@ class TransactionScreen(ModalScreen):
         self.dismiss(res)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == 'cancel':
+        if event.button.id.startswith('split'):
+            group = self.screen.query_one(TransactionGroup)
+            group.reveal_split()
+        elif event.button.id == 'cancel':
             self.action_cancel_exit()
         else:
             self.action_save_exit()
