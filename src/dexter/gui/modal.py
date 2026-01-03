@@ -110,7 +110,6 @@ class Amount(TextLine):
     A text area for displaying a dollar amount.
     '''
    
-    # def __init__(self, a:float, col:DBColumn) -> None:
     def __init__(self, rec:DBEntry, index) -> None:
         super().__init__(None, f'amount{index}')
         self.entry = rec
@@ -136,13 +135,6 @@ class Amount(TextLine):
         s = format_amount(n, dollar_sign=True)
         self.text = s
 
-    # @property
-    # def updated_value(self):
-    #     if self.value != self.original:
-    #         return self.value
-    #     else:
-    #         return None
-
     def check_edited(self):
         if self.value != self.original and self.value != self.prev:
             group = self.screen.query_one(TransactionGroup)
@@ -150,19 +142,6 @@ class Amount(TextLine):
             self.prev = self.value
         super().check_edited()
 
-    # def on_key(self, event: events.Key) -> None:
-    #     if event.character == '\r':
-    #         event.prevent_default()
-    #         self.blur()
-
-    # def on_key(self, event: events.Key) -> None:
-    #     if len(self.text) == 0:
-    #         self.add_class('placeholder')
-    #     else:
-    #         self.remove_class('placeholder')
-
-    #     if event.character == '\r':
-    #         event.prevent_default()
 
 class TagLine(TextLine):
 
@@ -224,13 +203,11 @@ class Entry(HorizontalGroup):
 
     def compose(self) -> ComposeResult:
         self.date = Date(self.rec.date)
-        # self.amount = Amount(self.rec, self.index)
         self.description = ConstText(self.rec.description)
         self.description.add_class('entry_description')
         self.split_button = Button('＋', id=f'split{self.index}', classes='split', flat=True)
 
         self.split_button.visible = False
-        # self.amount.disabled = True
 
         if acct := self.rec.account:
             if acct.startswith((Category.A.value, Category.L.value)):
@@ -240,11 +217,9 @@ class Entry(HorizontalGroup):
             else:
                 self.account = Accounts(self.index, acct)
                 self.account.set_selection(acct)
-                # self.initial_account = acct
                 self.amount = Amount(self.rec, self.index)
         else:
             self.account = Accounts(self.index, '')
-            # self.initial_account = ''
             self.amount = Amount(self.rec, self.index)
 
         yield Label(' ', id='hspace')
@@ -274,8 +249,11 @@ class Entry(HorizontalGroup):
 
     def check_required(self):
         errs = []
-        if isinstance(self.account, Accounts) and not self.account.selection:
-            errs.append(f'Entry #{self.index}: no account selected')
+        if self.visible:
+            if isinstance(self.account, Accounts) and not self.account.selection:
+                errs.append(f'Entry #{self.index}: no account selected')
+            if isinstance(self.amount, Amount) and self.amount.value == 0:
+                errs.append(f'Entry #{self.index}: set an amount')
         return errs
     
     def edited_fields(self):
@@ -285,7 +263,6 @@ class Entry(HorizontalGroup):
         return lst
 
     def on_show(self, event):
-        # if self.account.id == 'account_selection':
         if isinstance(self.account, Accounts):
             self.account.add_class('collapsed')
         self.description.focus()
@@ -334,12 +311,13 @@ class TransactionGroup(VerticalGroup):
         return '; '.join(errs)
     
     def edited_fields(self):
-        # dct = self.header.edited_fields()
-        # for i, e in enumerate(self.entries):
-        #     if lst := e.edited_fields():
-        #         dct[i] = lst
-        dct = { w.id: w.updated_value for w in self.query(TextLine)}
-        dct |= { w.id: w.updated_value for w in self.query(Accounts)}
+        dct = {}
+        for cls in [TextLine, Accounts]:
+            for w in self.query(cls):
+                if v := w.updated_value:
+                    dct[w.id] = v
+        # dct = { w.id: w.updated_value for w in self.query(TextLine)}
+        # dct |= { w.id: w.updated_value for w in self.query(Accounts)}
         return dct
     
     def reveal_split(self):
@@ -392,7 +370,6 @@ class TransactionScreen(ModalScreen):
 
     def __init__(self, rec):
         self.rec = rec
-        # self.event = None
         super().__init__()
 
     def compose(self) -> ComposeResult:
@@ -404,10 +381,10 @@ class TransactionScreen(ModalScreen):
 
     def action_save_exit(self):
         group = self.query_one(TransactionGroup)
-        # if msg := group.check_required():
-        #     message_widget = self.query_one('#message')
-        #     message_widget.content = Content(msg)
-        #     return False
+        if msg := group.check_required():
+            message_widget = self.query_one('#message')
+            message_widget.content = Content(msg)
+            return False
         res = group.edited_fields()
 
         # *** Uncomment these three lines to show the res dictionary in the message area ***
