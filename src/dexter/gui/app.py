@@ -2,6 +2,8 @@
 # TUI (Terminal User Interface) implemented with Textual
 #
 
+import logging
+
 from rich.text import Text
 
 from textual.app import App, ComposeResult
@@ -9,7 +11,6 @@ from textual.containers import HorizontalGroup, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Footer, Header, Log, DataTable, Input, Tree, Button
 
-from dexter.console import format_amount
 from dexter.DB import DB, Tag, Column as DBColumn
 from dexter.util import debugging
 
@@ -75,4 +76,9 @@ def start_gui(recs, args):
     '''
     app = TUI(recs, args)
     app.run()
+    if app.return_code:
+        match app.return_code:
+            case 1:
+                logging.error('Unexpected value from modal')
+        raise ValueError('Internal error')
 

@@ -311,14 +311,16 @@ class TransactionGroup(VerticalGroup):
         return '; '.join(errs)
     
     def edited_fields(self):
-        dct = {}
+        resp = []
         for cls in [TextLine, Accounts]:
             for w in self.query(cls):
                 if v := w.updated_value:
-                    dct[w.id] = v
-        # dct = { w.id: w.updated_value for w in self.query(TextLine)}
-        # dct |= { w.id: w.updated_value for w in self.query(Accounts)}
-        return dct
+                    if m := re.match(r'(account|amount)(\d+)', w.id):
+                        spec = (m[1], int(m[2]), v)
+                    else:
+                        spec = (w.id, v)
+                    resp.append(spec)
+        return resp
     
     def reveal_split(self):
         self.source = self.entries[-2]
@@ -388,9 +390,9 @@ class TransactionScreen(ModalScreen):
         res = group.edited_fields()
 
         # *** Uncomment these three lines to show the res dictionary in the message area ***
-        message_widget = self.query_one('#message')
-        message_widget.content = Content(str(res))
-        return False
+        # message_widget = self.query_one('#message')
+        # message_widget.content = Content(str(res))
+        # return False
         
         self.dismiss(res)
 

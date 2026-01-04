@@ -338,42 +338,53 @@ class TransactionTable(DataTable):
         self.post_message(self.OpenModal(obj, cb))
 
     def update_transaction(self, resp: dict) -> None:
+        '''
+        Method called after save button clicked.  The modal passed back a dictionary
+        containing names and new values of fields that were updated.  We need to
+        update the record on the screen.  Do this by saving the updates in the DB,
+        fetching the record (to allow the DB API to reinitialize the fields), and
+        then re-rendering the row.
+        '''
         self.log(f'response: {resp}')
         if resp:
-            self.update_DB_transaction(resp)
-            self.update_table_row(resp)
+            obj = self.editing
+            self.update_DB_transaction(obj, resp)
+            # re-fetch here...
+            # fix: self.update_table_row(resp)
             if self.move_down_on_save and self.cursor_row < len(self.records):
                 self.move_cursor(row=self.cursor_row+1)
 
-    def update_DB_transaction(self, resp) -> None:
+    def update_DB_transaction(self, obj, resp) -> None:
         '''
-        Method called when the save button clicked in the modal screen.  If
+        Save values returned from the modal window in the database.  If
         the screen showed an unpaired entry this method won't be called unless
         all required fields are filled in, so we can remove the unpaired tag.
         '''
-        obj = self.editing
-        for key, val in resp.items():
-            if isinstance(key, int):
-                e = obj.entries[key]
-                for field, text in val:
-                    if field == 'account':
-                        e.account = text
-                        self.log(f'#{key}: {field} = {text}')
-            elif key == 'tags':
-                obj.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', val)]
-                self.log(f'tags: {obj.tags}')
-            else:
-                setattr(obj,key,val)
-                self.log(f'{key}: {val}')
+        splits = {}
+        for rec in resp:
+            match rec:
+                case (field, index, value):
+                    dct = splits.setdefault(index, {'account': None, 'amount': None})
+                    dct[field] = value
+                case ('tags', value):
+                    obj.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', value)]
+                case (field, value) if field in ['description','comment']:
+                    setattr(obj,field,value)
+                case _:
+                    self.app.exit(return_code=1, message=f'Unexpected result from modal screen: {rec}')
+        if splits:
+            if not (splits[1]['amount'] and splits[2]['account'] and splits[2]['amount']):
+                self.app.exit(return_code=2, message=f'Unexpected fields in split transaction: {splits}')
+            DB.split_transaction(obj, splits[2]['account'], splits[2]['amount'], splits[1]['amount'])
         if Tag.U.value in obj.entries[0].tags:
             obj.entries[0].tags.remove(Tag.U.value)
-        self.log(f'{obj.pcredit} {obj.pdebit}')
         DB.save_records([obj])
-        self.log(f'{obj.pcredit} {obj.pdebit}')
 
     def update_table_row(self, resp) -> None:
         '''
-        Method called after save button clicked, updates the table view.
+        Updates the table to show new values of edited fields.  If a split was added the
+        response will include new amounts for the entries, but those aren't shown in the 
+        table.
         '''
         obj = self.editing
         for key, val in resp.items():

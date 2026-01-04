@@ -140,7 +140,8 @@ def split(recs, args):
         console.print(f'[blue]exit')
         return
     
-    DB.split_transaction(trans, account, amount)
+    diff = round(trans.pamount-amount, 2)
+    DB.split_transaction(trans, account, amount, diff)
 
 # Table mapping action names (from the command line) with functions that
 # implement the action.

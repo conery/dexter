@@ -822,23 +822,32 @@ class DB:
             assert e in e.tref.entries, "not linked to parent transaction"
 
     @staticmethod
-    def split_transaction(trans, account, amount):
+    def split_transaction(trans, dest_account, dest_amount, src_amount, src_index=1):
         '''
-        Add a new split to a transaction.  Descrease the amount on the last
-        entry, then copy the last entry to make a new one, setting the 
-        account name and amount on the new entry.
+        Add a new split to a transaction.  Appends a new Entry object by copying an 
+        existing entry and allocating part of its amount to the new entry.  The calling
+        function must specify which entry to copy and the amounts to allocate to each
+        entry.
+
+        Arguments:
+            trans:  the transaction to split
+            dest_account:  the account to use for the new entry
+            dest_amount:   the value to put in the amount field of the new entry
+            src_amount:    the updated value for the original entry
+            src_index:     the location of the entry to copy
         '''
-        prev = trans.entries[-1]
-        prev.amount = round(prev.amount-amount,2)
-        new_entry = Entry(
-            date = prev.date,
-            description = "split " + prev.description,
-            account = account,
-            column = prev.column,
-            amount = amount,
+        src = trans.entries[src_index]
+        # prev.amount = round(prev.amount-amount,2)
+        src.amount = src_amount 
+        dest = Entry(
+            date = src.date,
+            description = "split " + src.description,
+            account = dest_account,
+            column = src.column,
+            amount = dest_amount,
         )
-        new_entry.tref = trans
-        trans.entries.append(new_entry)
+        dest.tref = trans
+        trans.entries.append(dest)
         note = ' (split)'
         if not trans.description.endswith(note):
             trans.description += note
