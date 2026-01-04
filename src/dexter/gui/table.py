@@ -342,15 +342,13 @@ class TransactionTable(DataTable):
         Method called after save button clicked.  The modal passed back a dictionary
         containing names and new values of fields that were updated.  We need to
         update the record on the screen.  Do this by saving the updates in the DB,
-        fetching the record (to allow the DB API to reinitialize the fields), and
-        then re-rendering the row.
+        and then re-rendering the row.
         '''
         self.log(f'response: {resp}')
         if resp:
             obj = self.editing
             self.update_DB_transaction(obj, resp)
-            # re-fetch here...
-            # fix: self.update_table_row(resp)
+            self.update_table_row(obj)
             if self.move_down_on_save and self.cursor_row < len(self.records):
                 self.move_cursor(row=self.cursor_row+1)
 
@@ -359,6 +357,10 @@ class TransactionTable(DataTable):
         Save values returned from the modal window in the database.  If
         the screen showed an unpaired entry this method won't be called unless
         all required fields are filled in, so we can remove the unpaired tag.
+
+        TODO:  this version assumes there is only one split.  If/when GUI implements
+        more flexible splits update the lines that validate arguments and calls
+        DB.split_transaction.
         '''
         splits = {}
         for rec in resp:
@@ -380,23 +382,13 @@ class TransactionTable(DataTable):
             obj.entries[0].tags.remove(Tag.U.value)
         DB.save_records([obj])
 
-    def update_table_row(self, resp) -> None:
+    def update_table_row(self, obj) -> None:
         '''
-        Updates the table to show new values of edited fields.  If a split was added the
-        response will include new amounts for the entries, but those aren't shown in the 
-        table.
+        Updates the table to show new values of edited fields.
         '''
-        obj = self.editing
-        for key, val in resp.items():
-            if isinstance(key, int):
-                self.log(f'{key} {val}')
-                for col in ['Credit','Debit']:
-                    spec = self.colspec[col]
-                    self.update_cell(obj.uid, col, spec.render(obj,spec.attr))
-            else:
-                col = key.capitalize()
-                spec = self.colspec[col]
-                self.update_cell(obj.uid, col, spec.render(obj,spec.attr))
+        for spec in transaction_columns:
+            self.update_cell(obj.uid, spec.name, spec.render(obj,spec.attr))
+
 
     class OpenModal(Message):
 
