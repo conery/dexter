@@ -163,6 +163,7 @@ class Entry(Document):
         return h
     
     def clean(self):
+        logging.debug(f'DB.Entry.clean {self}')
         if self.uid is None:
             self.uid = self.hash
             logging.debug(f'Entry.uid: {self.uid}')
@@ -272,10 +273,12 @@ class Transaction(Document):
         has no entries (because it was imported previously) don't save it. 
         Otherwise save each entry, then call the base class method.
         '''
+        logging.debug(f'DB.Transaction.save {self.description}')
         if len(self.entries) == 0:
             logging.debug(f'Transaction.save: transaction has no entries, skipping {self}')
             return
         for e in self.entries:
+            logging.debug(f'  entry: {e}')
             e.save()
         super().save()
 
@@ -500,14 +503,20 @@ class DB:
         tlist = []
         for obj in lst:
             logging.debug(f'DB.save_records: saving {obj}')
-            obj.save()
+            try:
+                obj.save()
+            except Exception as err:
+                logging.error(f'DB: {err} saving {obj}')
             if isinstance(obj, Transaction):
                 tlist.append(obj)
         for t in tlist:
             for e in t.entries:
                 logging.debug(f'DB.save_records: updating {e}')
                 e.tref = t
-                e.save()
+                try:
+                    e.save()
+                except Exception as err:
+                    logging.error(f'DB: {err} saving {e}')
 
     MAX_DUPS = 10
 

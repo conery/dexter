@@ -354,19 +354,24 @@ class TransactionTable(DataTable):
 
     def update_DB_transaction(self, obj, resp) -> None:
         '''
-        Save values returned from the modal window in the database.  If
-        the screen showed an unpaired entry this method won't be called unless
-        all required fields are filled in, so we can remove the unpaired tag.
+        Save values returned from the modal window in the database.  
 
         TODO:  this version assumes there is only one split.  If/when GUI implements
         more flexible splits update the lines that validate arguments and calls
         DB.split_transaction.
         '''
-        splits = {}
+
+        # Iterate over the updated fields.  If a field belongs to the transaction update
+        # it, if it belongs to one of the entries save it in a dictionary so we can
+        # process split transactions
+
+        updated = {}
         for rec in resp:
             match rec:
                 case (field, index, value):
-                    dct = splits.setdefault(index, {'account': None, 'amount': None})
+                    if field not in ['account','amount']:
+                        self.app.exit(return_code=1, message=f'Unexpected result from modal screen: {rec}')
+                    dct = updated.setdefault(index, {})
                     dct[field] = value
                 case ('tags', value):
                     obj.tags = [s if s.startswith('#') else f'#{s}' for s in re.split(r'[\s,]+', value)]
@@ -374,12 +379,34 @@ class TransactionTable(DataTable):
                     setattr(obj,field,value)
                 case _:
                     self.app.exit(return_code=1, message=f'Unexpected result from modal screen: {rec}')
-        if splits:
-            if not (splits[1]['amount'] and splits[2]['account'] and splits[2]['amount']):
-                self.app.exit(return_code=2, message=f'Unexpected fields in split transaction: {splits}')
-            DB.split_transaction(obj, splits[2]['account'], splits[2]['amount'], splits[1]['amount'])
+
+        # The `updated` dictionary has one item for each entry that was modified.
+        #  * entries[0] is constant so there will never be a record for updated[0]
+        #  * if the user edited the account for entries[1] the new account is in updated[1]
+        #  * if the user split the transaction the new account and amount are in updated[2] and
+        #    the new amount for entries[1] is in updated[1]
+
+        if 1 in updated and 'account' in updated[1]:
+            obj.entries[1].account = updated[1]['account']
+
+        if len(updated) > 1:
+            # DB.split_transaction(obj, updated[2]['account'], updated[2]['amount'], updated[1]['amount'])
+            obj.entries[1].amount = updated[1]['amount']
+            new_entry = Entry(
+                date = obj.entries[1].date,
+                description = "split " + obj.entries[1].description,
+                account = updated[2]['account'],
+                column = obj.entries[1].column,
+                amount = updated[2]['amount']
+            )
+            obj.entries.append(new_entry)
+
+        # If the screen showed an unpaired entry this method won't be called unless
+        # all required fields are filled in, so we can remove the unpaired tag.
+
         if Tag.U.value in obj.entries[0].tags:
             obj.entries[0].tags.remove(Tag.U.value)
+
         DB.save_records([obj])
 
     def update_table_row(self, obj) -> None:
